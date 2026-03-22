@@ -1,0 +1,15 @@
+telegram:
+  bot:
+    # Required: your Telegram Bot API token from @BotFather
+    token: "BOT_TOKEN"
+
+    # Transport is LONG_POLLING by default — no need to set it explicitly.
+    # transport: LONG_POLLING
+
+spring:
+  application:
+    name: chatstate-bot
+
+logging:
+  level:
+    uz.osoncode: DEBUG

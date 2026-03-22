@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.4</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>uz.osoncode.easygram.samples</groupId>
+    <artifactId>i18n-registration-bot</artifactId>
+    <version>0.0.1</version>
+    <name>sample :: i18n-registration-bot</name>
+    <description>
+        Sample: Multi-step registration wizard with full i18n support.
+        Demonstrates LocalizedReply, LocalizedTemplate, BotMessageSource, BotKeyboardFactory,
+        state management (@BotChatState / @BotForwardChatState / @BotClearChatState),
+        and @BotTextPattern for phone-number routing.
+        Supports English, Uzbek and Russian via Spring message bundles.
+    </description>
+
+    <properties>
+        <java.version>17</java.version>
+        <library.version>0.0.1</library.version>
+    </properties>
+
+    <dependencies>
+        <!--
+            longpolling pulls in: core, core-api, core-chatstate, spring-boot-starter-validation.
+            core-chatstate provides InMemoryBotChatStateService automatically.
+        -->
+        <dependency>
+            <groupId>uz.osoncode.easygram</groupId>
+            <artifactId>longpolling</artifactId>
+            <version>${library.version}</version>
+        </dependency>
+
+        <!-- i18n support: BotMessageSource, BotKeyboardFactory, LocalizedReply, LocalizedTemplate -->
+        <dependency>
+            <groupId>uz.osoncode.easygram</groupId>
+            <artifactId>core-i18n</artifactId>
+            <version>${library.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

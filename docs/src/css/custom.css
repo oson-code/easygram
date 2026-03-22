@@ -1,0 +1,392 @@
+/**
+ * Custom CSS for Easygram Documentation
+ * Brand palette derived from logo: charcoal #2A2A2A (light) / near-white #E0E0E0 (dark)
+ */
+
+/* ── Brand color scale (light mode — dark charcoal primary) ──────────────── */
+:root {
+  --ifm-color-primary: #2a2a2a;
+  --ifm-color-primary-dark: #1f1f1f;
+  --ifm-color-primary-darker: #141414;
+  --ifm-color-primary-darkest: #0a0a0a;
+  --ifm-color-primary-light: #404040;
+  --ifm-color-primary-lighter: #5c5c5c;
+  --ifm-color-primary-lightest: #787878;
+
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --ifm-heading-font-weight: 600;
+  --ifm-link-hover-decoration: underline;
+  --ifm-toc-link-color: #909090;
+}
+
+/* ── Brand color scale (dark mode — near-white primary) ─────────────────── */
+html[data-theme='dark'] {
+  --ifm-color-primary: #e0e0e0;
+  --ifm-color-primary-dark: #cacaca;
+  --ifm-color-primary-darker: #b4b4b4;
+  --ifm-color-primary-darkest: #969696;
+  --ifm-color-primary-light: #ebebeb;
+  --ifm-color-primary-lighter: #f2f2f2;
+  --ifm-color-primary-lightest: #f8f8f8;
+
+  --ifm-background-color: #0d0d0d;
+  --ifm-background-surface-color: #1a1a1a;
+  --ifm-code-background: #1e1e1e;
+  --ifm-toc-border-color: #2a2a2a;
+  --ifm-navbar-background-color: #111111;
+  --ifm-footer-background-color: #111111;
+  --ifm-toc-link-color: #636363;
+}
+
+/* ── Navbar ──────────────────────────────────────────────────────────────── */
+.navbar {
+  background-color: #2a2a2a;
+  box-shadow: none;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.navbar__inner {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.navbar__title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.navbar__logo img {
+  height: 28px;
+}
+
+/* ── Content width ───────────────────────────────────────────────────────── */
+.container {
+  max-width: 1280px;
+}
+
+/* ── Hero section ────────────────────────────────────────────────────────── */
+.hero {
+  background-color: #2a2a2a;
+  background-image: none;
+  color: #f2f2f2;
+  padding: 72px 20px;
+  text-align: center;
+  margin-bottom: 0;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.hero h1 {
+  font-size: 2.75em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+  color: #f2f2f2;
+}
+
+.hero p {
+  font-size: 1.2em;
+  margin-bottom: 32px;
+  color: #c0c0c0;
+  font-weight: 400;
+}
+
+/* ── Feature cards ───────────────────────────────────────────────────────── */
+.feature-card {
+  padding: 28px 24px;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  background: #ffffff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  text-align: left;
+}
+
+html[data-theme='dark'] .feature-card {
+  background: #1a1a1a;
+  border-color: #2a2a2a;
+}
+
+.feature-card:hover {
+  border-color: #2a2a2a;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme='dark'] .feature-card:hover {
+  border-color: #e0e0e0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.feature-card h3 {
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: #2a2a2a;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  font-size: 0.8em;
+  letter-spacing: 0.05em;
+}
+
+html[data-theme='dark'] .feature-card h3 {
+  color: #f2f2f2;
+}
+
+.feature-card p {
+  font-size: 0.92em;
+  color: #555555;
+  line-height: 1.65;
+  margin: 0;
+}
+
+html[data-theme='dark'] .feature-card p {
+  color: #aaaaaa;
+}
+
+/* ── Tables ──────────────────────────────────────────────────────────────── */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  font-size: 0.92em;
+}
+
+html[data-theme='dark'] table {
+  border-color: #2a2a2a;
+}
+
+thead {
+  background: #2a2a2a;
+  color: #f2f2f2;
+}
+
+html[data-theme='dark'] thead {
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+td, th {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+html[data-theme='dark'] td,
+html[data-theme='dark'] th {
+  border-color: #2a2a2a;
+}
+
+tbody tr:nth-child(even) {
+  background: #f8f8f8;
+}
+
+html[data-theme='dark'] tbody tr:nth-child(even) {
+  background: #141414;
+}
+
+/* ── Admonitions ─────────────────────────────────────────────────────────── */
+.admonition {
+  border-radius: 4px;
+  border-left: 3px solid var(--ifm-color-primary);
+  padding: 14px 16px;
+  margin: 20px 0;
+  font-size: 0.93em;
+}
+
+.admonition-note {
+  border-left-color: #2a2a2a;
+  background: rgba(42, 42, 42, 0.04);
+}
+
+html[data-theme='dark'] .admonition-note {
+  background: rgba(240, 240, 240, 0.04);
+}
+
+.admonition-tip {
+  border-left-color: #1a7340;
+  background: rgba(26, 115, 64, 0.05);
+}
+
+.admonition-warning {
+  border-left-color: #b45309;
+  background: rgba(180, 83, 9, 0.05);
+}
+
+.admonition-danger {
+  border-left-color: #b91c1c;
+  background: rgba(185, 28, 28, 0.05);
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+.sidebar {
+  padding: 20px 0;
+}
+
+.sidebar-item {
+  padding: 6px 12px;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+
+.sidebar-item:hover {
+  background: rgba(42, 42, 42, 0.06);
+}
+
+html[data-theme='dark'] .sidebar-item:hover {
+  background: rgba(240, 240, 240, 0.06);
+}
+
+/* ── Links ───────────────────────────────────────────────────────────────── */
+a {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+a:hover {
+  color: var(--ifm-color-primary-dark);
+  text-decoration: underline;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.button {
+  border-radius: 3px;
+  font-weight: 500;
+  font-size: 0.92em;
+  padding: 9px 22px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  letter-spacing: 0.01em;
+}
+
+/* ── Headings ────────────────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  border-bottom: 1px solid #e8e8e8;
+  padding-bottom: 8px;
+  margin-top: 2em;
+}
+
+html[data-theme='dark'] h2 {
+  border-color: #2a2a2a;
+}
+
+/* ── Code blocks ─────────────────────────────────────────────────────────── */
+.docusaurus-highlight {
+  border-radius: 4px;
+  margin: 20px 0;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.footer {
+  background: #1a1a1a;
+  color: #aaaaaa;
+  padding: 40px 20px;
+  border-top: 1px solid #2a2a2a;
+}
+
+html[data-theme='dark'] .footer {
+  background: #111111;
+  color: #888888;
+}
+
+.footer__col h4 {
+  color: #f2f2f2;
+  font-weight: 600;
+  margin-bottom: 12px;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2em;
+  }
+
+  .hero p {
+    font-size: 1.05em;
+  }
+
+  .navbar__inner {
+    padding: 0 12px;
+  }
+}
+
+/* ── Utilities ───────────────────────────────────────────────────────────── */
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: #6c757d;
+}
+
+.mt-3 {
+  margin-top: 1.5rem;
+}
+
+.mb-3 {
+  margin-bottom: 1.5rem;
+}
+
+.gap-3 {
+  gap: 1.5rem;
+}
+
+/* ── Navbar: active tab indicator ────────────────────────────────────────── */
+
+/* Dim all navbar links so the active one stands out */
+.navbar__link {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+  transition: color 0.15s ease;
+}
+
+/* Active and hovered links: full white + bottom underline */
+.navbar__link--active,
+.navbar__link:hover {
+  color: #ffffff !important;
+  font-weight: 500;
+}
+
+.navbar__link--active {
+  border-bottom: 2px solid rgba(255, 255, 255, 0.75);
+  padding-bottom: 2px;
+}
+
+/* Keep the brand title always at full white */
+.navbar__title {
+  color: #ffffff !important;
+}
+
+/* ── TOC: active section indicator ───────────────────────────────────────── */
+
+/* Active TOC entry: full charcoal + bold + left border */
+.table-of-contents__link--active,
+.table-of-contents__link--active code {
+  color: #2a2a2a !important;
+  font-weight: 600;
+}
+
+.table-of-contents__link--active {
+  border-left: 2px solid #2a2a2a;
+  padding-left: 6px;
+  margin-left: -8px;
+}
+
+html[data-theme='dark'] .table-of-contents__link--active,
+html[data-theme='dark'] .table-of-contents__link--active code {
+  color: #f2f2f2 !important;
+}
+
+html[data-theme='dark'] .table-of-contents__link--active {
+  border-left-color: #f2f2f2;
+}
+

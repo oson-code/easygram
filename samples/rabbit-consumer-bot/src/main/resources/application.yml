@@ -1,0 +1,32 @@
+telegram:
+  bot:
+    # Required: your Telegram Bot API token from @BotFather
+    token: "BOT_TOKEN"
+
+    transport: RABBIT_CONSUMER
+
+    rabbit-consumer:
+      # RabbitMQ queue to consume Telegram updates from
+      queue: telegram-updates
+
+      # Exchange and routing key used when auto-creating the binding
+      exchange: telegram-exchange
+      routing-key: telegram.updates
+
+      # Auto-create the exchange, queue and binding on startup (default: true)
+      create-if-absent: true
+
+spring:
+  application:
+    name: rabbit-consumer-bot
+
+  rabbitmq:
+    host: 10.0.0.2
+    port: 5675
+    username: rabbit
+    password: rabbit
+
+logging:
+  level:
+    uz.osoncode: DEBUG
+    org.springframework.amqp: WARN

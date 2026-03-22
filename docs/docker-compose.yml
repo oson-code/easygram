@@ -1,0 +1,39 @@
+x-source: &source-volumes
+  volumes:
+    - ./blog:/docs/blog
+    - ./docs:/docs/docs
+    - ./src:/docs/src
+    - ./static:/docs/static
+    - ./docusaurus.config.js:/docs/docusaurus.config.js
+    - ./sidebars.js:/docs/sidebars.js
+    - ./package.json:/docs/package.json
+    - ./package-lock.json:/docs/package-lock.json
+  # node_modules / .docusaurus / build are NOT mounted → recreated fresh inside container every run
+
+services:
+  doc:
+    <<: *source-volumes
+    image: node:20-alpine
+    working_dir: /docs
+    ports:
+      - "7006:7006"
+    environment:
+      - NODE_ENV=development
+    command: sh -c "npm ci && npm run start -- --host 0.0.0.0 --port 7006"
+    restart: unless-stopped
+
+  doc-prod:
+    <<: *source-volumes
+    image: node:20-alpine
+    working_dir: /docs
+    ports:
+      - "7006:7006"
+    environment:
+      - NODE_ENV=production
+    # Build and serve entirely inside /tmp — no Windows bind-mount EBUSY issues
+    command: >
+      sh -c "npm ci &&
+             npm run build -- --out-dir /tmp/docbuild &&
+             ./node_modules/.bin/docusaurus serve --dir /tmp/docbuild --host 0.0.0.0 --port 7006"
+    profiles:
+      - production
