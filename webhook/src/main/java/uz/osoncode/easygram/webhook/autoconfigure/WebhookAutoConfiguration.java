@@ -1,0 +1,100 @@
+package uz.osoncode.easygram.webhook.autoconfigure;
+
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import uz.osoncode.easygram.core.bot.BotProperties;
+import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
+import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
+import uz.osoncode.easygram.core.filter.BotFilter;
+import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
+import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
+import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
+import uz.osoncode.easygram.core.trigger.BotStartTrigger;
+import uz.osoncode.easygram.webhook.WebhookBot;
+import uz.osoncode.easygram.webhook.WebhookBotProperties;
+import uz.osoncode.easygram.webhook.WebhookController;
+
+import java.util.List;
+
+/**
+ * Spring Boot auto-configuration class for the webhook transport module.
+ *
+ * <p>This class is processed automatically by Spring Boot's auto-configuration mechanism.
+ * It activates {@link WebhookBotProperties} binding (prefix {@code telegram.bot.webhook}) and
+ * wires the webhook beans from fine-grained provider beans supplied by
+ * {@link uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration}.</p>
+ *
+ * <p>The following beans are registered by this configuration:</p>
+ * <ul>
+ *   <li>{@link WebhookBot} — the main webhook bot instance that registers with Telegram and
+ *       delegates incoming updates to the core processing pipeline.</li>
+ *   <li>{@link WebhookController} — the REST controller that receives POST requests from
+ *       Telegram and forwards them to {@link WebhookBot}.</li>
+ * </ul>
+ *
+ * <p>All beans are guarded by {@link ConditionalOnMissingBean} so applications can supply
+ * their own customised implementations.</p>
+ *
+ * @author Islom Mirsaburov
+ * @since 0.0.1
+ */
+@AutoConfiguration
+@ConditionalOnProperty(prefix = "telegram.bot", name = "transport", havingValue = "WEBHOOK")
+@EnableConfigurationProperties(WebhookBotProperties.class)
+public class WebhookAutoConfiguration {
+
+    /**
+     * Registers the primary {@link WebhookBot} bean wired from fine-grained provider beans.
+     *
+     * @param botProperties               common bot properties containing the token
+     * @param webhookBotProperties        properties holding the webhook URL and other settings
+     * @param triggers                    startup triggers executed once after authentication
+     * @param filters                     filters applied to every incoming update
+     * @param botDispatcher               dispatcher that routes updates to handler methods
+     * @param botExceptionHandlerRegistry registry of exception handler methods
+     * @param telegramClientProvider      provider for the outbound {@code TelegramClient}
+     * @param executorServiceProvider     provider for the update-processing thread pool
+     * @return a fully configured {@link WebhookBot} instance
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public WebhookBot webhookBot(
+            BotProperties botProperties,
+            WebhookBotProperties webhookBotProperties,
+            List<BotStartTrigger> triggers,
+            List<BotFilter> filters,
+            BotDispatcher botDispatcher,
+            BotExceptionHandlerRegistry botExceptionHandlerRegistry,
+            BotTelegramClientProvider telegramClientProvider,
+            BotExecutorServiceProvider executorServiceProvider) {
+        return new WebhookBot(
+                botProperties,
+                webhookBotProperties,
+                triggers,
+                filters,
+                botDispatcher,
+                botExceptionHandlerRegistry,
+                telegramClientProvider,
+                executorServiceProvider);
+    }
+
+    /**
+     * Registers the {@link WebhookController} that exposes the webhook HTTP endpoint.
+     *
+     * @param webhookBot           the bot instance that processes incoming updates
+     * @param webhookBotProperties properties used for path resolution and secret-token validation
+     * @param objectMapperProvider provider whose {@code ObjectMapper} deserialises update payloads
+     * @return a new {@link WebhookController} instance
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public WebhookController webhookController(
+            WebhookBot webhookBot,
+            WebhookBotProperties webhookBotProperties,
+            BotObjectMapperProvider objectMapperProvider) {
+        return new WebhookController(webhookBot, webhookBotProperties, objectMapperProvider);
+    }
+}

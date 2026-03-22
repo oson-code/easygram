@@ -1,0 +1,26 @@
+telegram:
+  bot:
+    # Required: paste your Telegram Bot API token from @BotFather here.
+    token: "BOT_TOKEN"
+
+    # Transport defaults to LONG_POLLING — no need to set it explicitly.
+    # transport: LONG_POLLING
+
+spring:
+  application:
+    name: i18n-registration-bot
+
+  # Spring MessageSource configuration.
+  # Files: src/main/resources/messages/bot.properties         (default / EN fallback)
+  #        src/main/resources/messages/bot_en.properties      (English)
+  #        src/main/resources/messages/bot_uz.properties      (Uzbek)
+  #        src/main/resources/messages/bot_ru.properties      (Russian)
+  messages:
+    basename: messages/bot
+    encoding: UTF-8
+    # Use the message key itself as the default if a translation is missing.
+    use-code-as-default-message: false
+
+logging:
+  level:
+    uz.osoncode: DEBUG

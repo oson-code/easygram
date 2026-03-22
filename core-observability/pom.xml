@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>uz.osoncode.easygram</groupId>
+        <artifactId>parent</artifactId>
+        <version>0.0.1</version>
+    </parent>
+
+    <artifactId>core-observability</artifactId>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Optional observability (metrics + traces) support for the Easygram framework</description>
+    <packaging>jar</packaging>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>uz.osoncode.easygram</groupId>
+            <artifactId>core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!--
+            micrometer-observation is the unified API bridging both metrics (Micrometer)
+            and distributed tracing (Brave / OpenTelemetry). Marked optional so that adding
+            core-observability to a project without actuator compiles cleanly; the
+            auto-configuration is guarded by @ConditionalOnClass(ObservationRegistry.class).
+        -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-observation</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!--
+            micrometer-tracing bridges the Observation API to distributed tracing systems.
+            When micrometer-tracing-bridge-otel (or brave) is on the classpath, every
+            telegram.bot.update observation automatically becomes an OTel / Brave span.
+            Marked optional — no code change needed; Spring Boot auto-configures the bridge.
+        -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!--
+            spring-boot-actuator provides HealthIndicator and InfoContributor interfaces
+            used by BotHealthIndicator and BotInfoContributor. Marked optional so the
+            framework compiles without actuator; beans are guarded by @ConditionalOnClass.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-actuator</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+    </dependencies>
+</project>

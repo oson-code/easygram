@@ -1,0 +1,36 @@
+telegram:
+  bot:
+    # Required: your Telegram Bot API token from @BotFather
+    token: "BOT_TOKEN"
+
+    transport: WEBHOOK
+
+    webhook:
+      # Required: the public HTTPS URL Telegram will POST updates to
+      url: "https://example.com/webhook"
+
+      # Local path that accepts incoming webhook requests (default: /webhook)
+      path: /webhook
+
+      # Optional: secret token validated in X-Telegram-Bot-Api-Secret-Token header
+      # secret-token: "your-secret-token"
+
+      # Maximum simultaneous Telegram→server connections (1–100, optional)
+      # max-connections: 40
+
+      # Drop pending updates when registering the webhook (default: false)
+      drop-pending-updates: false
+
+      # Delete the webhook from Telegram on application shutdown (default: false)
+      unregister-on-shutdown: false
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: webhook-bot
+
+logging:
+  level:
+    uz.osoncode: DEBUG
