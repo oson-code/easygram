@@ -8,6 +8,7 @@
  *
  * <h2>Built-in injectable parameters</h2>
  * <table border="1">
+ *   <caption>Built-in injectable parameters</caption>
  *   <tr><th>Parameter type / annotation</th><th>Resolver</th></tr>
  *   <tr><td>{@link org.telegram.telegrambots.meta.api.objects.Update}</td><td>{@code BotUpdateArgumentResolver}</td></tr>
  *   <tr><td>{@link org.telegram.telegrambots.meta.api.objects.User}</td><td>{@code BotUserArgumentResolver}</td></tr>
@@ -18,7 +19,7 @@
  *   <tr><td>{@link uz.osoncode.easygram.core.model.BotMetadata}</td><td>{@code BotMetadataArgumentResolver}</td></tr>
  *   <tr><td>{@code Throwable} (subtype)</td><td>{@code BotThrowableArgumentResolver}</td></tr>
  *   <tr><td>{@link org.telegram.telegrambots.meta.api.objects.Contact}</td><td>{@code BotContactArgumentResolver}</td></tr>
- *   <tr><td>{@link org.telegram.telegrambots.meta.api.objects.Location}</td><td>{@code BotLocationArgumentResolver}</td></tr>
+ *   <tr><td>{@link org.telegram.telegrambots.meta.api.objects.location.Location}</td><td>{@code BotLocationArgumentResolver}</td></tr>
  *   <tr><td>{@code @BotCommandValue String}</td><td>{@code BotCommandArgumentResolver}</td></tr>
  *   <tr><td>{@code @BotCommandQueryParam("name") String}</td><td>{@code BotCommandQueryParamBotArgumentResolver}</td></tr>
  *   <tr><td>{@code @BotTextValue String}</td><td>{@code BotTextArgumentResolver}</td></tr>

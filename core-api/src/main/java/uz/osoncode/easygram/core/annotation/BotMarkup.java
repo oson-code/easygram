@@ -17,13 +17,13 @@ import java.lang.annotation.*;
  * parameter type is resolvable by a registered
  * {@link uz.osoncode.easygram.core.argumentresolver.BotArgumentResolver}.
  * The framework resolves parameters using the same
- * {@link uz.osoncode.easygram.core.argumentresolver.BotArgumentResolverFactory} used
+ * {@code BotArgumentResolverFactory} used
  * for handler methods, so all built-in injectable types are available:</p>
  * <ul>
  *   <li><strong>No parameters</strong> — static/locale-independent markup</li>
  *   <li>{@link uz.osoncode.easygram.core.model.BotRequest} — full request context</li>
  *   <li>{@link org.telegram.telegrambots.meta.api.objects.User} — the message sender</li>
- *   <li>{@link org.telegram.telegrambots.meta.api.objects.Chat} — the originating chat</li>
+ *   <li>{@link org.telegram.telegrambots.meta.api.objects.chat.Chat} — the originating chat</li>
  *   <li>{@link org.telegram.telegrambots.meta.generics.TelegramClient} — the Telegram client</li>
  *   <li>{@code Locale} — user locale (when {@code core-i18n} is on the classpath)</li>
  *   <li>Any custom type provided by a user-defined {@code BotArgumentResolver} bean</li>

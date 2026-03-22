@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  * {@link Pattern} objects are cached in a {@link ConcurrentHashMap} keyed by pattern string.
  * Each distinct pattern string is compiled at most once per application lifetime.
  *
- * <h3>Registration priority</h3>
+ * <h2>Registration priority</h2>
  * <p>This resolver participates in the same handler-selection competition as
  * {@link BotTextMetaDataResolver} (exact-match) and is registered as a standard
  * {@code @Bean} in {@code CoreAutoConfiguration}. Handlers are ordered and selected by

@@ -38,7 +38,7 @@ import java.util.Set;
  * <p>Any {@link InvocationTargetException} thrown by the reflective call is unwrapped and
  * re-thrown as a {@link BotHandlerException}.</p>
  *
- * <h3>Usage example</h3>
+ * <h2>Usage example</h2>
  * <p>Annotate handler method parameters with Jakarta Validation constraints:</p>
  * <pre>{@code
  * @BotCommand("/register")

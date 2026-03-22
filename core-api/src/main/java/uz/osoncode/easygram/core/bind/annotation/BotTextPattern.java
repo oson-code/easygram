@@ -15,7 +15,7 @@ import java.lang.annotation.*;
  * condition is dynamic or structural, e.g. a phone number, order ID, or free-form input
  * following a known prefix.</p>
  *
- * <h3>Examples</h3>
+ * <h2>Examples</h2>
  * <pre>{@code
  * // Matches any 10-digit phone number
  * @BotTextPattern("^\\d{10}$")
