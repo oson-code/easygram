@@ -1,6 +1,8 @@
 package uz.osoncode.easygram.core.returntypehandler;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import uz.osoncode.easygram.core.bind.annotation.BotClearMarkup;
+import uz.osoncode.easygram.core.bind.annotation.BotReplyMarkup;
 import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;

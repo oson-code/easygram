@@ -10,6 +10,7 @@
  * <h2>Built-in return types</h2>
  *
  * <table border="1">
+ *   <caption>Built-in return types</caption>
  *   <tr><th>Return type</th><th>Handler</th><th>Module</th></tr>
  *   <tr><td>{@code void}</td><td>{@code BotVoidReturnHandler}</td><td>core</td></tr>
  *   <tr><td>{@code String}</td><td>{@code BotStringReturnHandler}</td><td>core</td></tr>
