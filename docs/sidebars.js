@@ -63,6 +63,7 @@ module.exports = {
       items: [
         'api-reference',
         'faq',
+        'contributing',
       ],
     },
   ],
