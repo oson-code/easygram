@@ -22,41 +22,34 @@ The long-polling transport is the **default** and simplest way to run your bot. 
 telegram:
   bot:
     token: ${BOT_TOKEN}
-    transport: LONG_POLLING  # Default, can be omitted
-    long-polling:
-      allow-users-init-updates: true
-      polling-timeout: 30
-      max-poll-size: 100
+    transport: LONG_POLLING # Default, can be omitted
 ```
 
 **application.properties:**
 ```properties
 telegram.bot.token=${BOT_TOKEN}
 telegram.bot.transport=LONG_POLLING
-telegram.bot.long-polling.polling-timeout=30
-telegram.bot.long-polling.max-poll-size=100
 ```
 
 ## Configuration Options
 
-| Property | Default | Description |
-|---|---|---|
-| `polling-timeout` | 30 | Timeout in seconds for long-polling |
-| `max-poll-size` | 100 | Max updates per poll |
-| `allow-users-init-updates` | true | Process initial updates after bot startup |
+| Property | Required | Default | Description |
+|---|---|---|---|
+| `telegram.bot.token` | Yes | — | Bot API token from @BotFather |
+| `telegram.bot.transport` | No | `LONG_POLLING` | Transport type |
 
 ## Advantages
 
-✅ Simple to setup (no HTTPS, firewall, DNS required)
-✅ Works in development and behind NAT
-✅ No external infrastructure needed
-✅ Good for testing and prototyping
+ Simple to setup (no HTTPS, firewall, DNS required)
+ Works in development and behind NAT
+ No external infrastructure needed
+ Good for testing and prototyping
 
 ## Disadvantages
 
-❌ Polling adds latency (~N seconds) before updates are received
-❌ Not efficient for large-scale production (many API calls)
-❌ Heavier load on Telegram API
+ Polling adds latency (~N seconds) before updates are received
+ Not efficient for large-scale production (many API calls)
+ Heavier load on Telegram API
 
 ## When to Use
 
@@ -109,9 +102,6 @@ telegram:
   bot:
     token: ${BOT_TOKEN}
     transport: LONG_POLLING
-    long-polling:
-      polling-timeout: 30
-      max-poll-size: 100
 ```
 
 **Run:**

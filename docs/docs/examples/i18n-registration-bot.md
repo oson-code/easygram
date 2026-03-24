@@ -32,17 +32,17 @@ You can find the complete source in [`samples/i18n-registration-bot`](https://gi
 
 ```
 /register
-    │
-    ▼  state: AWAITING_NAME
-collectName  (@BotTextDefault)          → AWAITING_PHONE
-    │
-    ▼  state: AWAITING_PHONE
-collectPhone (@BotTextPattern E.164)    → AWAITING_CITY   (valid typed phone)
-collectPhone (@BotContact)              → AWAITING_CITY   (Telegram shared contact)
+    
+      state: AWAITING_NAME
+collectName (@BotTextDefault) → AWAITING_PHONE
+    
+      state: AWAITING_PHONE
+collectPhone (@BotTextPattern E.164) → AWAITING_CITY (valid typed phone)
+collectPhone (@BotContact) → AWAITING_CITY (Telegram shared contact)
 invalidPhone (@BotTextDefault fallback) → stays AWAITING_PHONE
-    │
-    ▼  state: AWAITING_CITY
-collectCity  (@BotTextDefault)          → (state cleared, wizard done)
+    
+      state: AWAITING_CITY
+collectCity (@BotTextDefault) → (state cleared, wizard done)
 
 At any step:
 onCancelButton (@BotReplyButton "btn.cancel") → (state cleared, keyboard removed)
@@ -54,22 +54,22 @@ onCancelButton (@BotReplyButton "btn.cancel") → (state cleared, keyboard remov
 
 ```
 i18n-registration-bot/
-├── pom.xml
-└── src/main/
-    ├── java/uz/example/i18n/
-    │   ├── I18nRegistrationBotApplication.java
-    │   ├── RegistrationState.java
-    │   ├── RegistrationController.java
-    │   ├── GlobalController.java
-    │   └── markup/
-    │       └── RegistrationMarkups.java
-    └── resources/
-        ├── application.yml
-        └── messages/
-            ├── bot.properties         ← default / English fallback
-            ├── bot_en.properties
-            ├── bot_uz.properties
-            └── bot_ru.properties
+ pom.xml
+ src/main/
+     java/uz/example/i18n/
+        I18nRegistrationBotApplication.java
+        RegistrationState.java
+        RegistrationController.java
+        GlobalController.java
+        markup/
+            RegistrationMarkups.java
+     resources/
+         application.yml
+         messages/
+             bot.properties ← default / English fallback
+             bot_en.properties
+             bot_uz.properties
+             bot_ru.properties
 ```
 
 ---
@@ -89,14 +89,14 @@ The sample uses **`longpolling`** (which pulls in `core`, `core-api`, and `core-
     <dependency>
         <groupId>uz.osoncode.easygram</groupId>
         <artifactId>longpolling</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
     </dependency>
 
     <!-- i18n: BotMessageSource, BotKeyboardFactory, LocalizedReply, LocalizedTemplate -->
     <dependency>
         <groupId>uz.osoncode.easygram</groupId>
         <artifactId>core-i18n</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
     </dependency>
 </dependencies>
 ```
@@ -108,7 +108,7 @@ Alternatively, use the `spring-boot-starter` artifact to pull in all transports 
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 :::
@@ -129,7 +129,7 @@ spring:
     name: i18n-registration-bot
 
   messages:
-    basename: messages/bot      # loads messages/bot*.properties
+    basename: messages/bot # loads messages/bot*.properties
     encoding: UTF-8
     use-code-as-default-message: false
 ```
@@ -149,7 +149,7 @@ package uz.example.i18n;
  * Represents the three stages of the user registration wizard.
  *
  * Flow:
- *   /register → AWAITING_NAME → AWAITING_PHONE → AWAITING_CITY → (cleared)
+ * /register → AWAITING_NAME → AWAITING_PHONE → AWAITING_CITY → (cleared)
  */
 public enum RegistrationState {
 
@@ -174,102 +174,102 @@ Create one properties file per locale under `src/main/resources/messages/`.
 
 ```properties
 # --- Welcome ---
-welcome.title=👋 Welcome, {0}!
+welcome.title= Welcome, {0}!
 welcome.body=I am a registration bot with full i18n support.\n\nI speak English, Ўзбекча and Русский — my reply language is detected from your Telegram profile.
-welcome.commands=Commands:\n  /register — start the registration wizard\n  /status   — check wizard progress\n  /cancel   — cancel the wizard at any step
+welcome.commands=Commands:\n /register — start the registration wizard\n /status — check wizard progress\n /cancel — cancel the wizard at any step
 
 # --- Registration wizard ---
-register.start=📝 Let's get you registered!\n\nStep 1/3 — What is your full name?
-register.name.saved=✅ Name saved: {0}\n\nStep 2/3 — Please enter your phone number.\nFormat: +XXXXXXXXXXXX (include country code)
-register.phone.invalid=⚠️ Invalid phone number. Please use international format, e.g. +998901234567
-register.phone.saved=✅ Phone saved: {0}\n\nStep 3/3 — Which city do you live in?
-register.complete=🎉 Registration complete!\n\nYour details:\n• Name:  #{0}\n• Phone: #{1}\n• City:  #{2}\n\nUse /register to update your profile.
-register.cancelled=❌ Registration cancelled. Use /register to start again.
+register.start= Let's get you registered!\n\nStep 1/3 — What is your full name?
+register.name.saved= Name saved: {0}\n\nStep 2/3 — Please enter your phone number.\nFormat: +XXXXXXXXXXXX (include country code)
+register.phone.invalid= Invalid phone number. Please use international format, e.g. +998901234567
+register.phone.saved= Phone saved: {0}\n\nStep 3/3 — Which city do you live in?
+register.complete= Registration complete!\n\nYour details:\n• Name: #{0}\n• Phone: #{1}\n• City: #{2}\n\nUse /register to update your profile.
+register.cancelled= Registration cancelled. Use /register to start again.
 
 # --- Status ---
-status.none=ℹ️ No active registration wizard. Use /register to start one.
-status.awaiting_name=📝 Wizard in progress — waiting for your name (step 1/3).
-status.awaiting_phone=📝 Wizard in progress — waiting for your phone number (step 2/3).
-status.awaiting_city=📝 Wizard in progress — waiting for your city (step 3/3).
+status.none=ℹ No active registration wizard. Use /register to start one.
+status.awaiting_name= Wizard in progress — waiting for your name (step 1/3).
+status.awaiting_phone= Wizard in progress — waiting for your phone number (step 2/3).
+status.awaiting_city= Wizard in progress — waiting for your city (step 3/3).
 
 # --- Cancel command ---
-cancel.none=ℹ️ There is no active wizard to cancel.
-cancel.done=❌ Registration wizard cancelled. Use /register to start again.
+cancel.none=ℹ There is no active wizard to cancel.
+cancel.done= Registration wizard cancelled. Use /register to start again.
 
 # --- Fallback ---
 error.unknown=I didn't understand that.\nUse /register to start, /status to check progress, or /cancel to abort.
 
 # --- Keyboard buttons ---
-btn.cancel=❌ Cancel
-btn.send.phone=📱 Share phone number
+btn.cancel= Cancel
+btn.send.phone= Share phone number
 ```
 
 ### `messages/bot_ru.properties`
 
 ```properties
 # --- Приветствие ---
-welcome.title=👋 Добро пожаловать, {0}!
+welcome.title= Добро пожаловать, {0}!
 welcome.body=Я бот регистрации с полной поддержкой i18n.\n\nЯзык ответов определяется автоматически по настройкам вашего Telegram.
-welcome.commands=Команды:\n  /register — начать регистрацию\n  /status   — статус анкеты\n  /cancel   — отменить
+welcome.commands=Команды:\n /register — начать регистрацию\n /status — статус анкеты\n /cancel — отменить
 
 # --- Регистрация ---
-register.start=📝 Начнём регистрацию!\n\nШаг 1/3 — Введите ваше полное имя:
-register.name.saved=✅ Имя сохранено: {0}\n\nШаг 2/3 — Введите номер телефона.\nФормат: +XXXXXXXXXXXX (с кодом страны)
-register.phone.invalid=⚠️ Неверный формат номера. Используйте международный формат, например: +79001234567
-register.phone.saved=✅ Телефон сохранён: {0}\n\nШаг 3/3 — В каком городе вы живёте?
-register.complete=🎉 Регистрация завершена!\n\nВаши данные:\n• Имя:     #{0}\n• Телефон: #{1}\n• Город:   #{2}\n\nДля обновления используйте /register.
-register.cancelled=❌ Регистрация отменена. Для начала используйте /register.
+register.start= Начнём регистрацию!\n\nШаг 1/3 — Введите ваше полное имя:
+register.name.saved= Имя сохранено: {0}\n\nШаг 2/3 — Введите номер телефона.\nФормат: +XXXXXXXXXXXX (с кодом страны)
+register.phone.invalid= Неверный формат номера. Используйте международный формат, например: +79001234567
+register.phone.saved= Телефон сохранён: {0}\n\nШаг 3/3 — В каком городе вы живёте?
+register.complete= Регистрация завершена!\n\nВаши данные:\n• Имя: #{0}\n• Телефон: #{1}\n• Город: #{2}\n\nДля обновления используйте /register.
+register.cancelled= Регистрация отменена. Для начала используйте /register.
 
 # --- Статус ---
-status.none=ℹ️ Активной регистрации нет. Начните с /register.
-status.awaiting_name=📝 Регистрация в процессе — ожидаю ваше имя (шаг 1/3).
-status.awaiting_phone=📝 Регистрация в процессе — ожидаю номер телефона (шаг 2/3).
-status.awaiting_city=📝 Регистрация в процессе — ожидаю название города (шаг 3/3).
+status.none=ℹ Активной регистрации нет. Начните с /register.
+status.awaiting_name= Регистрация в процессе — ожидаю ваше имя (шаг 1/3).
+status.awaiting_phone= Регистрация в процессе — ожидаю номер телефона (шаг 2/3).
+status.awaiting_city= Регистрация в процессе — ожидаю название города (шаг 3/3).
 
 # --- Отмена ---
-cancel.none=ℹ️ Нет активной регистрации для отмены.
-cancel.done=❌ Регистрация отменена. Начните заново с /register.
+cancel.none=ℹ Нет активной регистрации для отмены.
+cancel.done= Регистрация отменена. Начните заново с /register.
 
 # --- Стандартный ответ ---
 error.unknown=Я не понял вашего сообщения.\n/register — начать, /status — статус, /cancel — отменить.
 
 # --- Кнопки ---
-btn.cancel=❌ Отмена
-btn.send.phone=📱 Поделиться номером
+btn.cancel= Отмена
+btn.send.phone= Поделиться номером
 ```
 
 ### `messages/bot_uz.properties`
 
 ```properties
 # --- Xush kelibsiz ---
-welcome.title=👋 Xush kelibsiz, {0}!
+welcome.title= Xush kelibsiz, {0}!
 welcome.body=Men ro'yxatdan o'tkazish boti bo'lib, to'liq i18n qo'llab-quvvatlashga egaman.\n\nTil Telegram profilingizdagi til sozlamalaridan avtomatik aniqlanadi.
-welcome.commands=Buyruqlar:\n  /register — ro'yxatdan o'tish\n  /status   — jarayon holati\n  /cancel   — bekor qilish
+welcome.commands=Buyruqlar:\n /register — ro'yxatdan o'tish\n /status — jarayon holati\n /cancel — bekor qilish
 
 # --- Ro'yxatdan o'tish ---
-register.start=📝 Ro'yxatdan o'tamiz!\n\n1/3-qadam — To'liq ismingizni kiriting:
-register.name.saved=✅ Ism saqlandi: {0}\n\n2/3-qadam — Telefon raqamingizni kiriting.\nFormat: +XXXXXXXXXXXX (mamlakat kodi bilan)
-register.phone.invalid=⚠️ Noto'g'ri telefon raqami. Xalqaro formatdan foydalaning, masalan: +998901234567
-register.phone.saved=✅ Telefon saqlandi: {0}\n\n3/3-qadam — Qaysi shaharda yashaysiz?
-register.complete=🎉 Ro'yxatdan o'tish yakunlandi!\n\nMa'lumotlaringiz:\n• Ism:     #{0}\n• Telefon: #{1}\n• Shahar:  #{2}\n\nMa'lumotlarni yangilash uchun /register buyrug'ini ishlating.
-register.cancelled=❌ Ro'yxatdan o'tish bekor qilindi. Qayta boshlash uchun /register.
+register.start= Ro'yxatdan o'tamiz!\n\n1/3-qadam — To'liq ismingizni kiriting:
+register.name.saved= Ism saqlandi: {0}\n\n2/3-qadam — Telefon raqamingizni kiriting.\nFormat: +XXXXXXXXXXXX (mamlakat kodi bilan)
+register.phone.invalid= Noto'g'ri telefon raqami. Xalqaro formatdan foydalaning, masalan: +998901234567
+register.phone.saved= Telefon saqlandi: {0}\n\n3/3-qadam — Qaysi shaharda yashaysiz?
+register.complete= Ro'yxatdan o'tish yakunlandi!\n\nMa'lumotlaringiz:\n• Ism: #{0}\n• Telefon: #{1}\n• Shahar: #{2}\n\nMa'lumotlarni yangilash uchun /register buyrug'ini ishlating.
+register.cancelled= Ro'yxatdan o'tish bekor qilindi. Qayta boshlash uchun /register.
 
 # --- Holat xabarlari ---
-status.none=ℹ️ Faol jarayon yo'q. Boshlash uchun /register.
-status.awaiting_name=📝 Jarayon davom etmoqda — ismingiz kutilmoqda (1/3-qadam).
-status.awaiting_phone=📝 Jarayon davom etmoqda — telefon raqamingiz kutilmoqda (2/3-qadam).
-status.awaiting_city=📝 Jarayon davom etmoqda — shahringiz kutilmoqda (3/3-qadam).
+status.none=ℹ Faol jarayon yo'q. Boshlash uchun /register.
+status.awaiting_name= Jarayon davom etmoqda — ismingiz kutilmoqda (1/3-qadam).
+status.awaiting_phone= Jarayon davom etmoqda — telefon raqamingiz kutilmoqda (2/3-qadam).
+status.awaiting_city= Jarayon davom etmoqda — shahringiz kutilmoqda (3/3-qadam).
 
 # --- Bekor qilish ---
-cancel.none=ℹ️ Bekor qilish uchun faol jarayon yo'q.
-cancel.done=❌ Ro'yxatdan o'tish bekor qilindi. Qayta boshlash uchun /register.
+cancel.none=ℹ Bekor qilish uchun faol jarayon yo'q.
+cancel.done= Ro'yxatdan o'tish bekor qilindi. Qayta boshlash uchun /register.
 
 # --- Standart javob ---
 error.unknown=Tushunmadim.\n/register — boshlash, /status — holat, /cancel — bekor qilish.
 
 # --- Tugmalar ---
-btn.cancel=❌ Bekor qilish
-btn.send.phone=📱 Telefon raqamni ulashing
+btn.cancel= Bekor qilish
+btn.send.phone= Telefon raqamni ulashing
 ```
 
 :::note Default bundle
@@ -303,9 +303,9 @@ public class RegistrationMarkups {
      * "kb_cancel" — single cancel button, shown at every wizard step.
      *
      * The button label resolves to the user's locale:
-     *   en → ❌ Cancel
-     *   uz → ❌ Bekor qilish
-     *   ru → ❌ Отмена
+     * en → Cancel
+     * uz → Bekor qilish
+     * ru → Отмена
      */
     @BotMarkup("kb_cancel")
     public ReplyKeyboard cancelKeyboard(BotRequest request) {
@@ -321,9 +321,9 @@ public class RegistrationMarkups {
      *
      * setRequestContact(true) makes Telegram display the native contact-sharing dialog.
      * The button label resolves to the user's locale:
-     *   en → 📱 Share phone number
-     *   uz → 📱 Telefon raqamni ulashing
-     *   ru → 📱 Поделиться номером
+     * en → Share phone number
+     * uz → Telefon raqamni ulashing
+     * ru → Поделиться номером
      */
     @BotMarkup("kb_send_phone")
     public ReplyKeyboard phone(BotRequest botRequest) {
@@ -362,7 +362,7 @@ import uz.osoncode.easygram.core.stereotype.BotController;
 @BotChatState({"AWAITING_NAME", "AWAITING_PHONE", "AWAITING_CITY"})
 public class RegistrationController {
 
-    // ── Step 0: entry point ──────────────────────────────────────────────────
+    // Step 0: entry point
 
     /**
      * Starts the wizard from ANY chat state — including no state at all.
@@ -371,14 +371,14 @@ public class RegistrationController {
      * making /register reachable even when no registration is in progress.
      */
     @BotCommand("/register")
-    @BotChatState            // empty — overrides class guard, accepts any state
+    @BotChatState // empty — overrides class guard, accepts any state
     @BotForwardChatState("AWAITING_NAME")
     @BotReplyMarkup("kb_cancel")
     public LocalizedReply startRegistration(User user) {
         return LocalizedReply.of("register.start");
     }
 
-    // ── Step 1: collect name ─────────────────────────────────────────────────
+    // Step 1: collect name
 
     @BotTextDefault
     @BotChatState("AWAITING_NAME")
@@ -389,7 +389,7 @@ public class RegistrationController {
         return LocalizedReply.of("register.name.saved", name);
     }
 
-    // ── Step 2a: collect phone — shared contact ───────────────────────────────
+    // Step 2a: collect phone — shared contact
 
     /**
      * Fires when the user taps the "Share phone number" button.
@@ -403,7 +403,7 @@ public class RegistrationController {
         return LocalizedReply.of("register.phone.saved", contact.getPhoneNumber());
     }
 
-    // ── Step 2b: collect phone — typed E.164 number ────────────────────────
+    // Step 2b: collect phone — typed E.164 number
 
     /**
      * Fires only when the user types a valid international phone number.
@@ -419,7 +419,7 @@ public class RegistrationController {
         return LocalizedReply.of("register.phone.saved", phone);
     }
 
-    // ── Step 2c: invalid phone — fallback ────────────────────────────────────
+    // Step 2c: invalid phone — fallback
 
     /**
      * Catches any text that did NOT match the @BotTextPattern above.
@@ -432,14 +432,14 @@ public class RegistrationController {
         return LocalizedReply.of("register.phone.invalid");
     }
 
-    // ── Step 3: collect city ─────────────────────────────────────────────────
+    // Step 3: collect city
 
     /**
      * Receives the city name and completes the wizard.
      *
      * LocalizedTemplate demonstrates mixed ${key} + #{n} syntax:
-     *   ${register.complete}  →  resolved from the bundle
-     *   #{0}, #{1}, #{2}      →  positional args (name, phone, city)
+     * ${register.complete} → resolved from the bundle
+     * #{0}, #{1}, #{2} → positional args (name, phone, city)
      *
      * In a real app, name and phone would come from a database or session;
      * here they are represented by placeholder strings for brevity.
@@ -452,7 +452,7 @@ public class RegistrationController {
         return LocalizedTemplate.of("${register.complete}", "(saved)", "(saved)", city);
     }
 
-    // ── Validation error handler ─────────────────────────────────────────────
+    // Validation error handler
 
     /**
      * Catches ConstraintViolationException thrown before the handler body runs when
@@ -470,11 +470,11 @@ public class RegistrationController {
         return LocalizedReply.of("error.validation", violations);
     }
 
-    // ── Cancel button ────────────────────────────────────────────────────────
+    // Cancel button
 
     /**
      * The "btn.cancel" bundle key is resolved in the user's locale at match time,
-     * so this single annotation covers ❌ Cancel / ❌ Bekor qilish / ❌ Отмена.
+     * so this single annotation covers Cancel / Bekor qilish / Отмена.
      */
     @BotReplyButton("btn.cancel")
     @BotClearChatState
@@ -523,7 +523,7 @@ public class GlobalController {
     public LocalizedTemplate onStart(User user) {
         return LocalizedTemplate.of(
                 "${welcome.title}\n\n${welcome.body}\n\n${welcome.commands}",
-                user.getFirstName()     // #{0}
+                user.getFirstName() // #{0}
         );
     }
 
@@ -540,9 +540,9 @@ public class GlobalController {
             return LocalizedReply.of("status.none");
         }
         return switch (state) {
-            case AWAITING_NAME  -> LocalizedReply.of("status.awaiting_name");
+            case AWAITING_NAME -> LocalizedReply.of("status.awaiting_name");
             case AWAITING_PHONE -> LocalizedReply.of("status.awaiting_phone");
-            case AWAITING_CITY  -> LocalizedReply.of("status.awaiting_city");
+            case AWAITING_CITY -> LocalizedReply.of("status.awaiting_city");
         };
     }
 
@@ -626,9 +626,9 @@ The framework tries `@BotTextPattern` first; only unmatched text falls through t
 
 With `core-i18n` on the classpath, `@BotReplyButton` values are treated as **message bundle keys**, not literal strings. The framework resolves `btn.cancel` in the user's current locale before comparing it to the incoming text. A single annotation therefore matches:
 
-- `❌ Cancel` (English)
-- `❌ Bekor qilish` (Uzbek)
-- `❌ Отмена` (Russian)
+- ` Cancel` (English)
+- ` Bekor qilish` (Uzbek)
+- ` Отмена` (Russian)
 
 ### `LocalizedReply` vs `LocalizedTemplate`
 
@@ -642,7 +642,7 @@ Example — `/start` uses `LocalizedTemplate` because the welcome message is ass
 ```java
 return LocalizedTemplate.of(
     "${welcome.title}\n\n${welcome.body}\n\n${welcome.commands}",
-    user.getFirstName()   // replaces #{0} inside any bundle value that contains it
+    user.getFirstName() // replaces #{0} inside any bundle value that contains it
 );
 ```
 
@@ -723,12 +723,12 @@ Once running, open a chat with your bot and try:
 | `/start` | Localised welcome in your language |
 | `/register` | Starts wizard, shows step 1 prompt |
 | Type your name (≥2 chars) | Advances to step 2, shows phone keyboard |
-| Type `A` (1 char, at name step) | `⚠️ Invalid input: • size must be between 2 and 50` |
+| Type `A` (1 char, at name step) | ` Invalid input: • size must be between 2 and 50` |
 | Tap "Share phone number" | Advances to step 3 via shared contact |
 | Type `+998901234567` | Advances to step 3 via typed phone |
 | Type `abc` (at phone step) | Error message, stays on step 2 |
 | Type your city (≥2 chars) | Completes wizard, shows summary |
-| Type `X` (1 char, at city step) | `⚠️ Invalid input: • size must be between 2 and 50` |
+| Type `X` (1 char, at city step) | ` Invalid input: • size must be between 2 and 50` |
 | Tap "Cancel" button | Cancels wizard from any step |
 | `/status` | Shows current wizard step |
 | `/cancel` | Cancels wizard via command |

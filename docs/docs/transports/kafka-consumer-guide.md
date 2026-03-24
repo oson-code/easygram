@@ -24,8 +24,9 @@ telegram:
     transport: KAFKA_CONSUMER
     kafka-consumer:
       topic: telegram-updates
-      group-id: bot-group-1
-      bootstrap-servers: localhost:9092
+      create-if-absent: true
+      partitions: 1
+      replication-factor: 1
 
 spring:
   kafka:
@@ -33,6 +34,17 @@ spring:
     consumer:
       group-id: bot-group-1
 ```
+
+## Configuration Options
+
+| Property | Required | Default | Description |
+|---|---|---|---|
+| `telegram.bot.kafka-consumer.topic` | Yes | — | Kafka topic to consume from |
+| `telegram.bot.kafka-consumer.create-if-absent` | No | `true` | Auto-create topic if not present |
+| `telegram.bot.kafka-consumer.partitions` | No | `1` | Partitions for auto-created topic |
+| `telegram.bot.kafka-consumer.replication-factor` | No | `1` | Replication factor for auto-created topic |
+| `spring.kafka.bootstrap-servers` | Yes | — | Kafka broker address(es) |
+| `spring.kafka.consumer.group-id` | Yes | — | Consumer group ID |
 
 ## Message Format
 
@@ -104,7 +116,7 @@ Use messaging-kafka module to publish:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-kafka</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
@@ -113,11 +125,15 @@ Use messaging-kafka module to publish:
 telegram:
   bot:
     messaging:
-      enabled: true
-      type: KAFKA
-      kafka:
-        topic: telegram-updates
-        bootstrap-servers: localhost:9092
+      forward-only: true
+      producer:
+        producer-type: kafka
+    kafka-consumer:
+      topic: telegram-updates
+
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
 ```
 
 See [Broker Publishing](../advanced/broker-publishing) for details.

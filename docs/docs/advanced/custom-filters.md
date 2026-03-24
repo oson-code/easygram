@@ -21,12 +21,12 @@ Each filter can:
 
 ```
 Update
-  → BotContextSetterFilter   (sets User + Chat)
-  → BotObservationFilter     (Micrometer span)
+  → BotContextSetterFilter (sets User + Chat)
+  → BotObservationFilter (Micrometer span)
   → BotApiMethodsSenderFilter(sends queued responses)
   → BotUpdatePublishingFilter (optional: broker forwarding)
   → [your custom filters]
-  → BotDispatcher            (routes to handler)
+  → BotDispatcher (routes to handler)
 ```
 
 The chain is sorted by `getOrder()` — lower value = runs earlier.
@@ -82,7 +82,7 @@ public class AuthFilter implements BotFilter {
         if (user == null || !allowedUserIds.contains(user.getId())) {
             response.addBotApiMethod(SendMessage.builder()
                     .chatId(request.getChat().getId())
-                    .text("⛔ You are not authorized to use this bot.")
+                    .text(" You are not authorized to use this bot.")
                     .build());
             return; // Stop — do NOT call chain.doFilter
         }
@@ -105,8 +105,8 @@ Allow each user a maximum of 5 messages per 10 seconds:
 public class RateLimitFilter implements BotFilter {
 
     private final Map<Long, Deque<Long>> timestamps = new ConcurrentHashMap<>();
-    private static final int  MAX_REQUESTS = 5;
-    private static final long WINDOW_MS    = 10_000L;
+    private static final int MAX_REQUESTS = 5;
+    private static final long WINDOW_MS = 10_000L;
 
     @Override
     public void doFilter(BotRequest request, BotResponse response, BotFilterChain chain)
@@ -115,7 +115,7 @@ public class RateLimitFilter implements BotFilter {
         if (user != null && isRateLimited(user.getId())) {
             response.addBotApiMethod(SendMessage.builder()
                     .chatId(request.getChat().getId())
-                    .text("⏳ Too many requests — please slow down.")
+                    .text(" Too many requests — please slow down.")
                     .build());
             return;
         }
@@ -191,8 +191,8 @@ public class TenantContext {
     private final ThreadLocal<String> tenantId = new ThreadLocal<>();
 
     public void set(String id) { tenantId.set(id); }
-    public String get()        { return tenantId.get(); }
-    public void clear()        { tenantId.remove(); }
+    public String get() { return tenantId.get(); }
+    public void clear() { tenantId.remove(); }
 }
 
 // Filter — resolves and stores tenant ID before the chain runs
@@ -211,7 +211,7 @@ public class TenantResolutionFilter implements BotFilter {
         try {
             chain.doFilter(request, response);
         } finally {
-            tenantContext.clear();  // Always clean up after the chain
+            tenantContext.clear(); // Always clean up after the chain
         }
     }
 
@@ -241,7 +241,7 @@ completes by `BotApiMethodsSenderFilter`:
 ```java
 response.addBotApiMethod(SendMessage.builder()
         .chatId(request.getChat().getId())
-        .text("⏳ Your request is being processed...")
+        .text(" Your request is being processed...")
         .build());
 ```
 

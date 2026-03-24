@@ -19,7 +19,7 @@ keyboards, and automatic `Locale` injection into handler methods — all built o
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-i18n</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
@@ -29,10 +29,10 @@ Place locale-specific `.properties` files under `src/main/resources/messages/`:
 
 ```
 src/main/resources/messages/
-├── bot.properties          ← default fallback
-├── bot_en.properties       ← English
-├── bot_ru.properties       ← Russian
-└── bot_uz.properties       ← Uzbek
+ bot.properties ← default fallback
+ bot_en.properties ← English
+ bot_ru.properties ← Russian
+ bot_uz.properties ← Uzbek
 ```
 
 **`messages/bot.properties`** (default / English fallback):
@@ -45,14 +45,14 @@ register.step.phone=Please share your phone number:
 register.done=Registration complete, {0}!
 register.cancelled=Registration cancelled.
 
-btn.cancel=❌ Cancel
-btn.confirm=✅ Confirm
-btn.back=⬅️ Back
-btn.profile=👤 Profile
-btn.settings=⚙️ Settings
-btn.help=❓ Help
-btn.yes=✅ Yes
-btn.no=❌ No
+btn.cancel= Cancel
+btn.confirm= Confirm
+btn.back= Back
+btn.profile= Profile
+btn.settings= Settings
+btn.help= Help
+btn.yes= Yes
+btn.no= No
 ```
 
 **`messages/bot_ru.properties`** (Russian):
@@ -65,14 +65,14 @@ register.step.phone=Поделитесь вашим номером телефо�
 register.done=Регистрация завершена, {0}!
 register.cancelled=Регистрация отменена.
 
-btn.cancel=❌ Отмена
-btn.confirm=✅ Подтвердить
-btn.back=⬅️ Назад
-btn.profile=👤 Профиль
-btn.settings=⚙️ Настройки
-btn.help=❓ Помощь
-btn.yes=✅ Да
-btn.no=❌ Нет
+btn.cancel= Отмена
+btn.confirm= Подтвердить
+btn.back= Назад
+btn.profile= Профиль
+btn.settings= Настройки
+btn.help= Помощь
+btn.yes= Да
+btn.no= Нет
 ```
 
 **`messages/bot_uz.properties`** (Uzbek):
@@ -85,14 +85,14 @@ register.step.phone=Telefon raqamingizni yuboring:
 register.done=Ro'yxatdan o'tish yakunlandi, {0}!
 register.cancelled=Ro'yxatdan o'tish bekor qilindi.
 
-btn.cancel=❌ Bekor qilish
-btn.confirm=✅ Tasdiqlash
-btn.back=⬅️ Orqaga
-btn.profile=👤 Profil
-btn.settings=⚙️ Sozlamalar
-btn.help=❓ Yordam
-btn.yes=✅ Ha
-btn.no=❌ Yo'q
+btn.cancel= Bekor qilish
+btn.confirm= Tasdiqlash
+btn.back= Orqaga
+btn.profile= Profil
+btn.settings= Sozlamalar
+btn.help= Yordam
+btn.yes= Ha
+btn.no= Yo'q
 ```
 
 ### Configure Spring MessageSource
@@ -100,10 +100,10 @@ btn.no=❌ Yo'q
 ```yaml
 spring:
   messages:
-    basename: messages/bot      # resolves messages/bot.properties, messages/bot_en.properties …
+    basename: messages/bot # resolves messages/bot.properties, messages/bot_en.properties …
     encoding: UTF-8
     use-code-as-default-message: false
-    cache-duration: 3600        # seconds; omit or set to 0 during development
+    cache-duration: 3600 # seconds; omit or set to 0 during development
 ```
 
 ### Set the Default Locale
@@ -112,7 +112,7 @@ spring:
 telegram:
   bot:
     i18n:
-      default-locale: en        # used when user has no language_code set
+      default-locale: en # used when user has no language_code set
 ```
 
 ---
@@ -249,13 +249,13 @@ public class MyKeyboards {
 
     private final BotKeyboardFactory keyboardFactory;
 
-    // ── Reply keyboards ──────────────────────────────────────────────────────
+    // Reply keyboards
 
     @BotMarkup("main_menu")
     public ReplyKeyboard mainMenu(BotRequest request) {
         return keyboardFactory.reply(request)
-            .row("btn.profile", "btn.settings")   // one row with two buttons
-            .row("btn.help")                       // second row
+            .row("btn.profile", "btn.settings") // one row with two buttons
+            .row("btn.help") // second row
             .resizeKeyboard(true)
             .oneTimeKeyboard(false)
             .build();
@@ -269,7 +269,7 @@ public class MyKeyboards {
             .build();
     }
 
-    // ── Inline keyboards ─────────────────────────────────────────────────────
+    // Inline keyboards
 
     @BotMarkup("inline_actions")
     public InlineKeyboardMarkup inlineActions(BotRequest request) {
@@ -375,7 +375,7 @@ This means a single handler covers all languages simultaneously:
 @BotController
 public class RegistrationController {
 
-    // btn.cancel resolves to "❌ Cancel" / "❌ Отмена" / "❌ Bekor qilish" etc.
+    // btn.cancel resolves to " Cancel" / " Отмена" / " Bekor qilish" etc.
     @BotReplyButton("btn.cancel")
     @BotClearChatState
     public LocalizedReply onCancel() {
@@ -425,14 +425,14 @@ The `BotLocaleResolver` bean is picked up automatically — no additional regist
 telegram:
   bot:
     i18n:
-      default-locale: en          # Fallback locale when language_code is absent
+      default-locale: en # Fallback locale when language_code is absent
 
 spring:
   messages:
-    basename: messages/bot        # Base name — resolves bot.properties, bot_en.properties …
-    encoding: UTF-8               # Always UTF-8 for non-ASCII languages
+    basename: messages/bot # Base name — resolves bot.properties, bot_en.properties …
+    encoding: UTF-8 # Always UTF-8 for non-ASCII languages
     use-code-as-default-message: false
-    cache-duration: 3600          # Cache in production; omit or 0 in development
+    cache-duration: 3600 # Cache in production; omit or 0 in development
 ```
 
 ### Locale Resolution Order
@@ -493,7 +493,7 @@ public class RegistrationKeyboards {
 @BotController
 public class RegistrationController {
 
-    // ── Entry point ──────────────────────────────────────────────────────────
+    // Entry point
 
     @BotCommand("/register")
     @BotForwardChatState("ENTER_NAME")
@@ -501,7 +501,7 @@ public class RegistrationController {
         return LocalizedReply.of("register.step.name").withMarkup("reg_cancel");
     }
 
-    // ── Step 1: collect name ─────────────────────────────────────────────────
+    // Step 1: collect name
 
     @BotText
     @BotChatState("ENTER_NAME")
@@ -511,7 +511,7 @@ public class RegistrationController {
         return LocalizedReply.of("register.step.phone").withMarkup("reg_cancel");
     }
 
-    // ── Step 2: collect phone ────────────────────────────────────────────────
+    // Step 2: collect phone
 
     @BotContact
     @BotChatState("ENTER_PHONE")
@@ -523,7 +523,7 @@ public class RegistrationController {
         return LocalizedTemplate.of("${register.confirm.prompt}\n\n#{0}", phone);
     }
 
-    // ── Confirmation ─────────────────────────────────────────────────────────
+    // Confirmation
 
     @BotReplyButton("btn.confirm")
     @BotChatState("CONFIRM")
@@ -534,7 +534,7 @@ public class RegistrationController {
         return LocalizedReply.of("register.done", name).withMarkup("main_menu");
     }
 
-    // ── Cancel at any state ──────────────────────────────────────────────────
+    // Cancel at any state
 
     @BotReplyButton("btn.cancel")
     @BotClearChatState

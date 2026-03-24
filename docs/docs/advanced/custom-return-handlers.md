@@ -87,8 +87,8 @@ public class RichReplyReturnTypeHandler implements BotReturnTypeHandler {
 
     @Override
     public void handleReturnType(BotRequest request, BotResponse response, Object returnValue) {
-        RichReply reply  = (RichReply) returnValue;
-        long      chatId = request.getChat().getId();
+        RichReply reply = (RichReply) returnValue;
+        long chatId = request.getChat().getId();
 
         response.addBotApiMethod(SendMessage.builder()
                 .chatId(chatId)
@@ -115,7 +115,7 @@ public class ProductController {
 
     @BotCommand("/product")
     public RichReply onProduct() {
-        return RichReply.of("<b>🛍 Product</b>\n\nPrice: $19.99")
+        return RichReply.of("<b> Product</b>\n\nPrice: $19.99")
                 .withPhoto("https://example.com/product.jpg", "Front view");
     }
 
@@ -178,9 +178,9 @@ Implement `supportsElement` to participate in `Collection<Object>` dispatch:
 @BotCommand("/order")
 public List<Object> onOrder() {
     return List.of(
-        "Here is your order:",         // → BotStringReturnHandler
-        RichReply.of("Product A"),     // → RichReplyReturnTypeHandler
-        RichReply.of("Product B")      // → RichReplyReturnTypeHandler
+        "Here is your order:", // → BotStringReturnHandler
+        RichReply.of("Product A"), // → RichReplyReturnTypeHandler
+        RichReply.of("Product B") // → RichReplyReturnTypeHandler
     );
 }
 ```

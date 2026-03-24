@@ -26,13 +26,13 @@ Create a new Spring Boot project (using Spring Initializr or your IDE) with depe
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
 **Gradle (build.gradle.kts):**
 ```kotlin
-implementation("uz.osoncode.easygram:spring-boot-starter:0.0.1")
+implementation("uz.osoncode.easygram:spring-boot-starter:0.0.2")
 ```
 
 ## 3. Configure Your Bot Token
@@ -58,10 +58,10 @@ Create a `@BotController` class:
 ```java
 package com.example.mybot;
 
-import uz.osoncode.easygram.core.annotation.BotController;
-import uz.osoncode.easygram.core.annotation.BotCommand;
-import uz.osoncode.easygram.core.annotation.BotDefaultHandler;
-import uz.osoncode.easygram.core.annotation.BotText;
+import uz.osoncode.easygram.core.stereotype.BotController;
+import uz.osoncode.easygram.core.bind.annotation.BotCommand;
+import uz.osoncode.easygram.core.bind.annotation.BotDefaultHandler;
+import uz.osoncode.easygram.core.bind.annotation.BotText;
 import org.telegram.telegrambots.meta.api.objects.User;
 
 @BotController
@@ -69,12 +69,12 @@ public class MyBotHandler {
 
     @BotCommand("/start")
     public String onStart(User user) {
-        return "👋 Hello, " + user.getFirstName() + "!";
+        return " Hello, " + user.getFirstName() + "!";
     }
 
     @BotText("hello")
     public String onHello() {
-        return "Hey there! 👋";
+        return "Hey there! ";
     }
 
     @BotDefaultHandler
@@ -123,8 +123,8 @@ Bot started successfully!
 ## 7. Test Your Bot
 
 Open Telegram and search for your bot (by username from @BotFather). Then:
-- Send `/start` → Replies with "👋 Hello, [Your Name]!"
-- Send `hello` → Replies with "Hey there! 👋"
+- Send `/start` → Replies with " Hello, [Your Name]!"
+- Send `hello` → Replies with "Hey there! "
 - Send anything else → Replies with the default message
 
 ## Next Steps
@@ -172,16 +172,16 @@ public String handleRegistration() {
 ## Troubleshooting
 
 ### Bot doesn't respond
-- ✅ Verify bot token is correct in environment variables
-- ✅ Check Telegram API status
-- ✅ Ensure Spring Boot started without errors
-- ✅ Verify `@BotController` class is in a scanned package
+- Verify bot token is correct in environment variables
+- Check Telegram API status
+- Ensure Spring Boot started without errors
+- Verify `@BotController` class is in a scanned package
 
 ### Handler not matching
-- ✅ Check handler annotation (`@BotCommand`, `@BotText`, etc.)
-- ✅ Verify exact message text matches (case-sensitive for `@BotText`)
-- ✅ Check `@BotOrder` if multiple handlers exist
-- ✅ Ensure no earlier handler matches first (Tier 1 > Tier 2 > Tier 3)
+- Check handler annotation (`@BotCommand`, `@BotText`, etc.)
+- Verify exact message text matches (case-sensitive for `@BotText`)
+- Check `@BotOrder` if multiple handlers exist
+- Ensure no earlier handler matches first (Tier 1 > Tier 2 > Tier 3)
 
 ### Port already in use (Webhook only)
 - Change the port in `application.yml`:
@@ -196,12 +196,12 @@ server:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-chatstate</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 (Already included in `spring-boot-starter`)
 
 ---
 
-Congratulations! Your first Easygram bot is running! 🎉
+Congratulations! Your first Easygram bot is running!
 

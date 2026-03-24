@@ -123,7 +123,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} OSONCODE. MIT License.`,
+        copyright: `Copyright ${new Date().getFullYear()} OSONCODE. MIT License.`,
       },
       prism: {
         additionalLanguages: ['java', 'yaml', 'markup', 'bash', 'sql', 'properties'],

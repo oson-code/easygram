@@ -6,7 +6,7 @@ annotation-driven Spring Boot framework for building Telegram bots. Built with
 
 ---
 
-## 🚀 Quick Start (Docker — no local Node.js needed)
+## Quick Start (Docker — no local Node.js needed)
 
 Everything runs inside Docker. You do not need Node.js, npm, or yarn installed on your machine.
 
@@ -40,7 +40,7 @@ docker compose down
 
 ---
 
-## 🐳 Docker Compose Reference
+## Docker Compose Reference
 
 The `docker-compose.yml` in this directory defines two services:
 
@@ -54,62 +54,62 @@ inside the container only (anonymous volume), so your local working tree stays c
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 docs/
-├── docs/                          # Documentation source (Markdown)
-│   ├── intro.md                   # What is Easygram?
-│   ├── architecture.md            # System design and module structure
-│   ├── quick-start.md             # Build your first bot in 5 minutes
-│   ├── api-reference.md           # All annotations, interfaces, models
-│   ├── faq.md                     # Frequently asked questions
-│   │
-│   ├── core-concepts/             # 6 core-concept guides
-│   │   ├── handlers.md            # All handler annotations and routing tiers
-│   │   ├── filters.md             # Filter pipeline and middleware
-│   │   ├── parameter-injection.md # Automatic parameter resolution
-│   │   ├── chat-state.md          # Stateful workflows
-│   │   ├── return-types.md        # All supported return types
-│   │   └── exception-handling.md  # @BotExceptionHandler
-│   │
-│   ├── transports/                # 4 transport guides
-│   │   ├── long-polling-guide.md  # Default polling transport
-│   │   ├── webhook-guide.md       # HTTPS webhook transport
-│   │   ├── kafka-consumer-guide.md    # Kafka consumer transport
-│   │   └── rabbitmq-consumer-guide.md # RabbitMQ consumer transport
-│   │
-│   ├── advanced/                  # 7 advanced topics
-│   │   ├── custom-filters.md          # BotFilter — auth, rate-limiting, logging
-│   │   ├── custom-argument-resolvers.md # BotArgumentResolver extension
-│   │   ├── custom-return-handlers.md    # BotReturnTypeHandler extension
-│   │   ├── i18n-setup.md              # Internationalization with core-i18n
-│   │   ├── chat-state-backends.md     # Redis, JDBC, custom state backends
-│   │   ├── broker-publishing.md       # Kafka/RabbitMQ update forwarding
-│   │   └── observability.md           # Micrometer, Prometheus, tracing
-│   │
-│   └── examples/                  # 4 runnable examples
-│       ├── echo-bot.md            # Minimal echo bot (long-polling)
-│       ├── registration-wizard.md # Multi-step state machine
-│       ├── kafka-producer-bot.md  # Updates forwarded to Kafka
-│       └── webhook-bot.md         # HTTPS webhook transport
-│
-├── blog/                          # Release notes and announcements
-├── src/
-│   ├── components/                # React components (HomepageFeatures)
-│   ├── css/                       # Custom CSS (branding, colors)
-│   └── pages/                     # Custom pages (landing page index.js)
-├── static/                        # Static assets (images, favicons)
-├── docusaurus.config.js           # Site configuration (title, navbar, footer)
-├── sidebars.js                    # Navigation sidebar structure
-├── package.json                   # Node dependencies and scripts
-├── docker-compose.yml             # Docker setup (dev + prod)
-└── README.md                      # This file
+ docs/ # Documentation source (Markdown)
+    intro.md # What is Easygram?
+    architecture.md # System design and module structure
+    quick-start.md # Build your first bot in 5 minutes
+    api-reference.md # All annotations, interfaces, models
+    faq.md # Frequently asked questions
+   
+    core-concepts/ # 6 core-concept guides
+       handlers.md # All handler annotations and routing tiers
+       filters.md # Filter pipeline and middleware
+       parameter-injection.md # Automatic parameter resolution
+       chat-state.md # Stateful workflows
+       return-types.md # All supported return types
+       exception-handling.md # @BotExceptionHandler
+   
+    transports/ # 4 transport guides
+       long-polling-guide.md # Default polling transport
+       webhook-guide.md # HTTPS webhook transport
+       kafka-consumer-guide.md # Kafka consumer transport
+       rabbitmq-consumer-guide.md # RabbitMQ consumer transport
+   
+    advanced/ # 7 advanced topics
+       custom-filters.md # BotFilter — auth, rate-limiting, logging
+       custom-argument-resolvers.md # BotArgumentResolver extension
+       custom-return-handlers.md # BotReturnTypeHandler extension
+       i18n-setup.md # Internationalization with core-i18n
+       chat-state-backends.md # Redis, JDBC, custom state backends
+       broker-publishing.md # Kafka/RabbitMQ update forwarding
+       observability.md # Micrometer, Prometheus, tracing
+   
+    examples/ # 4 runnable examples
+        echo-bot.md # Minimal echo bot (long-polling)
+        registration-wizard.md # Multi-step state machine
+        kafka-producer-bot.md # Updates forwarded to Kafka
+        webhook-bot.md # HTTPS webhook transport
+
+ blog/ # Release notes and announcements
+ src/
+    components/ # React components (HomepageFeatures)
+    css/ # Custom CSS (branding, colors)
+    pages/ # Custom pages (landing page index.js)
+ static/ # Static assets (images, favicons)
+ docusaurus.config.js # Site configuration (title, navbar, footer)
+ sidebars.js # Navigation sidebar structure
+ package.json # Node dependencies and scripts
+ docker-compose.yml # Docker setup (dev + prod)
+ README.md # This file
 ```
 
 ---
 
-## ✏️ Writing Documentation
+## Writing Documentation
 
 ### Front matter
 
@@ -145,8 +145,8 @@ Supported languages: `java`, `yaml`, `xml`, `json`, `bash`, `sql`, `properties`,
 ### Internal links
 
 ```markdown
-[Quick Start](quick-start)                                 # same directory
-[Architecture](../architecture)                            # parent directory
+[Quick Start](quick-start) # same directory
+[Architecture](../architecture) # parent directory
 [Parameter Injection](../core-concepts/parameter-injection) # subdirectory
 ```
 
@@ -177,12 +177,12 @@ This is a danger alert.
 ```markdown
 | Column 1 | Column 2 | Column 3 |
 |---|---|---|
-| Cell 1   | Cell 2   | Cell 3   |
+| Cell 1 | Cell 2 | Cell 3 |
 ```
 
 ---
 
-## 🔧 Configuration Files
+## Configuration Files
 
 ### docusaurus.config.js
 
@@ -203,7 +203,7 @@ array. The sidebar is divided into six categories:
 
 ---
 
-## 🔄 Versioning
+## Versioning
 
 When releasing a new framework version:
 
@@ -221,7 +221,7 @@ Users can then switch versions via the dropdown in the navbar.
 
 ---
 
-## 🎨 Customization
+## Customization
 
 ### Colors
 
@@ -249,13 +249,13 @@ navbar: {
 },
 footer: {
   links: [ ... ],
-  copyright: 'Copyright © 2026 Easygram Contributors'
+  copyright: 'Copyright 2026 Easygram Contributors'
 }
 ```
 
 ---
 
-## 📤 Deployment
+## Deployment
 
 ### Static hosting (Netlify, Vercel, Cloudflare Pages)
 
@@ -270,10 +270,10 @@ docker compose --profile production up docusaurus-prod
 
 Update `docusaurus.config.js`:
 ```javascript
-url:              'https://oson-code.github.io',
-baseUrl:          '/easygram/',
+url: 'https://oson-code.github.io',
+baseUrl: '/easygram/',
 organizationName: 'oson-code',
-projectName:      'easygram',
+projectName: 'easygram',
 ```
 
 Then:
@@ -286,7 +286,7 @@ npm run deploy
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Port 3000 already in use
 
@@ -300,8 +300,8 @@ docker compose up
 ### node_modules missing or stale
 
 ```bash
-docker compose down -v   # Remove anonymous volumes (clears node_modules)
-docker compose up        # Fresh install
+docker compose down -v # Remove anonymous volumes (clears node_modules)
+docker compose up # Fresh install
 ```
 
 ### Links returning 404
@@ -324,7 +324,7 @@ docker compose --profile production up docusaurus-prod 2>&1 | tail -50
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 To update documentation:
 
@@ -342,12 +342,12 @@ To update documentation:
 
 ---
 
-## 📚 Learn More
+## Learn More
 
 - [Docusaurus Documentation](https://docusaurus.io/docs)
 - [Markdown Guide](https://www.markdownguide.org/)
 - [Easygram GitHub](https://github.com/oson-code/easygram)
 
-## 📄 License
+## License
 
 MIT — same as Easygram.

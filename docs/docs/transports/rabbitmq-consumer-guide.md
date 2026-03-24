@@ -17,7 +17,9 @@ telegram:
     transport: RABBIT_CONSUMER
     rabbit-consumer:
       queue: telegram-updates
-      routing-key: updates.*
+      exchange: telegram-exchange
+      routing-key: telegram.updates
+      create-if-absent: true
 
 spring:
   rabbitmq:
@@ -27,6 +29,15 @@ spring:
     password: guest
     virtual-host: /
 ```
+
+## Configuration Options
+
+| Property | Required | Default | Description |
+|---|---|---|---|
+| `telegram.bot.rabbit-consumer.queue` | Yes | — | RabbitMQ queue to consume from |
+| `telegram.bot.rabbit-consumer.exchange` | No | `telegram-exchange` | Exchange to bind queue to |
+| `telegram.bot.rabbit-consumer.routing-key` | No | `telegram.updates` | Routing key for the binding |
+| `telegram.bot.rabbit-consumer.create-if-absent` | No | `true` | Auto-create exchange, queue, and binding |
 
 ## Docker Deployment
 

@@ -37,8 +37,8 @@ public interface BotArgumentResolver {
 
 | Spring | Standard Java |
 |---|---|
-| `parameter.getParameterType()` ❌ | `parameter.getType()` ✅ |
-| `parameter.hasParameterAnnotation(A.class)` ❌ | `parameter.isAnnotationPresent(A.class)` ✅ |
+| `parameter.getParameterType()` | `parameter.getType()` |
+| `parameter.hasParameterAnnotation(A.class)` | `parameter.isAnnotationPresent(A.class)` |
 :::
 
 ---
@@ -54,7 +54,7 @@ no explicit order, so any `@Order` value below `Integer.MAX_VALUE` takes precede
 
 ```java
 @Component
-@Order(10)   // runs before unordered built-in resolvers
+@Order(10) // runs before unordered built-in resolvers
 public class MyResolver implements BotArgumentResolver { ... }
 ```
 
@@ -198,7 +198,7 @@ public String onStart(@BotLanguage String lang) {
     return switch (lang) {
         case "ru" -> "Привет! Я бот.";
         case "uz" -> "Salom! Men bot.";
-        default   -> "Hello! I'm a bot.";
+        default -> "Hello! I'm a bot.";
     };
 }
 ```
@@ -352,10 +352,10 @@ public class BotSession {
     private final Map<String, String> data = new HashMap<>();
 
     public int getStepIndex() { return stepIndex; }
-    public void nextStep()    { stepIndex++; }
-    public void reset()       { stepIndex = 0; data.clear(); }
+    public void nextStep() { stepIndex++; }
+    public void reset() { stepIndex = 0; data.clear(); }
     public void put(String key, String value) { data.put(key, value); }
-    public String get(String key)             { return data.get(key); }
+    public String get(String key) { return data.get(key); }
 }
 ```
 
@@ -399,7 +399,7 @@ The example below replaces the built-in `BotUserArgumentResolver` with one that 
 public class ResolverConfig {
 
     @Bean
-    @Order(1)   // runs before the built-in resolver (no @Order = Integer.MAX_VALUE)
+    @Order(1) // runs before the built-in resolver (no @Order = Integer.MAX_VALUE)
     public BotArgumentResolver enrichedUserResolver(UserCacheService cache) {
         return new BotArgumentResolver() {
 

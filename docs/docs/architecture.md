@@ -10,38 +10,28 @@ title: System Architecture
 Easygram is built on a **modular, multi-module Maven architecture** where each module has a specific responsibility. This design ensures flexibility, testability, and easy customization.
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  Your Bot (@BotController with handler methods)                 │
-└─────────────────┬───────────────────────────────────────────────┘
-                  │ Update (from any transport)
-                  ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  Telegram Update → Filter Chain (ordered by priority)            │
-│  ├─ BotContextSetterFilter (resolve User + Chat)                │
-│  ├─ BotUpdatePublishingFilter (forward to broker, optional)      │
-│  └─ BotApiMethodsSenderFilter (execute response API calls)       │
-└──────────────────┬────────────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  BotDispatcher (route to matching handler)                      │
-│  ├─ Tier 1: State Handlers (@BotChatState with values)          │
-│  ├─ Tier 2: Spec Handlers (no state restriction)                │
-│  └─ Tier 3: Default Handlers (@BotDefaultHandler)               │
-└──────────────────┬────────────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  Handler Method Invocation                                      │
-│  ├─ Argument Resolution (inject User, Chat, params, etc)        │
-│  ├─ Method Execution                                            │
-│  └─ Return-Type Handling (convert to BotApiMethod calls)        │
-└──────────────────┬────────────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  Response to Telegram API                                       │
-└─────────────────────────────────────────────────────────────────┘
+
+  Your Bot (@BotController with handler methods)
+
+                   Update (from any transport)
+
+  Telegram Update → Filter Chain (ordered by priority)
+   BotContextSetterFilter (resolve User + Chat)
+   BotUpdatePublishingFilter (forward to broker, optional)
+   BotApiMethodsSenderFilter (execute response API calls)
+
+  BotDispatcher (route to matching handler)
+   Tier 1: State Handlers (@BotChatState with values)
+   Tier 2: Spec Handlers (no state restriction)
+   Tier 3: Default Handlers (@BotDefaultHandler)
+
+  Handler Method Invocation
+   Argument Resolution (inject User, Chat, params, etc)
+   Method Execution
+   Return-Type Handling (convert to BotApiMethod calls)
+
+  Response to Telegram API
+
 ```
 
 ## Module Structure
@@ -135,7 +125,7 @@ Each update passes through an ordered chain of `BotFilter` implementations:
 ```java
 public interface BotFilter {
     void doFilter(BotRequest request, BotResponse response, BotFilterChain chain) throws Exception;
-    int getOrder();  // Lower value = higher priority
+    int getOrder(); // Lower value = higher priority
 }
 ```
 
@@ -175,9 +165,9 @@ The framework resolves method parameters automatically:
 ```java
 @BotCommand("/start")
 public String handleStart(
-    User user,                           // Resolved from Update
-    @BotCommandValue String command,     // The matched "/start"
-    @BotCommandQueryParam Integer code   // Query param (e.g., /start 42)
+    User user, // Resolved from Update
+    @BotCommandValue String command, // The matched "/start"
+    @BotCommandQueryParam Integer code // Query param (e.g., /start 42)
 ) { ... }
 ```
 
@@ -205,15 +195,15 @@ The return value is converted to `BotApiMethod` calls:
 
 ```java
 // Return type → Handler behavior
-String                        → SendMessage to current chat
-PlainReply                    → SendMessage + optional keyboard
-PlainTextTemplate             → SendMessage with String.format() substitution
-BotApiMethod<?>               → Enqueued and executed directly
-Collection<BotApiMethod<?>>   → All executed in insertion order
-Collection<Object>            → Per-element dispatch to matching handler
-void / null                   → No response sent
-LocalizedReply                → MessageSource key lookup + SendMessage  (core-i18n)
-LocalizedTemplate             → Mixed ${key}/${#index} template + SendMessage  (core-i18n)
+String → SendMessage to current chat
+PlainReply → SendMessage + optional keyboard
+PlainTextTemplate → SendMessage with #{index} token substitution
+BotApiMethod<?> → Enqueued and executed directly
+Collection<BotApiMethod<?>> → All executed in insertion order
+Collection<Object> → Per-element dispatch to matching handler
+void / null → No response sent
+LocalizedReply → MessageSource key lookup + SendMessage (core-i18n)
+LocalizedTemplate → Mixed ${key}/#{index} template + SendMessage (core-i18n)
 ```
 
 ### 5. Response Execution
@@ -255,18 +245,18 @@ When a handler method throws an exception, the framework follows this path:
 
 ```
 Handler method throws Exception
-  │
-  ▼
+  
+  
 BotDispatcher catches the exception
-  │
-  ├─ @BotExceptionHandler found in same @BotController?
-  │     └─ YES → invoke exception handler method → return response
-  │
-  ├─ @BotExceptionHandler found in any @BotControllerAdvice?
-  │     └─ YES → invoke advice exception handler → return response
-  │
-  └─ NO handler found → exception propagates up to the BotFilter chain
-       └─ Unhandled exception is logged; update processing ends silently
+  
+   @BotExceptionHandler found in same @BotController?
+        YES → invoke exception handler method → return response
+  
+   @BotExceptionHandler found in any @BotControllerAdvice?
+        YES → invoke advice exception handler → return response
+  
+   NO handler found → exception propagates up to the BotFilter chain
+        Unhandled exception is logged; update processing ends silently
             (no message sent to user)
 ```
 
@@ -282,7 +272,7 @@ public class GlobalErrorHandler {
     @BotExceptionHandler(Exception.class)
     public String onAnyError(Exception ex, User user) {
         log.error("Unhandled error for user {}", user.getId(), ex);
-        return "❌ Something went wrong. Please try again later.";
+        return " Something went wrong. Please try again later.";
     }
 }
 ```
@@ -317,33 +307,30 @@ telegram:
 ```yaml
 telegram:
   bot:
-    transport: LONG_POLLING  # LONG_POLLING, WEBHOOK, KAFKA_CONSUMER, RABBIT_CONSUMER
+    transport: LONG_POLLING # LONG_POLLING, WEBHOOK, KAFKA_CONSUMER, RABBIT_CONSUMER
     i18n:
       default-locale: en
 
 # Transport-specific (see module READMEs)
-telegram:
-  bot:
-    long-polling:
-      allow-users-init-updates: true
-      polling-timeout: 30
+# Long-polling has no additional configurable properties — it uses the defaults from
+# the underlying telegrambots library. Use spring.kafka.* / spring.rabbitmq.* for broker transports.
 ```
 
 ## Request/Response Model
 
 ### BotRequest
 ```java
-Update update                // Raw Telegram update
+Update update // Raw Telegram update
 TelegramClient telegramClient // Telegram API client
-User user                    // Resolved sender (set by BotContextSetterFilter)
-Chat chat                    // Resolved chat  (set by BotContextSetterFilter)
-Throwable throwable          // Populated when routing to @BotExceptionHandler
-BotMetadata botMetadata      // Bot's own info (token, id, username)
+User user // Resolved sender (set by BotContextSetterFilter)
+Chat chat // Resolved chat (set by BotContextSetterFilter)
+Throwable throwable // Populated when routing to @BotExceptionHandler
+BotMetadata botMetadata // Bot's own info (token, id, username)
 
 // Request-scoped attribute store — share data between filters, resolvers, and handlers:
-void setAttribute(String key, Object value)  // null removes the key
+void setAttribute(String key, Object value) // null removes the key
 <T> T getAttribute(String key)
-Map<String,Object> getAttributes()           // unmodifiable view
+Map<String,Object> getAttributes() // unmodifiable view
 ```
 
 ### BotResponse
@@ -356,7 +343,7 @@ Collection<BotApiMethod<?>> getBotApiMethods()
 // Response-scoped attribute store (shared with filters and return-type handlers):
 void setAttribute(String key, Object value) // null removes the key
 <T> T getAttribute(String key)
-Map<String,Object> getAttributes()          // unmodifiable
+Map<String,Object> getAttributes() // unmodifiable
 ```
 
 ## Concurrency Model

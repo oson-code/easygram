@@ -27,14 +27,14 @@ Transition to a new state after handler executes:
 
 ```java
 @BotCommand("/register")
-@BotForwardChatState("WAITING_AGE")  // Sets user's chat state to "WAITING_AGE"
+@BotForwardChatState("WAITING_AGE") // Sets user's chat state to "WAITING_AGE"
 public String askForAge() {
     return "Now enter your age:";
 }
 
 @BotText("\\d+")
 @BotChatState("WAITING_AGE")
-@BotForwardChatState("REGISTRATION_COMPLETE")  // Transition when age is provided
+@BotForwardChatState("REGISTRATION_COMPLETE") // Transition when age is provided
 public String processAge(String ageText) {
     return "Registration complete!";
 }
@@ -64,7 +64,7 @@ public class RegistrationBot {
         return "Welcome to registration! Please enter your name:";
     }
     
-    @BotText("^[A-Za-z ]{3,}$")  // Regex: 3+ letters
+    @BotText("^[A-Za-z ]{3,}$") // Regex: 3+ letters
     @BotForwardChatState("WAITING_AGE")
     public String acceptName(@BotTextValue String name) {
         return "Thanks, " + name + "! Now enter your age:";
@@ -75,7 +75,7 @@ public class RegistrationBot {
         return "Please enter a valid name (3+ letters)";
     }
     
-    @BotText("^\\d{1,3}$")  // Regex: 1-3 digits
+    @BotText("^\\d{1,3}$") // Regex: 1-3 digits
     @BotChatState("WAITING_AGE")
     @BotForwardChatState("WAITING_CONFIRMATION")
     public String acceptAge(@BotTextValue String age) {
@@ -92,7 +92,7 @@ public class RegistrationBot {
     @BotChatState("WAITING_CONFIRMATION")
     @BotClearChatState
     public String confirmRegistration() {
-        return "✅ Registration complete! Your profile has been created.";
+        return " Registration complete! Your profile has been created.";
     }
     
     @BotText("no")
@@ -166,7 +166,7 @@ public class RedisChatStateService implements BotChatStateService {
         redisTemplate.opsForValue().set(
             "chat_state:" + chatId,
             state,
-            Duration.ofDays(7)  // Expire after 7 days of inactivity
+            Duration.ofDays(7) // Expire after 7 days of inactivity
         );
     }
     
@@ -228,7 +228,7 @@ If a user re-sends `/register` while already in the `WAITING_AGE` state:
 
 ```java
 @BotCommand("/register")
-@BotForwardChatState("WAITING_NAME")  // Always resets flow to beginning
+@BotForwardChatState("WAITING_NAME") // Always resets flow to beginning
 public String startRegistration() {
     return "Starting over. Enter your name:";
 }

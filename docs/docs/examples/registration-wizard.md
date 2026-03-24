@@ -17,17 +17,17 @@ button at every stage. This example demonstrates the full `@BotChatState` / `@Bo
 ```
 /register
     ↓ @BotForwardChatState("AWAITING_NAME")
-[state: AWAITING_NAME]  "Step 1/3 — What is your full name?"
+[state: AWAITING_NAME] "Step 1/3 — What is your full name?"
     ↓ user sends any text → @BotForwardChatState("AWAITING_AGE")
-[state: AWAITING_AGE]   "Step 2/3 — How old are you?"
+[state: AWAITING_AGE] "Step 2/3 — How old are you?"
     ↓ user sends valid number → manual setState("AWAITING_CITY")
     ↓ invalid number → stay in AWAITING_AGE, show error
-[state: AWAITING_CITY]  "Step 3/3 — Which city do you live in?"
+[state: AWAITING_CITY] "Step 3/3 — Which city do you live in?"
     ↓ user sends any text → @BotClearChatState
-[no state]              "🎉 Registration complete!"
+[no state] " Registration complete!"
 ```
 
-Cancel via `/cancel` or ❌ Cancel button is available at every step.
+Cancel via `/cancel` or Cancel button is available at every step.
 
 ## Project Setup
 
@@ -35,7 +35,7 @@ Cancel via `/cancel` or ❌ Cancel button is available at every step.
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
@@ -90,7 +90,7 @@ public class RegistrationMarkups {
     public ReplyKeyboard cancelKeyboard(User user) {
         log.info("Building cancel keyboard for user: {}", user.getUserName());
         return ReplyKeyboardMarkup.builder()
-                .keyboardRow(new KeyboardRow("❌ Cancel"))
+                .keyboardRow(new KeyboardRow(" Cancel"))
                 .resizeKeyboard(true)
                 .oneTimeKeyboard(true)
                 .build();
@@ -114,11 +114,11 @@ public class GlobalCommandController {
 
     @BotCommand("/start")
     public String onStart(User user) {
-        return "👋 Hello, " + user.getFirstName() + "! I'm a registration bot.\n\n" +
+        return " Hello, " + user.getFirstName() + "! I'm a registration bot.\n\n" +
                "Commands:\n" +
-               "  /register — start the registration wizard\n" +
-               "  /status   — show your current step\n" +
-               "  /cancel   — cancel the wizard at any step";
+               " /register — start the registration wizard\n" +
+               " /status — show your current step\n" +
+               " /cancel — cancel the wizard at any step";
     }
 
     /** Shows where the user is in the wizard by reading state directly. */
@@ -126,12 +126,12 @@ public class GlobalCommandController {
     public String onStatus(User user) {
         RegistrationState state = chatStateService.getStateAs(user.getId(), RegistrationState.class);
         if (state == null) {
-            return "ℹ️ No active wizard. Use /register to start.";
+            return "ℹ No active wizard. Use /register to start.";
         }
         return switch (state) {
-            case AWAITING_NAME -> "📝 Waiting for your name (step 1/3).";
-            case AWAITING_AGE  -> "📝 Waiting for your age (step 2/3).";
-            case AWAITING_CITY -> "📝 Waiting for your city (step 3/3).";
+            case AWAITING_NAME -> " Waiting for your name (step 1/3).";
+            case AWAITING_AGE -> " Waiting for your age (step 2/3).";
+            case AWAITING_CITY -> " Waiting for your city (step 3/3).";
         };
     }
 
@@ -144,9 +144,9 @@ public class GlobalCommandController {
     public String onCancel(User user) {
         String current = chatStateService.getState(user.getId());
         if (current == null) {
-            return "ℹ️ No active wizard to cancel.";
+            return "ℹ No active wizard to cancel.";
         }
-        return "❌ Wizard cancelled. Use /register to start again.";
+        return " Wizard cancelled. Use /register to start again.";
     }
 
     @BotDefaultHandler
@@ -175,7 +175,7 @@ public class RegistrationFlowController {
         this.chatStateService = chatStateService;
     }
 
-    // ── Step 0: entry point ──────────────────────────────────────────────────
+    // Step 0: entry point
 
     /**
      * @BotChatState with an empty array overrides the class-level restriction,
@@ -183,14 +183,14 @@ public class RegistrationFlowController {
      * @BotForwardChatState advances to AWAITING_NAME automatically after return.
      */
     @BotCommand("/register")
-    @BotChatState            // empty array = override class guard, accept any state
+    @BotChatState // empty array = override class guard, accept any state
     @BotForwardChatState("AWAITING_NAME")
     @BotReplyMarkup("kb_cancel")
     public String startRegistration(User user) {
-        return "📝 Let's get you registered!\n\nStep 1/3 — What is your full name?";
+        return " Let's get you registered!\n\nStep 1/3 — What is your full name?";
     }
 
-    // ── Step 1: collect name ─────────────────────────────────────────────────
+    // Step 1: collect name
 
     @BotTextDefault
     @BotChatState("AWAITING_NAME")
@@ -198,10 +198,10 @@ public class RegistrationFlowController {
     @BotReplyMarkup("kb_cancel")
     public String collectName(@BotTextValue String name) {
         // In production, persist the name to your database here
-        return "✅ Name saved: " + name + "\n\nStep 2/3 — How old are you? (enter a number)";
+        return " Name saved: " + name + "\n\nStep 2/3 — How old are you? (enter a number)";
     }
 
-    // ── Step 2: collect age ──────────────────────────────────────────────────
+    // Step 2: collect age
 
     /**
      * State advance is conditional on valid input, so it is done manually.
@@ -214,38 +214,38 @@ public class RegistrationFlowController {
         try {
             int age = Integer.parseInt(ageText.trim());
             if (age <= 0 || age > 120) {
-                return "⚠️ Please enter a valid age (1–120).";
+                return " Please enter a valid age (1–120).";
             }
             chatStateService.setState(user.getId(), RegistrationState.AWAITING_CITY);
-            return "✅ Age saved: " + age + "\n\nStep 3/3 — Which city do you live in?";
+            return " Age saved: " + age + "\n\nStep 3/3 — Which city do you live in?";
         } catch (NumberFormatException e) {
-            return "⚠️ That doesn't look like a number. Please enter digits only.";
+            return " That doesn't look like a number. Please enter digits only.";
         }
     }
 
-    // ── Step 3: collect city ─────────────────────────────────────────────────
+    // Step 3: collect city
 
     @BotTextDefault
     @BotChatState("AWAITING_CITY")
     @BotClearMarkup
     @BotClearChatState
     public String collectCity(@BotTextValue String city) {
-        return "🎉 Registration complete!\n\n" +
+        return " Registration complete!\n\n" +
                "Summary:\n" +
                "• Name: (saved in step 1)\n" +
-               "• Age:  (saved in step 2)\n" +
+               "• Age: (saved in step 2)\n" +
                "• City: " + city + "\n\n" +
                "Use /status to check your registration or /register to start over.";
     }
 
-    // ── Cancel button ────────────────────────────────────────────────────────
+    // Cancel button
 
-    /** "❌ Cancel" button tap during any registration step. */
-    @BotReplyButton("❌ Cancel")
+    /** " Cancel" button tap during any registration step. */
+    @BotReplyButton(" Cancel")
     @BotClearChatState
     @BotClearMarkup
     public String onCancel() {
-        return "🛑 Registration cancelled. Use /register to start again.";
+        return " Registration cancelled. Use /register to start again.";
     }
 }
 ```
@@ -258,7 +258,7 @@ Applies a fixed state transition after the handler returns — used when the tra
 unconditional:
 
 ```java
-@BotForwardChatState("AWAITING_AGE")  // always runs after return
+@BotForwardChatState("AWAITING_AGE") // always runs after return
 public String collectName() { ... }
 ```
 
@@ -269,9 +269,9 @@ Used when the next state depends on runtime data:
 ```java
 if (validAge) {
     chatStateService.setState(userId, RegistrationState.AWAITING_CITY);
-    return "✅ Age saved...";
+    return " Age saved...";
 } else {
-    return "⚠️ Invalid age..."; // state unchanged — user stays in AWAITING_AGE
+    return " Invalid age..."; // state unchanged — user stays in AWAITING_AGE
 }
 ```
 
@@ -284,17 +284,17 @@ Clears the state (sets to null) after the handler returns. The keyboard removal 
 
 When the user is in `AWAITING_NAME` and sends text:
 
-1. **Tier 1 (state handlers)** — `collectName` matches → executed ✅
+1. **Tier 1 (state handlers)** — `collectName` matches → executed
 2. Tier 2 and Tier 3 never reached
 
 When the user has no state and sends `/register`:
 
-1. **Tier 1** — `startRegistration` has `@BotChatState` with empty array, meaning "any state" → matches ✅
+1. **Tier 1** — `startRegistration` has `@BotChatState` with empty array, meaning "any state" → matches
 
 When the user has no state and sends text:
 
 1. **Tier 1** — no match (RegistrationFlowController requires a state)
-2. **Tier 3** — `GlobalCommandController.onDefault` matches ✅
+2. **Tier 3** — `GlobalCommandController.onDefault` matches
 
 ## Running the Bot
 
@@ -305,10 +305,10 @@ mvn spring-boot:run
 
 Test the wizard:
 1. `/register` → "Let's get you registered! Step 1/3…"
-2. `Alice Johnson` → "✅ Name saved. Step 2/3…"
-3. `abc` → "⚠️ That doesn't look like a number."
-4. `30` → "✅ Age saved. Step 3/3…"
-5. `New York` → "🎉 Registration complete!"
+2. `Alice Johnson` → " Name saved. Step 2/3…"
+3. `abc` → " That doesn't look like a number."
+4. `30` → " Age saved. Step 3/3…"
+5. `New York` → " Registration complete!"
 
 ---
 

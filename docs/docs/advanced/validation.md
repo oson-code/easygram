@@ -22,9 +22,9 @@ Argument resolvers — @BotTextValue, @BotCommandQueryParam, User, Chat, …
    ↓
 MethodInvocationFilter:
   ExecutableValidator.validateParameters(bean, method, args)
-   ↓  violation found?
-   │  YES → throw ConstraintViolationException (handler body never runs)
-   │  NO  ↓
+   ↓ violation found?
+     YES → throw ConstraintViolationException (handler body never runs)
+     NO ↓
 Handler method body executes
 ```
 
@@ -71,7 +71,7 @@ public class SearchController {
     @BotCommand("/search")
     public String search(
             @BotCommandQueryParam("q") @NotBlank @Size(min = 2, max = 100) String query,
-            @BotCommandQueryParam("page")  @Min(1)  int page) {
+            @BotCommandQueryParam("page") @Min(1) int page) {
         // Only reached when query is non-blank, between 2-100 chars, and page >= 1
         return "Searching for: " + query + " (page " + page + ")";
     }
@@ -81,7 +81,7 @@ public class SearchController {
         String messages = ex.getConstraintViolations().stream()
                 .map(v -> "• " + v.getMessage())
                 .collect(Collectors.joining("\n"));
-        return "⚠️ Invalid input:\n" + messages;
+        return " Invalid input:\n" + messages;
     }
 }
 ```
@@ -178,7 +178,7 @@ public String onValidationError(ConstraintViolationException ex) {
     String messages = ex.getConstraintViolations().stream()
             .map(v -> "• " + v.getMessage())
             .collect(Collectors.joining("\n"));
-    return "⚠️ Invalid input:\n" + messages;
+    return " Invalid input:\n" + messages;
 }
 ```
 
@@ -193,7 +193,7 @@ public LocalizedReply onValidationError(ConstraintViolationException ex) {
     String detail = ex.getConstraintViolations().stream()
             .map(v -> "• " + v.getMessage())
             .collect(Collectors.joining("\n"));
-    // "error.validation=⚠️ Invalid input:\n{0}" in messages/bot.properties
+    // "error.validation= Invalid input:\n{0}" in messages/bot.properties
     return LocalizedReply.of("error.validation", detail);
 }
 ```
@@ -213,7 +213,7 @@ public String onValidationError(ConstraintViolationException ex) {
                         .orElse("input");
                 return String.format("• %s: %s", field, v.getMessage());
             })
-            .collect(Collectors.joining("\n", "⚠️ Validation errors:\n", ""));
+            .collect(Collectors.joining("\n", " Validation errors:\n", ""));
 }
 ```
 

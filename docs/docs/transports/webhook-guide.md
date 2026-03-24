@@ -23,22 +23,24 @@ telegram:
     token: ${BOT_TOKEN}
     transport: WEBHOOK
     webhook:
-      url: https://your-domain.com/webhook/telegram
-      port: 8080
-      allowed-updates:
-        - message
-        - callback_query
-        - inline_query
+      url: https://your-domain.com/webhook
+      path: /webhook
+      secret-token: ${WEBHOOK_SECRET}
+      max-connections: 40
+      drop-pending-updates: false
+      unregister-on-shutdown: false
 ```
 
 ## Configuration Options
 
-| Property | Required | Description |
-|---|---|---|
-| `url` | Yes | Your webhook URL (must be HTTPS) |
-| `port` | No | Port to listen on (default: 8080) |
-| `path` | No | Path for webhook endpoint (default: /telegram) |
-| `allowed-updates` | No | Types of updates to receive |
+| Property | Required | Default | Description |
+|---|---|---|---|
+| `url` | Yes | — | Public HTTPS URL Telegram delivers updates to |
+| `path` | No | `/webhook` | Local HTTP endpoint path |
+| `secret-token` | No | — | Validates `X-Telegram-Bot-Api-Secret-Token` header |
+| `max-connections` | No | — | Max simultaneous Telegram connections (1–100) |
+| `drop-pending-updates` | No | `false` | Discard queued updates on webhook registration |
+| `unregister-on-shutdown` | No | `false` | Delete webhook from Telegram on app shutdown |
 
 ## HTTPS Setup
 
@@ -72,7 +74,7 @@ telegram:
     transport: WEBHOOK
     webhook:
       url: https://your-domain.com/webhook
-      port: 8443
+      secret-token: ${WEBHOOK_SECRET}
 ```
 
 ### 3. Deploy Behind Reverse Proxy (Recommended)
@@ -168,14 +170,35 @@ telegram:
     transport: WEBHOOK
     webhook:
       url: https://your-domain.com/webhook
-      allowed-updates:
-        - message
-        - callback_query
 ```
 
 ## Testing Webhook Locally
 
-Use ngrok to expose local server:
+### Option 1: jprq
+
+[jprq](https://jprq.io) is a lightweight tunneling tool that exposes your local server over HTTPS instantly.
+
+```bash
+# Install
+curl -fsSL https://jprq.io/install.sh | sudo bash
+
+# Authenticate (get your token at https://jprq.io/auth)
+jprq auth <your-auth-token>
+
+# Start tunnel
+jprq http 8080
+# Outputs: https://<subdomain>.jprq.app
+```
+
+Then run your bot with the tunnel URL:
+
+```bash
+TELEGRAM_BOT_WEBHOOK_URL=https://<subdomain>.jprq.app/webhook \
+TELEGRAM_BOT_TRANSPORT=WEBHOOK \
+mvn spring-boot:run
+```
+
+### Option 2: ngrok
 
 ```bash
 # Install ngrok
@@ -193,17 +216,17 @@ mvn spring-boot:run
 
 ## Advantages
 
-✅ **Low latency** — Telegram pushes updates immediately
-✅ **Efficient** — No constant polling
-✅ **Scalable** — Handles high traffic
-✅ **Production-ready** — Industry standard
+ **Low latency** — Telegram pushes updates immediately
+ **Efficient** — No constant polling
+ **Scalable** — Handles high traffic
+ **Production-ready** — Industry standard
 
 ## Disadvantages
 
-❌ Requires HTTPS certificate
-❌ More complex setup
-❌ Requires public domain
-❌ Need to handle TLS/certificate renewal
+ Requires HTTPS certificate
+ More complex setup
+ Requires public domain
+ Need to handle TLS/certificate renewal
 
 ## Production Checklist
 

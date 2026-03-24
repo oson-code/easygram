@@ -48,7 +48,7 @@ public class AuthFilter implements BotFilter {
         if (!isAllowed(request.getUser().getId())) {
             response.addBotApiMethod(SendMessage.builder()
                 .chatId(request.getChat().getId())
-                .text("⛔ Not authorized.")
+                .text(" Not authorized.")
                 .build());
             return; // stop chain — do NOT call chain.doFilter
         }
@@ -98,7 +98,7 @@ public class LoggingFilter implements BotFilter {
     
     @Override
     public int getOrder() {
-        return -500;  // High priority (before dispatcher)
+        return -500; // High priority (before dispatcher)
     }
 }
 ```
@@ -120,15 +120,15 @@ public class AuthenticationFilter implements BotFilter {
                 .chatId(request.getChat().getId())
                 .text("You are not authorized!")
                 .build());
-            return;  // Stop chain
+            return; // Stop chain
         }
         
-        chain.doFilter(request, response);  // Allow to continue
+        chain.doFilter(request, response); // Allow to continue
     }
     
     @Override
     public int getOrder() {
-        return -2000;  // Very high priority
+        return -2000; // Very high priority
     }
 }
 ```
@@ -140,7 +140,7 @@ public class AuthenticationFilter implements BotFilter {
 public class RateLimitingFilter implements BotFilter {
     
     private final Map<Long, LocalDateTime> lastMessageTime = new ConcurrentHashMap<>();
-    private static final long RATE_LIMIT_MILLIS = 1000;  // 1 message per second
+    private static final long RATE_LIMIT_MILLIS = 1000; // 1 message per second
     
     @Override
     public void doFilter(BotRequest request, BotResponse response, BotFilterChain chain) throws Exception {
@@ -237,10 +237,10 @@ Return without calling `chain.doFilter()` to prevent subsequent filters and hand
 public void doFilter(BotRequest request, BotResponse response, BotFilterChain chain) throws Exception {
     if (shouldBlock()) {
         response.addBotApiMethod(SendMessage.builder()...build());
-        return;  // Chain stops here
+        return; // Chain stops here
     }
     
-    chain.doFilter(request, response);  // Continue
+    chain.doFilter(request, response); // Continue
 }
 ```
 
@@ -258,8 +258,6 @@ public void doFilter(BotRequest request, BotResponse response, BotFilterChain ch
 - `void addBotApiMethod(BotApiMethod<?> method)` — enqueue a single API call
 - `void addBotApiMethods(Collection<BotApiMethod<?>> methods)` — enqueue multiple calls
 - `Collection<BotApiMethod<?>> getBotApiMethods()` — inspect the current queue
-
-To share data between a filter and a handler, inject a Spring-managed service into both, or use a thread-local. The request object does not carry a generic context map.
 
 ## Exception Handling in Filters
 
@@ -290,10 +288,10 @@ Design your filters to be **stateless** (no instance fields that store per-reque
 If you must maintain state (e.g., rate-limit counters), use thread-safe data structures:
 
 ```java
-// ✅ Thread-safe: ConcurrentHashMap is safe for concurrent access
+// Thread-safe: ConcurrentHashMap is safe for concurrent access
 private final Map<Long, Deque<Long>> timestamps = new ConcurrentHashMap<>();
 
-// ❌ Not thread-safe: plain HashMap with unsynchronized per-user deque
+// Not thread-safe: plain HashMap with unsynchronized per-user deque
 private final Map<Long, Deque<Long>> timestamps = new HashMap<>();
 ```
 

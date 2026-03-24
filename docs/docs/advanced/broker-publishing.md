@@ -16,11 +16,11 @@ Telegram
   ↓ transport (long-polling or webhook)
 BotContextSetterFilter
   ↓
-BotUpdatePublishingFilter  ← messaging-producer
-  ├─ KafkaBotUpdatePublisher   (messaging-kafka)
-  └─ RabbitBotUpdatePublisher  (messaging-rabbit)
+BotUpdatePublishingFilter ← messaging-producer
+   KafkaBotUpdatePublisher (messaging-kafka)
+   RabbitBotUpdatePublisher (messaging-rabbit)
   ↓
-  forward-only: true  → STOP  (local handlers skipped)
+  forward-only: true → STOP (local handlers skipped)
   forward-only: false → continue to BotDispatcher
 ```
 
@@ -33,21 +33,21 @@ BotUpdatePublishingFilter  ← messaging-producer
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-kafka</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 
 <!-- RabbitMQ publishing -->
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-rabbit</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 
 <!-- Smart routing: Kafka OR RabbitMQ based on a single property -->
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-producer</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
@@ -57,7 +57,7 @@ BotUpdatePublishingFilter  ← messaging-producer
 telegram:
   bot:
     messaging:
-      forward-only: true       # Skip local handlers; updates go to Kafka only
+      forward-only: true # Skip local handlers; updates go to Kafka only
       producer:
         producer-type: kafka
       kafka:
@@ -70,7 +70,7 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
-      key-serializer:   org.apache.kafka.common.serialization.StringSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       acks: all
       retries: 3
@@ -86,15 +86,15 @@ telegram:
       producer:
         producer-type: rabbit
       rabbit:
-        exchange:     telegram-exchange
-        routing-key:  telegram.updates
-        queue:        telegram-updates
+        exchange: telegram-exchange
+        routing-key: telegram.updates
+        queue: telegram-updates
         create-if-absent: true # Auto-create exchange, queue, and binding
 
 spring:
   rabbitmq:
-    host:     ${RABBITMQ_HOST:localhost}
-    port:     ${RABBITMQ_PORT:5672}
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:guest}
     password: ${RABBITMQ_PASS:guest}
 ```
@@ -159,7 +159,7 @@ Register as a bean:
 @Bean
 @ConditionalOnMissingBean(BotUpdatePublisher.class)
 public BotUpdatePublisher pubSubPublisher(PubSubTemplate pubSub,
-                                          ObjectMapper  objectMapper) {
+                                          ObjectMapper objectMapper) {
     return request -> {
         String json = objectMapper.writeValueAsString(request.getUpdate());
         pubSub.publish("telegram-updates", json).get();
@@ -175,17 +175,17 @@ Use the consumer transport modules to process updates through the full bot pipel
 # Consumer application.yml
 telegram:
   bot:
-    transport: KAFKA_CONSUMER  # or RABBIT_CONSUMER
+    transport: KAFKA_CONSUMER # or RABBIT_CONSUMER
     messaging:
       kafka:
-        topic:    telegram-updates
+        topic: telegram-updates
         group-id: my-bot-consumer-group
 
 spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
-      key-deserializer:   org.apache.kafka.common.serialization.StringDeserializer
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       auto-offset-reset: earliest
 ```

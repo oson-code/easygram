@@ -20,7 +20,7 @@ Handlers are methods in `@BotController` classes that respond to Telegram update
 | `@BotDefaultCallbackQuery` | Any callback not matched | `@BotDefaultCallbackQuery` |
 | `@BotContact` | Contact-sharing message | `@BotContact` |
 | `@BotLocation` | Location-sharing message | `@BotLocation` |
-| `@BotReplyButton` | Reply keyboard button press | `@BotReplyButton("✅ Confirm")` |
+| `@BotReplyButton` | Reply keyboard button press | `@BotReplyButton(" Confirm")` |
 | `@BotDefaultHandler` | Global fallback | `@BotDefaultHandler` |
 | `@BotExceptionHandler` | Exception type handler | `@BotExceptionHandler(NullPointerException.class)` |
 
@@ -44,14 +44,14 @@ Multiple handlers for same command can use `@BotOrder` for priority:
 
 ```java
 @BotCommand("/admin")
-@BotOrder(1)  // Higher priority
+@BotOrder(1) // Higher priority
 public String onAdminAccess(User user) {
     if (isAdmin(user)) return "Admin panel";
     throw new UnauthorizedException();
 }
 
 @BotCommand("/admin")
-@BotOrder(100)  // Lower priority, fallback
+@BotOrder(100) // Lower priority, fallback
 public String onAdminDefault() {
     return "Admin access denied";
 }
@@ -62,7 +62,7 @@ public String onAdminDefault() {
 Route exact plain-text messages (case-sensitive, full-string match).
 
 ```java
-@BotText("hello")  // Case-sensitive
+@BotText("hello") // Case-sensitive
 public String onHello() {
     return "Hi there!";
 }
@@ -185,12 +185,12 @@ Telegram delivers button presses — as plain text messages with the button's la
 **Without `core-i18n`** — values are matched as literal strings:
 
 ```java
-@BotReplyButton("✅ Confirm")
+@BotReplyButton(" Confirm")
 public String onConfirm() {
     return "Confirmed!";
 }
 
-@BotReplyButton({"❌ Cancel", "Back"})
+@BotReplyButton({" Cancel", "Back"})
 @BotClearChatState
 public String onCancel() {
     return "Cancelled. State cleared.";
@@ -202,8 +202,8 @@ key in the user's current locale and compares the result against the incoming te
 annotation covers all supported languages automatically:
 
 ```java
-// messages/bot_en.properties: btn.confirm=✅ Confirm
-// messages/bot_ru.properties: btn.confirm=✅ Подтвердить
+// messages/bot_en.properties: btn.confirm= Confirm
+// messages/bot_ru.properties: btn.confirm= Подтвердить
 @BotReplyButton("btn.confirm")
 public String onConfirm() {
     return "Confirmed!";
@@ -256,7 +256,7 @@ distinct values when handler priority matters.
 @BotOrder(1)
 public String vipStart(User user) {
     if (isVip(user)) return "Welcome, VIP!";
-    throw new UnauthorizedException();  // Try next handler
+    throw new UnauthorizedException(); // Try next handler
 }
 
 @BotCommand("/start")

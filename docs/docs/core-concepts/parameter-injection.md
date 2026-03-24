@@ -330,7 +330,7 @@ public class PaginationResolver implements BotArgumentResolver {
 }
 
 // Use in any handler:
-@BotCallbackQuery("page:")
+@BotDefaultCallbackQuery
 public String onPage(PageRequest page, User user) {
     return "Showing page " + page.getPageNumber() + " for " + user.getFirstName();
 }

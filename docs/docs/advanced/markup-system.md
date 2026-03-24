@@ -18,7 +18,7 @@ The markup system is built from five cooperating pieces:
 | `@BotConfiguration` | Marks a class as a keyboard factory (component stereotype) |
 | `@BotMarkup("id")` | Registers a method's return value as a named keyboard |
 | `BotMarkupRegistry` | Stores and resolves named keyboards at runtime |
-| `MarkupAware` | Interface implemented by `PlainReply`, `PlainTextTemplate`, and `LocalizedReply` — lets return values carry markup intent |
+| `MarkupAware` | Interface implemented by `PlainReply`, `PlainTextTemplate`, `LocalizedReply`, and `LocalizedTemplate` — lets return values carry markup intent |
 | `BotMarkupContext` | Typed parameter bag passed from a handler to a keyboard factory at resolution time |
 
 Keyboards can be **statically declared** (the factory method has no dynamic inputs) or **dynamically built** at resolution time using `BotMarkupContext` or `BotRequest`.
@@ -38,8 +38,8 @@ public class MyKeyboards {
     public ReplyKeyboardMarkup mainMenu() {
         return ReplyKeyboardMarkup.builder()
             .keyboardRow(new KeyboardRow(List.of(
-                KeyboardButton.builder().text("✅ Confirm").build(),
-                KeyboardButton.builder().text("❌ Cancel").build()
+                KeyboardButton.builder().text(" Confirm").build(),
+                KeyboardButton.builder().text(" Cancel").build()
             )))
             .resizeKeyboard(true)
             .build();
@@ -55,7 +55,7 @@ The argument resolver infrastructure used for handler methods is also applied to
 |---|---|
 | *(none)* | Static — evaluated once or on demand |
 | `BotRequest` | The live request being processed |
-| `BotMarkupContext` | Parameters passed by the calling handler (see §5) |
+| `BotMarkupContext` | Parameters passed by the calling handler (see 5) |
 | `Locale` | Current user locale *(requires `core-i18n`)* |
 
 ```java
@@ -104,7 +104,7 @@ public String onStart() {
 
 ### 2b. `.withMarkup("id")` — on `MarkupAware` return types
 
-`PlainReply`, `PlainTextTemplate`, and `LocalizedReply` all implement `MarkupAware`. Call `.withMarkup("id")` to attach a registered keyboard by ID. The return types are **immutable** — each fluent method returns a new instance.
+`PlainReply`, `PlainTextTemplate`, `LocalizedReply`, and `LocalizedTemplate` all implement `MarkupAware`. Call `.withMarkup("id")` to attach a registered keyboard by ID. The return types are **immutable** — each fluent method returns a new instance.
 
 ```java
 @BotCommand("/menu")
@@ -222,7 +222,7 @@ public class RegistrationMarkups {
 public class RegistrationController {
 
     @BotCommand("/register")
-    @BotChatState            // override class guard — accept any state
+    @BotChatState // override class guard — accept any state
     @BotForwardChatState("AWAITING_NAME")
     // ↑ kb_cancel auto-attached because AWAITING_NAME is bound to it
     public LocalizedReply startRegistration(User user) {
@@ -256,7 +256,7 @@ public class RegistrationController {
     @BotTextDefault
     @BotChatState("AWAITING_CITY")
     @BotClearChatState
-    @BotClearMarkup       // explicitly clears keyboard — state-bound lookup is skipped
+    @BotClearMarkup // explicitly clears keyboard — state-bound lookup is skipped
     public LocalizedTemplate collectCity(@BotTextValue String city) {
         return LocalizedTemplate.of("${register.complete}", "(saved)", "(saved)", city);
     }
@@ -308,7 +308,7 @@ public PlainReply showItems(User user) {
 
     return PlainReply.of("Your items:")
         .withMarkup("item_list", Map.of(
-            "items",  items,
+            "items", items,
             "userId", user.getId()
         ));
 }
@@ -339,12 +339,12 @@ public class ItemKeyboards {
 ### `BotMarkupContext` API
 
 ```java
-ctx.get("key")                        // unchecked cast to inferred type
-ctx.get("key", String.class)          // safe typed cast
-ctx.getOrDefault("key", "fallback")   // returns fallback when key absent
-ctx.has("key")                        // existence check → boolean
-ctx.asMap()                           // read-only view of full parameter map
-BotMarkupContext.empty()              // empty context (no params)
+ctx.get("key") // unchecked cast to inferred type
+ctx.get("key", String.class) // safe typed cast
+ctx.getOrDefault("key", "fallback") // returns fallback when key absent
+ctx.has("key") // existence check → boolean
+ctx.asMap() // read-only view of full parameter map
+BotMarkupContext.empty() // empty context (no params)
 ```
 
 :::tip
@@ -368,7 +368,7 @@ public class LocalizedMenus {
     @BotMarkup("localized_menu")
     public ReplyKeyboard localizedMenu(BotRequest request) {
         return keyboardFactory.reply(request)
-            .row("btn.confirm", "btn.cancel")   // message bundle keys
+            .row("btn.confirm", "btn.cancel") // message bundle keys
             .row("btn.back")
             .resizeKeyboard(true)
             .build();
@@ -380,7 +380,7 @@ public class LocalizedMenus {
         return keyboardFactory.inline(request)
             .row(
                 "btn.yes", "action:yes",
-                "btn.no",  "action:no"
+                "btn.no", "action:no"
             )
             .build();
     }
@@ -476,5 +476,5 @@ Your custom registry must implement `BotMarkupRegistry`, which requires at minim
 ### Markup precedence at a glance
 
 ```
-@BotClearMarkup  >  .withKeyboard(kb)  >  .withMarkup("id")  >  @BotReplyMarkup  >  state-bound keyboard
+@BotClearMarkup > .withKeyboard(kb) > .withMarkup("id") > @BotReplyMarkup > state-bound keyboard
 ```

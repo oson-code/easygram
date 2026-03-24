@@ -17,7 +17,7 @@ trace context propagation with minimal configuration.
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-observability</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 
 <!-- Spring Boot Actuator (health, metrics, prometheus endpoints) -->
@@ -100,7 +100,7 @@ Add Micrometer Tracing with Brave/Zipkin:
 management:
   tracing:
     sampling:
-      probability: 1.0   # 100% sampling in dev; reduce to 0.1 in production
+      probability: 1.0 # 100% sampling in dev; reduce to 0.1 in production
   zipkin:
     tracing:
       endpoint: http://localhost:9411/api/v2/spans
@@ -223,7 +223,7 @@ The filter pipeline on the **producer** side executes in this order:
 
 ```
 CONTEXT_SETTER (MIN_VALUE)
-  → OBSERVATION (MIN_VALUE + 1)   ← telegram.bot.update span starts HERE
+  → OBSERVATION (MIN_VALUE + 1) ← telegram.bot.update span starts HERE
   → ...
   → PUBLISHING (MIN_VALUE + 1000) ← KafkaTemplate / RabbitTemplate sends the message
 ```
@@ -240,13 +240,13 @@ dispatching the message to the bot.
 
 ```
 [producer service]
-  telegram.bot.update  (BotObservabilityFilter)
-    └── spring.kafka.producer  (KafkaTemplate with observationEnabled=true)
-             ↓  W3C traceparent header in Kafka record
+  telegram.bot.update (BotObservabilityFilter)
+     spring.kafka.producer (KafkaTemplate with observationEnabled=true)
+             ↓ W3C traceparent header in Kafka record
 
 [consumer service]
-  spring.kafka.consumer  (KafkaListenerContainerFactory with observationEnabled=true)
-    └── telegram.bot.update  (BotObservabilityFilter — child of kafka.consumer span)
+  spring.kafka.consumer (KafkaListenerContainerFactory with observationEnabled=true)
+     telegram.bot.update (BotObservabilityFilter — child of kafka.consumer span)
 ```
 
 The same pattern applies for RabbitMQ (`spring.rabbit.producer` / `spring.rabbit.listener`).
@@ -259,7 +259,7 @@ automatically, conditioned on `ObservationRegistry` being present:
 | Condition | Template observation | Container factory observation |
 |---|---|---|
 | No `ObservationRegistry` bean | disabled (default) | disabled (default) |
-| `ObservationRegistry` present | ✅ enabled automatically | ✅ enabled automatically |
+| `ObservationRegistry` present | enabled automatically | enabled automatically |
 
 You only need to add the tracing bridge (Brave or OTel) to your application — nothing extra in
 the consumer or producer modules:

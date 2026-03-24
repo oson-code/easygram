@@ -16,7 +16,7 @@ the method's declared return type wins.
 | `void` | `core` | No response sent |
 | `String` | `core` | `SendMessage` to the current chat |
 | `PlainReply` | `core` | `SendMessage` with optional keyboard |
-| `PlainTextTemplate` | `core` | `SendMessage` with `String.format` substitution |
+| `PlainTextTemplate` | `core` | `SendMessage` with `#{index}` token substitution |
 | `BotApiMethod<?>` | `core` | Executed directly via `TelegramClient` |
 | `Collection<BotApiMethod<?>>` | `core` | All executed in insertion order |
 | `Collection<Object>` | `core` | Per-element dispatch via `supportsElement()` |
@@ -69,8 +69,8 @@ Returning `null` from a `String` handler produces no action (same as `void`).
 
 ## `PlainReply`
 
-Sends a `SendMessage` with optional keyboard control via fluent builder methods. All builder
-methods return a new immutable instance.
+Sends a `SendMessage` with optional keyboard control via fluent wither methods. All methods
+return a new immutable instance. You can also use the builder:
 
 ```java
 @BotCommand("/menu")
@@ -84,6 +84,15 @@ public PlainReply done() {
     return PlainReply.of("Done!")
         .removeMarkup();                    // sends ReplyKeyboardRemove
 }
+
+// Builder pattern
+@BotCommand("/start")
+public PlainReply start() {
+    return PlainReply.builder()
+        .text("Welcome! Choose an option:")
+        .markupId("main_menu")
+        .build();
+}
 ```
 
 See the [MarkupAware section](#markupaware) for all keyboard attachment options.
@@ -92,27 +101,37 @@ See the [MarkupAware section](#markupaware) for all keyboard attachment options.
 
 ## `PlainTextTemplate`
 
-Like `PlainReply`, but uses `String.format(template, args)` to interpolate values into the
-message. Use standard Java format specifiers: `%s`, `%d`, `%f`, `%n`, etc.
+Like `PlainReply`, but substitutes `#{index}` positional tokens (0-based) into the message at
+send time. No message-bundle lookup is performed — use `LocalizedTemplate` when i18n is needed.
 
 ```java
 @BotCommand("/welcome")
 public PlainTextTemplate welcome(User user) {
-    return PlainTextTemplate.of("Hello, %s! You have %d messages.", user.getFirstName(), 5);
+    return PlainTextTemplate.of("Hello, #{0}! You have #{1} messages.", user.getFirstName(), 5);
     // Sends: "Hello, Alice! You have 5 messages."
 }
 
 @BotCommand("/balance")
 public PlainTextTemplate balance(User user) {
     double amount = accountService.getBalance(user.getId());
-    return PlainTextTemplate.of("Your balance: %.2f USD", amount)
+    return PlainTextTemplate.of("Your balance: #{0} USD", amount)
         .withMarkup("account_menu");
+}
+
+// Builder pattern
+@BotCommand("/info")
+public PlainTextTemplate info(User user) {
+    return PlainTextTemplate.builder()
+        .template("Hello, #{0}! Your ID is #{1}.")
+        .args(user.getFirstName(), user.getId())
+        .markupId("main_menu")
+        .build();
 }
 ```
 
-:::caution
-`PlainTextTemplate` uses `String.format`, **not** `MessageFormat`. Use `%s`/`%d`/`%f`,
-**not** `{0}`/`{1}`.
+:::note
+`PlainTextTemplate` uses `#{index}` tokens (same format as `LocalizedTemplate`). If the index
+is out of bounds the token is left unchanged.
 :::
 
 ---
@@ -242,7 +261,7 @@ public Collection<Object> showSummary(Update update, Chat chat) {
         AnswerCallbackQuery.builder()                    // dismiss the spinner
             .callbackQueryId(query.getId())
             .build(),
-        PlainTextTemplate.of("Summary for %s:%n%s",      // formatted message
+        PlainTextTemplate.of("Summary for #{0}:\n#{1}",      // #{index} token substitution
             chat.getFirstName(),
             summaryService.get(chat.getId()))
     );
@@ -282,6 +301,16 @@ With a keyboard:
 
 ```java
 return LocalizedReply.of("choose.option").withMarkup("main_menu");
+```
+
+Builder pattern:
+
+```java
+return LocalizedReply.builder()
+    .key("greeting")
+    .args(user.getFirstName(), joinDate(user.getId()))
+    .markupId("main_menu")
+    .build();
 ```
 
 ---
@@ -337,6 +366,16 @@ public LocalizedTemplate stats(User user) {
         statsService.commands(user.getId())
     ).withMarkup("stats_menu");
 }
+```
+
+Builder pattern:
+
+```java
+return LocalizedTemplate.builder()
+    .template("${stats.header}\n\nMessages: #{0}\nCommands: #{1}")
+    .args(statsService.messages(user.getId()), statsService.commands(user.getId()))
+    .markupId("stats_menu")
+    .build();
 ```
 
 :::caution

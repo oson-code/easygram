@@ -25,7 +25,7 @@ Easygram provides:
 
 ## Key Features
 
-### 🚀 Quick to Start
+### Quick to Start
 ```java
 @BotController
 public class MyBot {
@@ -36,14 +36,14 @@ public class MyBot {
 }
 ```
 
-### 📦 Pluggable Transports
+### Pluggable Transports
 Switch between update sources without code changes:
 - **Long-polling** (default) — Perfect for development and small deployments
 - **Webhook** — Scale to production with HTTPS webhooks
 - **Kafka Consumer** — Integrate with Kafka pipelines
 - **RabbitMQ Consumer** — Use RabbitMQ message queues
 
-### 🎯 Stateful Workflows
+### Stateful Workflows
 Build registration wizards and multi-step flows:
 ```java
 @BotCommand("/register")
@@ -52,13 +52,13 @@ Build registration wizards and multi-step flows:
 public String handleRegistration(String input) { ... }
 ```
 
-### 🔧 Extensible
+### Extensible
 - Custom `BotFilter` for middleware (auth, rate-limiting, logging)
 - Custom `BotArgumentResolver` for parameter injection
 - Custom `BotReturnTypeHandler` for response types
 - Replace `BotChatStateService` with Redis or JDBC backends
 
-### 🌍 Internationalization
+### Internationalization
 ```yaml
 spring:
   messages:
@@ -103,5 +103,5 @@ Combine with custom filters for authentication, audit logging, and monitoring.
 
 ---
 
-Happy bot building! 🤖
+Happy bot building!
 
