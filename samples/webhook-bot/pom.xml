@@ -12,7 +12,7 @@
 
     <groupId>uz.osoncode.easygram.samples</groupId>
     <artifactId>webhook-bot</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <name>sample :: webhook-bot</name>
     <description>Sample: Telegram bot using webhook transport</description>
 

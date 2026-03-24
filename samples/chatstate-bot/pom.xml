@@ -12,7 +12,7 @@
 
     <groupId>uz.osoncode.easygram.samples</groupId>
     <artifactId>chatstate-bot</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <name>sample :: chatstate-bot</name>
     <description>Sample: Multi-step registration wizard using @BotChatState and BotChatStateService</description>
 

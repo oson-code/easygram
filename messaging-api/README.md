@@ -8,7 +8,7 @@
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-api</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
@@ -24,7 +24,7 @@ Add only the `messaging-api` module (without Kafka/RabbitMQ dependencies) when i
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-api</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 

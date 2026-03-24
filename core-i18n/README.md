@@ -11,7 +11,7 @@ Already included transitively through the starter. To add it explicitly:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-i18n</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 

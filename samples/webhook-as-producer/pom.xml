@@ -12,7 +12,7 @@
 
     <groupId>uz.osoncode.easygram.samples</groupId>
     <artifactId>webhook-as-producer</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <name>sample :: webhook-as-producer</name>
     <description>Sample: Webhook bot that forwards every update to Kafka or RabbitMQ</description>
 
