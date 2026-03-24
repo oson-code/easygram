@@ -698,13 +698,18 @@ public class CoreAutoConfiguration {
 
     /**
      * Registers the exception handler loader that scans the application context for
-     * {@code @BotControllerAdvice} beans and registers their exception handler methods in the
-     * {@link BotExceptionHandlerRegistry}.
+     * {@code @BotController} and {@code @BotControllerAdvice} beans and registers their
+     * exception handler methods in the {@link BotExceptionHandlerRegistry}.
+     *
+     * <p>The optional {@link BotChatStateService} is injected so that exception handlers
+     * annotated with {@link uz.osoncode.easygram.core.chatstate.BotChatState} are only
+     * selected when the current chat is in the required state.</p>
      *
      * @param applicationContext           the Spring application context used to discover exception handler beans
      * @param botArgumentResolverFactory   factory for resolving exception handler method parameters
      * @param botExceptionHandlerRegistry  registry where discovered exception handlers are stored
      * @param botReturnTypeHandlerFactory  factory for resolving exception handler method return types
+     * @param chatStateService             optional chat-state service; empty when the module is absent
      * @return a new {@link BotMethodExceptionHandlerLoader} instance
      */
     @Bean
@@ -713,9 +718,10 @@ public class CoreAutoConfiguration {
             ApplicationContext applicationContext,
             BotArgumentResolverFactory botArgumentResolverFactory,
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
-            BotReturnTypeHandlerFactory botReturnTypeHandlerFactory) {
+            BotReturnTypeHandlerFactory botReturnTypeHandlerFactory,
+            Optional<BotChatStateService> chatStateService) {
         return new BotMethodExceptionHandlerLoader(applicationContext, botArgumentResolverFactory,
-                botExceptionHandlerRegistry, botReturnTypeHandlerFactory);
+                botExceptionHandlerRegistry, botReturnTypeHandlerFactory, chatStateService);
     }
 
 

@@ -5,6 +5,9 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.annotation.AnnotationUtils;
+import uz.osoncode.easygram.core.chatstate.BotChatState;
+import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 import uz.osoncode.easygram.core.stereotype.BotController;
 import uz.osoncode.easygram.core.stereotype.BotControllerAdvice;
 import uz.osoncode.easygram.core.argumentresolver.BotArgumentResolverFactory;
@@ -12,6 +15,7 @@ import uz.osoncode.easygram.core.bind.annotation.BotExceptionHandler;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandlerFactory;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * {@link ApplicationRunner} that scans all {@link BotController}-annotated beans at
@@ -26,6 +30,13 @@ import java.util.Arrays;
  *
  * <p>AOP proxies are handled transparently via {@link AopUtils#getTargetClass} so that
  * annotations on the real class are always visible.
+ *
+ * <h2>Chat-state scoping</h2>
+ * <p>When a {@link BotExceptionHandler} method (or its enclosing {@link BotController}
+ * class) is annotated with {@link BotChatState}, the handler is only selected if the
+ * current chat is in one of the declared states at the time the exception occurs.
+ * Method-level {@link BotChatState} overrides the class-level annotation, consistent with
+ * the behavior of regular handler methods.</p>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
@@ -46,40 +57,54 @@ public class BotMethodExceptionHandlerLoader implements ApplicationRunner {
     private final BotReturnTypeHandlerFactory botReturnTypeHandlerFactory;
 
     /**
-     * Scans {@link BotController} beans and registers their {@link BotExceptionHandler}
-     * methods as exception handlers.
-     *
-     * <p>Iterates over every bean annotated with {@link BotController}, resolves the
-     * underlying target class (bypassing AOP proxies), and then registers a
-     * {@link BotExceptionMethodHandler} for each exception type listed in each
-     * {@link BotExceptionHandler}-annotated method.
+     * Optional chat-state service used to enforce {@link BotChatState} restrictions on
+     * exception handlers. When absent (module not on classpath), state restrictions are ignored.
+     */
+    private final Optional<BotChatStateService> botChatStateService;
+
+    /**
+     * Scans {@link BotController} and {@link BotControllerAdvice} beans and registers
+     * their {@link BotExceptionHandler} methods, respecting any {@link BotChatState} declared
+     * at method or class level.
      *
      * @param args application arguments (not used).
      */
     @Override
     public void run(ApplicationArguments args) {
+        BotChatStateService stateService = botChatStateService.orElse(null);
+
         applicationContext.getBeansWithAnnotation(BotController.class).values().forEach(bean -> {
             Class<?> targetClass = AopUtils.getTargetClass(bean);
+            BotChatState classChatState = AnnotationUtils.findAnnotation(targetClass, BotChatState.class);
             Arrays.stream(targetClass.getMethods())
                     .filter(method -> method.isAnnotationPresent(BotExceptionHandler.class))
                     .forEach(method -> {
+                        BotChatState methodChatState = AnnotationUtils.findAnnotation(method, BotChatState.class);
+                        BotChatState effectiveChatState = methodChatState != null ? methodChatState : classChatState;
                         BotExceptionHandler botExceptionHandler = method.getAnnotation(BotExceptionHandler.class);
                         for (Class<? extends Throwable> aClass : botExceptionHandler.value()) {
                             botExceptionHandlerRegistry.register(new BotExceptionMethodHandler<>(
-                                    aClass, 0, method, bean, botArgumentResolverFactory, botReturnTypeHandlerFactory));
+                                    aClass, 0, method, bean,
+                                    botArgumentResolverFactory, botReturnTypeHandlerFactory,
+                                    stateService, effectiveChatState));
                         }
                     });
         });
 
         applicationContext.getBeansWithAnnotation(BotControllerAdvice.class).values().forEach(bean -> {
             Class<?> targetClass = AopUtils.getTargetClass(bean);
+            BotChatState classChatState = AnnotationUtils.findAnnotation(targetClass, BotChatState.class);
             Arrays.stream(targetClass.getMethods())
                     .filter(method -> method.isAnnotationPresent(BotExceptionHandler.class))
                     .forEach(method -> {
+                        BotChatState methodChatState = AnnotationUtils.findAnnotation(method, BotChatState.class);
+                        BotChatState effectiveChatState = methodChatState != null ? methodChatState : classChatState;
                         BotExceptionHandler botExceptionHandler = method.getAnnotation(BotExceptionHandler.class);
                         for (Class<? extends Throwable> aClass : botExceptionHandler.value()) {
                             botExceptionHandlerRegistry.register(new BotExceptionMethodHandler<>(
-                                    aClass, 1, method, bean, botArgumentResolverFactory, botReturnTypeHandlerFactory));
+                                    aClass, 1, method, bean,
+                                    botArgumentResolverFactory, botReturnTypeHandlerFactory,
+                                    stateService, effectiveChatState));
                         }
                     });
         });
