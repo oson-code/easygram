@@ -15,6 +15,7 @@ import uz.osoncode.easygram.core.bind.annotation.BotExceptionHandler;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandlerFactory;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -80,7 +81,7 @@ public class BotMethodExceptionHandlerLoader implements ApplicationRunner {
                     .filter(method -> method.isAnnotationPresent(BotExceptionHandler.class))
                     .forEach(method -> {
                         BotChatState methodChatState = AnnotationUtils.findAnnotation(method, BotChatState.class);
-                        BotChatState effectiveChatState = methodChatState != null ? methodChatState : classChatState;
+                        BotChatState effectiveChatState = Objects.nonNull(methodChatState) ? methodChatState : classChatState;
                         BotExceptionHandler botExceptionHandler = method.getAnnotation(BotExceptionHandler.class);
                         for (Class<? extends Throwable> aClass : botExceptionHandler.value()) {
                             botExceptionHandlerRegistry.register(new BotExceptionMethodHandler<>(
@@ -98,7 +99,7 @@ public class BotMethodExceptionHandlerLoader implements ApplicationRunner {
                     .filter(method -> method.isAnnotationPresent(BotExceptionHandler.class))
                     .forEach(method -> {
                         BotChatState methodChatState = AnnotationUtils.findAnnotation(method, BotChatState.class);
-                        BotChatState effectiveChatState = methodChatState != null ? methodChatState : classChatState;
+                        BotChatState effectiveChatState = Objects.nonNull(methodChatState) ? methodChatState : classChatState;
                         BotExceptionHandler botExceptionHandler = method.getAnnotation(BotExceptionHandler.class);
                         for (Class<? extends Throwable> aClass : botExceptionHandler.value()) {
                             botExceptionHandlerRegistry.register(new BotExceptionMethodHandler<>(

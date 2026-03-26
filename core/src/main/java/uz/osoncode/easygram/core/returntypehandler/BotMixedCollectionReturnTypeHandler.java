@@ -10,6 +10,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * {@link BotReturnTypeHandler} that handles handler methods returning a heterogeneous
@@ -94,11 +95,11 @@ public class BotMixedCollectionReturnTypeHandler implements BotReturnTypeHandler
     @Override
     @SuppressWarnings("unchecked")
     public void handleReturnType(BotRequest botRequest, BotResponse botResponse, Object returnValue) {
-        if (returnValue == null) {
+        if (Objects.isNull(returnValue)) {
             return;
         }
         for (Object element : (Collection<Object>) returnValue) {
-            if (element == null) {
+            if (Objects.isNull(element)) {
                 continue;
             }
             for (BotReturnTypeHandler handler : handlers) {

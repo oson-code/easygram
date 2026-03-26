@@ -10,6 +10,8 @@ import uz.osoncode.easygram.core.filter.BotFilterOrder;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 
+import java.util.Objects;
+
 /**
  * {@link BotFilter} that wraps each Telegram update in a Micrometer {@link Observation},
  * producing both metrics and distributed traces when the appropriate bridges are on the
@@ -90,17 +92,17 @@ public class BotObservabilityFilter implements BotFilter {
                 .lowCardinalityKeyValue("update.type", resolveUpdateType(botRequest.getUpdate()))
                 .lowCardinalityKeyValue("transport.type", botConfigurer.transportType().name());
 
-        if (botRequest.getUser() != null) {
+        if (Objects.nonNull(botRequest.getUser())) {
             observation.highCardinalityKeyValue("user.id", String.valueOf(botRequest.getUser().getId()));
         }
-        if (botRequest.getChat() != null) {
+        if (Objects.nonNull(botRequest.getChat())) {
             observation.highCardinalityKeyValue("chat.id", String.valueOf(botRequest.getChat().getId()));
         }
 
         observation.start();
         try {
             filterChain.doFilter(botRequest, botResponse);
-            if (botRequest.getThrowable() != null) {
+            if (Objects.nonNull(botRequest.getThrowable())) {
                 observation.error(botRequest.getThrowable());
             }
         } catch (Exception e) {
@@ -118,7 +120,7 @@ public class BotObservabilityFilter implements BotFilter {
      * @return a lowercase string identifying the update type
      */
     private String resolveUpdateType(Update update) {
-        if (update == null)             return "unknown";
+        if (Objects.isNull(update))             return "unknown";
         if (update.hasMessage())        return "message";
         if (update.hasCallbackQuery())  return "callback_query";
         if (update.hasInlineQuery())    return "inline_query";

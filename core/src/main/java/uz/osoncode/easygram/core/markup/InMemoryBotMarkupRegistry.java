@@ -3,6 +3,7 @@ package uz.osoncode.easygram.core.markup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import uz.osoncode.easygram.core.model.BotRequest;
 
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -39,7 +40,7 @@ public class InMemoryBotMarkupRegistry implements BotMarkupRegistry {
     @Override
     public ReplyKeyboard resolve(String id, BotRequest request) {
         Function<BotRequest, ReplyKeyboard> factory = factories.get(id);
-        return factory != null ? factory.apply(request) : null;
+        return Objects.nonNull(factory) ? factory.apply(request) : null;
     }
 
     @Override
@@ -55,6 +56,6 @@ public class InMemoryBotMarkupRegistry implements BotMarkupRegistry {
     @Override
     public ReplyKeyboard resolveByState(String state, BotRequest request) {
         Function<BotRequest, ReplyKeyboard> factory = stateFactories.get(state);
-        return factory != null ? factory.apply(request) : null;
+        return Objects.nonNull(factory) ? factory.apply(request) : null;
     }
 }

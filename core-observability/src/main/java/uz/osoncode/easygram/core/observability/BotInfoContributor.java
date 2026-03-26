@@ -8,6 +8,7 @@ import uz.osoncode.easygram.core.bot.BotConfigurer;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Spring Boot Actuator {@link InfoContributor} that adds Telegram bot metadata to
@@ -56,7 +57,7 @@ public class BotInfoContributor implements InfoContributor {
     @Override
     public void contribute(Info.Builder builder) {
         User metadata = bot.getBotMetaData();
-        if (metadata == null) {
+        if (Objects.isNull(metadata)) {
             return;
         }
         Map<String, Object> details = new LinkedHashMap<>();

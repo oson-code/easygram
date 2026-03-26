@@ -10,6 +10,7 @@ import uz.osoncode.easygram.core.model.BotResponse;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandlerFactory;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -135,18 +136,18 @@ public class BotExceptionMethodHandler<T extends Throwable> {
      * or the current state is not in the declared set.
      */
     private boolean matchesChatState(BotRequest botRequest) {
-        if (chatState == null || botChatStateService == null) {
+        if (Objects.isNull(chatState) || Objects.isNull(botChatStateService)) {
             return true;
         }
         Set<String> requiredStates = Set.of(chatState.value());
         if (requiredStates.isEmpty()) {
             return true;
         }
-        if (botRequest.getChat() == null) {
+        if (Objects.isNull(botRequest.getChat())) {
             return false;
         }
         String currentState = botChatStateService.getState(botRequest.getChat().getId());
-        if (currentState == null) {
+        if (Objects.isNull(currentState)) {
             return false;
         }
         return requiredStates.contains(currentState);

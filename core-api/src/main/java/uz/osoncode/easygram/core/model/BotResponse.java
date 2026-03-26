@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Mutable response object that accumulates {@link BotApiMethod} instances produced by handler methods.
@@ -55,7 +56,7 @@ public class BotResponse {
      * @param value the attribute value; may be {@code null} to remove the key
      */
     public void setAttribute(String key, Object value) {
-        if (value == null) {
+        if (Objects.isNull(value)) {
             attributes.remove(key);
         } else {
             attributes.put(key, value);

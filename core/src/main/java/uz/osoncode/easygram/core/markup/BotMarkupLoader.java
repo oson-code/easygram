@@ -12,6 +12,7 @@ import uz.osoncode.easygram.core.chatstate.BotChatState;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * {@link ApplicationRunner} that scans all {@link BotConfiguration} beans for methods
@@ -54,14 +55,14 @@ public class BotMarkupLoader implements ApplicationRunner {
             Class<?> targetClass = AopUtils.getTargetClass(bean);
             for (Method method : targetClass.getDeclaredMethods()) {
                 BotMarkup annotation = AnnotationUtils.findAnnotation(method, BotMarkup.class);
-                if (annotation == null) {
+                if (Objects.isNull(annotation)) {
                     continue;
                 }
                 var factory = botMarkupFactory.create(bean, method);
                 markupRegistry.register(annotation.value(), factory);
 
                 BotChatState chatState = AnnotationUtils.findAnnotation(method, BotChatState.class);
-                if (chatState != null) {
+                if (Objects.nonNull(chatState)) {
                     for (String state : chatState.value()) {
                         markupRegistry.registerForState(state, factory);
                     }

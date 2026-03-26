@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
+import uz.osoncode.easygram.core.util.Strings;
+
+import java.util.Objects;
 
 /**
  * REST controller that receives incoming Telegram webhook update payloads.
@@ -62,7 +65,7 @@ public class WebhookController {
             @RequestBody String body,
             @RequestHeader(value = "X-Telegram-Bot-Api-Secret-Token", required = false) String secretToken) {
 
-        if (webhookBotProperties.secretToken() != null
+        if (Strings.isNotBlank(webhookBotProperties.secretToken())
                 && !webhookBotProperties.secretToken().equals(secretToken)) {
             log.warn("Rejected webhook request: invalid or missing secret token");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

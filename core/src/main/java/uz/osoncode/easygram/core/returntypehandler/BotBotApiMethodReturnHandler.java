@@ -5,6 +5,7 @@ import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 /**
  * {@link BotReturnTypeHandler} implementation that handles handler methods returning
@@ -45,7 +46,7 @@ public class BotBotApiMethodReturnHandler implements BotReturnTypeHandler {
      */
     @Override
     public void handleReturnType(BotRequest botRequest, BotResponse botResponse, Object returnValue) {
-        if (returnValue != null) {
+        if (Objects.nonNull(returnValue)) {
             botResponse.addBotApiMethod((BotApiMethod<?>) returnValue);
         }
     }

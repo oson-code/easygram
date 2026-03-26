@@ -8,6 +8,7 @@ import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -57,7 +58,7 @@ public class BotStringReturnHandler implements BotReturnTypeHandler {
      */
     @Override
     public void handleReturnType(BotRequest botRequest, BotResponse botResponse, Object returnValue) {
-        if (returnValue == null) return;
+        if (Objects.isNull(returnValue)) return;
         botResponse.addBotApiMethod(
                 SendMessage.builder()
                         .chatId(botRequest.getChat().getId())

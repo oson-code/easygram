@@ -6,6 +6,8 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import uz.osoncode.easygram.core.bot.Bot;
 import uz.osoncode.easygram.core.bot.BotConfigurer;
 
+import java.util.Objects;
+
 /**
  * Spring Boot Actuator {@link HealthIndicator} for the Telegram bot.
  *
@@ -55,7 +57,7 @@ public class BotHealthIndicator implements HealthIndicator {
     @Override
     public Health health() {
         User metadata = bot.getBotMetaData();
-        if (metadata == null) {
+        if (Objects.isNull(metadata)) {
             return Health.unknown()
                     .withDetail("reason", "bot metadata not yet populated — still initializing")
                     .build();

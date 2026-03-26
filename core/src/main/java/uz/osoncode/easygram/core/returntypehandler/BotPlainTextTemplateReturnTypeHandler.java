@@ -11,6 +11,7 @@ import uz.osoncode.easygram.core.model.BotResponse;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,7 +43,7 @@ public class BotPlainTextTemplateReturnTypeHandler implements BotReturnTypeHandl
 
     @Override
     public void handleReturnType(BotRequest botRequest, BotResponse botResponse, Object returnValue) {
-        if (returnValue == null) {
+        if (Objects.isNull(returnValue)) {
             return;
         }
         PlainTextTemplate reply = (PlainTextTemplate) returnValue;
@@ -54,23 +55,23 @@ public class BotPlainTextTemplateReturnTypeHandler implements BotReturnTypeHandl
                 
         if (reply.isRemoveMarkup()) {
             builder.replyMarkup(ReplyKeyboardRemove.builder().removeKeyboard(true).build());
-        } else if (reply.getKeyboard() != null) {
+        } else if (Objects.nonNull(reply.getKeyboard())) {
             builder.replyMarkup(reply.getKeyboard());
         } else {
             String markupId = reply.getMarkupId();
-            if (markupId != null) {
+            if (Objects.nonNull(markupId)) {
                 botMarkupRegistry.ifPresent(registry -> {
                     Map<String, Object> params = reply.getMarkupParams();
-                    if (params != null) {
+                    if (Objects.nonNull(params)) {
                         botRequest.setAttribute(BotMarkupContext.REQUEST_ATTRIBUTE_KEY, BotMarkupContext.of(params));
                     }
                     try {
                         ReplyKeyboard markup = registry.resolve(markupId, botRequest);
-                        if (markup != null) {
+                        if (Objects.nonNull(markup)) {
                             builder.replyMarkup(markup);
                         }
                     } finally {
-                        if (params != null) {
+                        if (Objects.nonNull(params)) {
                             botRequest.setAttribute(BotMarkupContext.REQUEST_ATTRIBUTE_KEY, null);
                         }
                     }
@@ -87,12 +88,12 @@ public class BotPlainTextTemplateReturnTypeHandler implements BotReturnTypeHandl
     }
 
     private String resolveArgs(String template, Object[] args) {
-        if (template == null) return null;
+        if (Objects.isNull(template)) return null;
         Matcher matcher = ARG_PATTERN.matcher(template);
         StringBuffer result = new StringBuffer();
         while (matcher.find()) {
             int index = Integer.parseInt(matcher.group(1));
-            String value = (args != null && index < args.length)
+            String value = (Objects.nonNull(args) && index < args.length)
                     ? String.valueOf(args[index])
                     : matcher.group(0);
             matcher.appendReplacement(result, Matcher.quoteReplacement(value));

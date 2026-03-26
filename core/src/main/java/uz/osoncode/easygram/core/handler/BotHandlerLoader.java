@@ -14,8 +14,8 @@ import uz.osoncode.easygram.core.handler.metadataresolver.BotMetaDataResolverFac
 import uz.osoncode.easygram.core.handler.metadataresolver.BotMetaDataSpecResolver;
 import uz.osoncode.easygram.core.stereotype.BotController;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -135,11 +135,11 @@ public class BotHandlerLoader implements ApplicationRunner {
                     .filter(m -> m.isAnnotationPresent(resolver.getAnnotationType()))
                     .forEach(m -> {
                         BotChatState methodChatState = AnnotationUtils.findAnnotation(m, BotChatState.class);
-                        BotChatState effectiveChatState = methodChatState != null ? methodChatState : classChatState;
-                        boolean hasSpecificState = effectiveChatState != null && effectiveChatState.value().length > 0;
+                        BotChatState effectiveChatState = Objects.nonNull(methodChatState) ? methodChatState : classChatState;
+                        boolean hasSpecificState = Objects.nonNull(effectiveChatState) && effectiveChatState.value().length > 0;
 
                         BotOrder botOrderAnnotation = AnnotationUtils.findAnnotation(m, BotOrder.class);
-                        int order = botOrderAnnotation != null ? botOrderAnnotation.value() : Integer.MAX_VALUE;
+                        int order = Objects.nonNull(botOrderAnnotation) ? botOrderAnnotation.value() : Integer.MAX_VALUE;
 
                         Consumer<BotHandler> registrar = hasSpecificState
                                 ? botHandlerRegistry::registerState

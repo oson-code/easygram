@@ -144,7 +144,7 @@ public abstract class Bot {
         botRequest.setUpdate(update);
         botRequest.setTelegramClient(telegramClient);
 
-        if (botMetaData != null) {
+        if (Objects.nonNull(botMetaData)) {
             botRequest.setBotMetadata(BotMetadata.builder()
                     .token(token)
                     .id(botMetaData.getId())

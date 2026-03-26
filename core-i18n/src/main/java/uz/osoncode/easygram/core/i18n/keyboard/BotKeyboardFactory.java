@@ -13,6 +13,7 @@ import uz.osoncode.easygram.core.model.BotRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Factory for building localised Telegram keyboard markup objects.
@@ -252,7 +253,7 @@ public class BotKeyboardFactory {
             }
             List<InlineKeyboardButton> buttons = new ArrayList<>();
             for (int i = 0; i < textAndCallbackPairs.length; i += 2) {
-                String text = locale != null
+                String text = Objects.nonNull(locale)
                         ? messageSource.getMessage(textAndCallbackPairs[i], locale)
                         : messageSource.getMessage(textAndCallbackPairs[i], request);
                 buttons.add(InlineKeyboardButton.builder()
@@ -326,7 +327,7 @@ public class BotKeyboardFactory {
         public ReplyKeyboardBuilder row(String... textCodes) {
             KeyboardRow keyboardRow = new KeyboardRow();
             for (String textCode : textCodes) {
-                String text = locale != null
+                String text = Objects.nonNull(locale)
                         ? messageSource.getMessage(textCode, locale)
                         : messageSource.getMessage(textCode, request);
                 keyboardRow.add(KeyboardButton.builder().text(text).build());
