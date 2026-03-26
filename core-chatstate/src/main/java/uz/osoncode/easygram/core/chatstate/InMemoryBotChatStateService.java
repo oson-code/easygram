@@ -1,5 +1,6 @@
 package uz.osoncode.easygram.core.chatstate;
 
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -36,21 +37,29 @@ public class InMemoryBotChatStateService implements BotChatStateService {
     }
 
     /**
-     * Sets or removes the state for the given chat ID.
-     *
-     * <p>If {@code state} is {@code null} the entry for {@code chatId} is removed from the
-     * map, effectively clearing any previously stored state. Otherwise the new state value
-     * is stored, replacing any previous value.</p>
+     * Sets the state for the given chat ID.
      *
      * @param chatId the unique Telegram chat identifier; must not be {@code null}
-     * @param state  the new state string to store, or {@code null} to remove the existing state
+     * @param state  the new state string to store; must not be {@code null} — use
+     *               {@link #clearState(Long)} to remove the current state
+     * @throws IllegalArgumentException if {@code state} is {@code null}
      */
     @Override
     public void setState(Long chatId, String state) {
-        if (state == null) {
-            stateMap.remove(chatId);
-        } else {
-            stateMap.put(chatId, state);
+        if (Objects.isNull(state)) {
+            throw new IllegalArgumentException("state must not be null — use clearState(chatId) to remove the current state");
         }
+        stateMap.put(chatId, state);
+    }
+
+    /**
+     * Removes the state entry for the given chat ID directly, without going through
+     * the {@code null}-branch of {@link #setState}.
+     *
+     * @param chatId the unique Telegram chat identifier; must not be {@code null}
+     */
+    @Override
+    public void clearState(Long chatId) {
+        stateMap.remove(chatId);
     }
 }
