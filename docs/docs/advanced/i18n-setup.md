@@ -391,7 +391,48 @@ public class RegistrationController {
 
 ---
 
-## 7. Custom BotLocaleResolver
+## 7. @BotInlineQuery with i18n Keys
+
+The same i18n pattern applies to `@BotInlineQuery`. When `core-i18n` is on the classpath,
+`value` entries are treated as **message-bundle keys** — resolved per user locale before
+being compared against the incoming inline query text.
+
+```properties
+# messages/bot_en.properties
+inline.search=search
+inline.order=order
+
+# messages/bot_ru.properties
+inline.search=поиск
+inline.order=заказ
+```
+
+```java
+@BotController
+public class InlineController {
+
+    // matches "@YourBot search" for EN users, "@YourBot поиск" for RU users
+    @BotInlineQuery("inline.search")
+    public void onSearch(InlineQuery query, @BotInlineQueryValue String text) {
+        List<InlineQueryResult> results = catalogService.search(text);
+        bot.execute(AnswerInlineQuery.builder()
+            .inlineQueryId(query.getId())
+            .results(results)
+            .build());
+    }
+
+    @BotInlineQuery("inline.order")
+    public void onOrder(InlineQuery query, @BotInlineQueryValue String text) {
+        // handles "order" / "заказ" depending on user's language
+    }
+}
+```
+
+Empty `@BotInlineQuery` (no `value`) still matches all queries regardless of locale.
+
+---
+
+## 8. Custom BotLocaleResolver
 
 By default, the locale is derived from the Telegram user's `language_code` field. Override this
 by declaring a `BotLocaleResolver` bean — for example, to persist user language preferences in
@@ -419,7 +460,7 @@ The `BotLocaleResolver` bean is picked up automatically — no additional regist
 
 ---
 
-## 8. Full Configuration Reference
+## 9. Full Configuration Reference
 
 ```yaml
 telegram:
@@ -447,7 +488,7 @@ Both `"en"` and `"en-US"` resolve to `bot_en.properties`. Completely unknown cod
 
 ---
 
-## 9. Real-World Example — Registration Wizard
+## 10. Real-World Example — Registration Wizard
 
 A multi-step registration wizard with locale-aware keyboards and reply buttons.
 

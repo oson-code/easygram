@@ -468,6 +468,8 @@ Routes inline queries — triggered when a user types `@YourBot …` in any chat
 
 **Injectable parameters:** `InlineQuery`, `@BotInlineQueryValue String` (query text), `User`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
 
+**Without `core-i18n`** — values are compared as literal strings (exact match):
+
 ```java
 // Match any inline query
 @BotInlineQuery
@@ -479,12 +481,27 @@ public void onAnyInline(InlineQuery query, @BotInlineQueryValue String text) {
         .build());
 }
 
-// Match only queries starting with a specific term (exact value match)
+// Match only when query text is exactly "search"
 @BotInlineQuery("search")
 public void onSearchInline(@BotInlineQueryValue String text, InlineQuery query) {
     // triggered only when user types "@YourBot search"
 }
 ```
+
+**With `core-i18n`** — values are treated as message-bundle keys resolved per user locale.
+A single annotation covers all languages automatically:
+
+```java
+// messages/bot_en.properties: inline.search=search
+// messages/bot_ru.properties: inline.search=поиск
+@BotInlineQuery("inline.search")
+public void onSearchInline(InlineQuery query, @BotInlineQueryValue String text) {
+    // matches "@YourBot search" for English users
+    // and "@YourBot поиск" for Russian users
+}
+```
+
+The matching strategy is provided by `BotInlineQueryMatcher` (default: exact-text; with `core-i18n`: locale-aware). Override the bean to implement custom matching logic.
 
 ---
 

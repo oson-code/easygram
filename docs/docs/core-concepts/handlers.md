@@ -284,6 +284,8 @@ Routes inline queries — triggered when users type `@BotUsername …` in any ch
 |---|---|---|---|
 | `value` | `String[]` | `{}` | Match inline query text; empty = all inline queries |
 
+**Without `core-i18n`** — values are matched as literal strings:
+
 ```java
 // Match all inline queries
 @BotInlineQuery
@@ -291,10 +293,24 @@ public void onAnyInlineQuery(InlineQuery query, @BotInlineQueryValue String quer
     log.info("Inline query: {}", queryText);
 }
 
-// Match only queries starting with "search"
+// Match only when query text is exactly "search"
 @BotInlineQuery("search")
 public void onSearchQuery(InlineQuery query, @BotInlineQueryValue String queryText) {
     // Handle search inline query
+}
+```
+
+**With `core-i18n`** — values are treated as message-bundle keys. The framework resolves each
+key in the user's current locale and compares the result against the incoming query text. A single
+annotation covers all supported languages automatically:
+
+```java
+// messages/bot_en.properties: inline.search=search
+// messages/bot_ru.properties: inline.search=поиск
+@BotInlineQuery("inline.search")
+public void onSearchQuery(InlineQuery query, @BotInlineQueryValue String queryText) {
+    // matches "@YourBot search" for English users
+    // and "@YourBot поиск" for Russian users
 }
 ```
 
