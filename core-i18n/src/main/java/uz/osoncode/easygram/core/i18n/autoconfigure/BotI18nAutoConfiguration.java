@@ -44,7 +44,8 @@ import java.util.Optional;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
-@AutoConfiguration(after = MessageSourceAutoConfiguration.class)
+@AutoConfiguration(after = MessageSourceAutoConfiguration.class,
+        beforeName = "uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration")
 @EnableConfigurationProperties(BotI18nProperties.class)
 public class BotI18nAutoConfiguration {
 
@@ -84,6 +85,12 @@ public class BotI18nAutoConfiguration {
      *
      * <p>Treats {@code @BotReplyButton} values as message-bundle keys, resolves them in the
      * user's locale, and compares against the incoming message text.</p>
+     *
+     * <p>The {@code beforeName} ordering on this auto-configuration class guarantees that this
+     * bean is always registered before {@code CoreAutoConfiguration} is processed, so
+     * {@code CoreAutoConfiguration}'s {@code @ConditionalOnMissingBean(BotReplyButtonMatcher.class)}
+     * correctly defers to this locale-aware implementation when {@code core-i18n} is on the
+     * classpath.</p>
      *
      * @param botMessageSource the message source used to resolve localised button labels
      * @return a locale-aware {@link BotReplyButtonMatcher}
