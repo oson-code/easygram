@@ -185,60 +185,10 @@ public class RedisChatStateService implements BotChatStateService {
 
 The framework detects and uses your implementation (due to `@ConditionalOnMissingBean`).
 
-## BotChatStateService API
-
-`BotChatStateService` is the interface Easygram uses internally for all state reads and writes. You can inject it into any Spring bean (services, filters, handlers) to manage state programmatically.
-
-| Method | Description |
-|---|---|
-| `setState(Long chatId, String state)` | Sets the state for a chat. Throws `IllegalArgumentException` if `state` is `null` (since 0.0.2) — use `clearState` instead |
-| `setState(Long chatId, Enum<?> state)` | Convenience overload — delegates to `setState(Long, String)` using `state.name()` |
-| `getState(Long chatId)` | Returns the current state string, or `null` if no state is set |
-| `getStateAs(Long chatId, Class<E> enumType)` | Returns the current state parsed as an enum constant, or `null` if no state is set |
-| `clearState(Long chatId)` | Explicitly removes the state for a chat without a null check |
-
-```java
-@BotController
-@RequiredArgsConstructor
-public class RegistrationController {
-
-    private final BotChatStateService chatStateService;
-
-    @BotCommand("/register")
-    public String startRegistration(Chat chat) {
-        chatStateService.setState(chat.getId(), RegistrationState.WAITING_NAME);
-        return "Enter your name:";
-    }
-
-    @BotTextDefault
-    @BotChatState("WAITING_NAME")
-    @BotForwardChatState("WAITING_AGE")
-    public String acceptName(@BotTextValue String name, Chat chat) {
-        return "Thanks, " + name + "! Now enter your age:";
-    }
-
-    @BotCommand("/cancel")
-    public String cancel(Chat chat) {
-        chatStateService.clearState(chat.getId()); // explicitly remove state
-        return "Registration cancelled.";
-    }
-
-    @BotCommand("/status")
-    public String status(Chat chat) {
-        RegistrationState state = chatStateService.getStateAs(chat.getId(), RegistrationState.class);
-        return state != null ? "Current step: " + state.name() : "Not in registration flow.";
-    }
-}
-```
-
-:::warning setState(chatId, null) removed in 0.0.2
-`setState(chatId, null)` throws `IllegalArgumentException` since 0.0.2 — use `clearState(chatId)` instead.
-:::
-
 ### In-Memory vs Redis: State Expiration
 
 The built-in `InMemoryBotChatStateService` keeps state indefinitely in a `ConcurrentHashMap`.
-States only clear when `@BotClearChatState` or `clearState(chatId)` is called. A Redis
+States only clear when `@BotClearChatState` or `setState(chatId, null)` is called. A Redis
 backend lets you attach a TTL (e.g., `Duration.ofDays(7)`) so stale wizard states
 automatically expire without manual cleanup.
 

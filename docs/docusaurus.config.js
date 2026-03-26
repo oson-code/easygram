@@ -34,6 +34,17 @@ const config = {
         docs: {
           sidebarPath: './sidebars.js',
           editUrl: 'https://github.com/oson-code/easygram/tree/main/docs',
+          lastVersion: 'current',
+          versions: {
+            current: {
+              label: '0.0.2',
+              path: '/',
+            },
+            '0.0.1': {
+              label: '0.0.1',
+              path: '/0.0.1',
+            },
+          },
         },
         blog: {
           showReadingTime: true,
@@ -66,6 +77,10 @@ const config = {
           src: 'img/logo.svg',
         },
         items: [
+          {
+            type: 'docsVersionDropdown',
+            position: 'right',
+          },
           {
             type: 'docSidebar',
             sidebarId: 'tutorialSidebar',

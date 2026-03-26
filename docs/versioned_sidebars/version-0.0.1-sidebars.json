@@ -1,0 +1,70 @@
+{
+  "version-0.0.1/tutorialSidebar": [
+    {
+      "type": "category",
+      "label": "Getting Started",
+      "items": [
+        "intro",
+        "architecture",
+        "quick-start"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Core Concepts",
+      "items": [
+        "core-concepts/handlers",
+        "core-concepts/filters",
+        "core-concepts/parameter-injection",
+        "core-concepts/chat-state",
+        "core-concepts/return-types",
+        "core-concepts/exception-handling"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Transports",
+      "items": [
+        "transports/long-polling-guide",
+        "transports/webhook-guide",
+        "transports/kafka-consumer-guide",
+        "transports/rabbitmq-consumer-guide"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Advanced",
+      "items": [
+        "advanced/markup-system",
+        "advanced/custom-filters",
+        "advanced/custom-argument-resolvers",
+        "advanced/custom-return-handlers",
+        "advanced/validation",
+        "advanced/i18n-setup",
+        "advanced/chat-state-backends",
+        "advanced/broker-publishing",
+        "advanced/observability"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Examples",
+      "items": [
+        "examples/echo-bot",
+        "examples/registration-wizard",
+        "examples/i18n-registration-bot",
+        "examples/kafka-producer-bot",
+        "examples/webhook-bot"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Reference",
+      "items": [
+        "api-reference",
+        "faq",
+        "contributing"
+      ]
+    }
+  ]
+}

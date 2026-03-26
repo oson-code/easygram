@@ -12,8 +12,8 @@ Complete reference for all easygram annotations, interfaces, model classes, and 
 ## Table of Contents
 
 - [Structural Annotations](#structural-annotations) — `@BotController`, `@BotControllerAdvice`, `@BotConfiguration`, `@BotMarkup`, `@BotOrder`
-- [Handler Routing Annotations](#handler-routing-annotations) — `@BotCommand`, `@BotText`, `@BotTextPattern`, `@BotCallbackQuery`, `@BotContact`, `@BotLocation`, `@BotReplyButton`, `@BotEditedMessage`, `@BotInlineQuery`, `@BotMyChatMember`, `@BotDefaultHandler`, `@BotExceptionHandler`, … (+14 more update types)
-- [Parameter Annotations](#parameter-annotations) — `@BotCommandValue`, `@BotTextValue`, `@BotCallbackQueryData`, `@BotCommandQueryParam`, `@BotInlineQueryValue`, `@BotChosenInlineResultId`, `@BotShippingPayload`, `@BotPreCheckoutPayload`
+- [Handler Routing Annotations](#handler-routing-annotations) — `@BotCommand`, `@BotText`, `@BotTextPattern`, `@BotCallbackQuery`, `@BotContact`, `@BotLocation`, `@BotReplyButton`, `@BotDefaultHandler`, `@BotExceptionHandler`, …
+- [Parameter Annotations](#parameter-annotations) — `@BotCommandValue`, `@BotTextValue`, `@BotCallbackQueryData`, `@BotCommandQueryParam`
 - [Response Annotations](#response-annotations) — `@BotReplyMarkup`, `@BotClearMarkup`
 - [Chat State Annotations](#chat-state-annotations) — `@BotChatState`, `@BotForwardChatState`, `@BotClearChatState`
 - [Return Types](#return-types)
@@ -399,34 +399,6 @@ public String onCancel() { return "Cancelled."; }
 
 ---
 
-### Update-Type Handler Annotations (0.0.2)
-
-All annotations below are in package `uz.osoncode.easygram.core.bind.annotation`, target `METHOD`, and are used inside `@BotController` classes.
-
-| Annotation | Matches | Configurable |
-|---|---|---|
-| `@BotEditedMessage` | Edited messages | No |
-| `@BotChannelPost` | Channel posts | No |
-| `@BotEditedChannelPost` | Edited channel posts | No |
-| `@BotInlineQuery` | Inline queries | `String[] value()` — match query text |
-| `@BotChosenInlineResult` | Chosen inline results | No |
-| `@BotShippingQuery` | Shipping queries | No |
-| `@BotPreCheckoutQuery` | Pre-checkout queries | No |
-| `@BotPoll` | Poll state changes | No |
-| `@BotPollAnswer` | Poll votes | No |
-| `@BotMyChatMember` | Bot membership status changes | No |
-| `@BotChatMember` | User membership status changes | No |
-| `@BotChatJoinRequest` | User join requests | No |
-| `@BotBusinessConnection` | Business connections | No |
-| `@BotBusinessMessage` | Business account messages | No |
-| `@BotEditedBusinessMessage` | Edited business messages | No |
-| `@BotDeletedBusinessMessages` | Deleted business messages | No |
-| `@BotPaidMediaPurchased` | Paid media purchases | No |
-
-See [New Update Type Handlers (0.0.2)](core-concepts/handlers#new-update-type-handlers-002) for full examples and injectable parameters for each annotation.
-
----
-
 ### @BotDefaultHandler
 
 **Target:** `METHOD`, `TYPE`
@@ -543,33 +515,6 @@ public String onDeepLink(@BotCommandQueryParam Integer referralCode) {
 public String onOpen(@BotCommandQueryParam MyParams params) {
     return "Opening for: " + params.getUserId();
 }
-```
-
----
-
-### Update-Type Parameter Annotations (0.0.2)
-
-All annotations below are in package `uz.osoncode.easygram.core.bind.annotation`, target `PARAMETER`.
-
-| Annotation | Injects | Available in |
-|---|---|---|
-| `@BotInlineQueryValue` | `String` — inline query text | `@BotInlineQuery` handlers |
-| `@BotChosenInlineResultId` | `String` — chosen result ID | `@BotChosenInlineResult` handlers |
-| `@BotShippingPayload` | `String` — invoice payload | `@BotShippingQuery` handlers |
-| `@BotPreCheckoutPayload` | `String` — invoice payload | `@BotPreCheckoutQuery` handlers |
-
-```java
-@BotInlineQuery
-public void onInline(@BotInlineQueryValue String queryText, InlineQuery query) { ... }
-
-@BotChosenInlineResult
-public void onChosen(@BotChosenInlineResultId String resultId) { ... }
-
-@BotShippingQuery
-public void onShipping(@BotShippingPayload String payload, ShippingQuery query) { ... }
-
-@BotPreCheckoutQuery
-public void onPreCheckout(@BotPreCheckoutPayload String payload, PreCheckoutQuery query) { ... }
 ```
 
 ---
@@ -1068,8 +1013,7 @@ Persistence layer for per-chat state. The default `InMemoryBotChatStateService` 
 public interface BotChatStateService {
 
     String getState(Long chatId);
-    void setState(Long chatId, String state); // throws IllegalArgumentException if state is null (since 0.0.2)
-    void clearState(Long chatId);             // Added in 0.0.2 — removes state without null check
+    void setState(Long chatId, String state); // null clears the state
 
     // Enum convenience helpers
     default void setState(Long chatId, Enum<?> state) { setState(chatId, state.name()); }

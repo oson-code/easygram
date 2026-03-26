@@ -66,5 +66,12 @@ module.exports = {
         'contributing',
       ],
     },
+    {
+      type: 'category',
+      label: 'Migration',
+      items: [
+        'migration/0.0.1-to-0.0.2',
+      ],
+    },
   ],
 };
