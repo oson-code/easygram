@@ -399,31 +399,385 @@ public String onCancel() { return "Cancelled."; }
 
 ---
 
-### Update-Type Handler Annotations (0.0.2)
+### @BotEditedMessage
 
-All annotations below are in package `uz.osoncode.easygram.core.bind.annotation`, target `METHOD`, and are used inside `@BotController` classes.
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
 
-| Annotation | Matches | Configurable |
-|---|---|---|
-| `@BotEditedMessage` | Edited messages | No |
-| `@BotChannelPost` | Channel posts | No |
-| `@BotEditedChannelPost` | Edited channel posts | No |
-| `@BotInlineQuery` | Inline queries | `String[] value()` — match query text |
-| `@BotChosenInlineResult` | Chosen inline results | No |
-| `@BotShippingQuery` | Shipping queries | No |
-| `@BotPreCheckoutQuery` | Pre-checkout queries | No |
-| `@BotPoll` | Poll state changes | No |
-| `@BotPollAnswer` | Poll votes | No |
-| `@BotMyChatMember` | Bot membership status changes | No |
-| `@BotChatMember` | User membership status changes | No |
-| `@BotChatJoinRequest` | User join requests | No |
-| `@BotBusinessConnection` | Business connections | No |
-| `@BotBusinessMessage` | Business account messages | No |
-| `@BotEditedBusinessMessage` | Edited business messages | No |
-| `@BotDeletedBusinessMessages` | Deleted business messages | No |
-| `@BotPaidMediaPurchased` | Paid media purchases | No |
+Routes updates where a user edits a previously-sent text or media message. The original message is replaced in Telegram but the bot receives the edited copy.
 
-See [New Update Type Handlers (0.0.2)](core-concepts/handlers#new-update-type-handlers-002) for full examples and injectable parameters for each annotation.
+**Injectable parameters:** `Message` (the edited message), `User`, `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotEditedMessage
+public void onEdited(Message edited, User user) {
+    log.info("User {} edited message {}: '{}'",
+        user.getId(), edited.getMessageId(), edited.getText());
+}
+```
+
+---
+
+### @BotChannelPost
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes messages posted to a Telegram channel where the bot is an admin. `User` is not available (channel posts have no sender user); use `Chat` for the channel details.
+
+**Injectable parameters:** `Message` (the channel post), `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotChannelPost
+public void onChannelPost(Message post, Chat channel) {
+    log.info("New post in channel @{}: '{}'",
+        channel.getUserName(), post.getText());
+}
+```
+
+---
+
+### @BotEditedChannelPost
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes updates when a previously-published channel post is edited.
+
+**Injectable parameters:** `Message` (the edited channel post), `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotEditedChannelPost
+public void onEditedChannelPost(Message edited, Chat channel) {
+    log.info("Channel @{} edited post {}", channel.getUserName(), edited.getMessageId());
+}
+```
+
+---
+
+### @BotInlineQuery
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes inline queries — triggered when a user types `@YourBot …` in any chat. The optional `value` attribute filters by query text; omit it to match all inline queries.
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `value` | `String[]` | `{}` (match all) | Match inline query text against these strings; empty = any query |
+
+**Injectable parameters:** `InlineQuery`, `@BotInlineQueryValue String` (query text), `User`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+// Match any inline query
+@BotInlineQuery
+public void onAnyInline(InlineQuery query, @BotInlineQueryValue String text) {
+    List<InlineQueryResult> results = searchProducts(text);
+    bot.execute(AnswerInlineQuery.builder()
+        .inlineQueryId(query.getId())
+        .results(results)
+        .build());
+}
+
+// Match only queries starting with a specific term (exact value match)
+@BotInlineQuery("search")
+public void onSearchInline(@BotInlineQueryValue String text, InlineQuery query) {
+    // triggered only when user types "@YourBot search"
+}
+```
+
+---
+
+### @BotChosenInlineResult
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes the feedback event sent by Telegram when a user selects one of the inline results your bot returned. Requires **inline feedback** to be enabled in BotFather.
+
+**Injectable parameters:** `ChosenInlineResult`, `@BotChosenInlineResultId String` (the chosen result's ID), `User`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotChosenInlineResult
+public void onChosen(
+        ChosenInlineResult result,
+        @BotChosenInlineResultId String resultId,
+        User user) {
+    analytics.track(user.getId(), "inline_chosen", resultId);
+}
+```
+
+---
+
+### @BotShippingQuery
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes shipping address queries sent by Telegram during the payment flow when the invoice has `is_flexible = true`. The bot must reply with `AnswerShippingQuery` to confirm or reject shipping options.
+
+**Injectable parameters:** `ShippingQuery`, `@BotShippingPayload String` (invoice payload), `User`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotShippingQuery
+public void onShipping(
+        ShippingQuery query,
+        @BotShippingPayload String payload,
+        TelegramClient client) throws TelegramApiException {
+    List<ShippingOption> options = shippingService.getOptions(query.getShippingAddress());
+    client.execute(AnswerShippingQuery.builder()
+        .shippingQueryId(query.getId())
+        .ok(true)
+        .shippingOptions(options)
+        .build());
+}
+```
+
+---
+
+### @BotPreCheckoutQuery
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes the pre-checkout event fired by Telegram just before a payment is completed. The bot **must** respond with `AnswerPreCheckoutQuery` within 10 seconds to confirm or cancel the transaction.
+
+**Injectable parameters:** `PreCheckoutQuery`, `@BotPreCheckoutPayload String` (invoice payload), `User`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotPreCheckoutQuery
+public void onPreCheckout(
+        PreCheckoutQuery query,
+        @BotPreCheckoutPayload String payload,
+        TelegramClient client) throws TelegramApiException {
+    boolean valid = orderService.validate(payload, query.getTotalAmount());
+    client.execute(AnswerPreCheckoutQuery.builder()
+        .preCheckoutQueryId(query.getId())
+        .ok(valid)
+        .errorMessage(valid ? null : "Order is no longer available.")
+        .build());
+}
+```
+
+---
+
+### @BotPoll
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes poll state-change updates. Telegram sends these when a non-anonymous poll is stopped or its vote counts change.
+
+**Injectable parameters:** `Poll`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotPoll
+public void onPollUpdate(Poll poll) {
+    if (poll.getIsClosed()) {
+        int winner = findWinner(poll.getOptions());
+        log.info("Poll '{}' closed. Winner option index: {}", poll.getQuestion(), winner);
+    }
+}
+```
+
+---
+
+### @BotPollAnswer
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes individual vote events — triggered when a user votes (or retracts their vote) in a non-anonymous poll created by the bot.
+
+**Injectable parameters:** `PollAnswer`, `User`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotPollAnswer
+public void onVote(PollAnswer answer, User user) {
+    List<Integer> chosen = answer.getOptionIds();
+    log.info("User {} voted: options {}", user.getId(), chosen);
+}
+```
+
+---
+
+### @BotMyChatMember
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes updates about the **bot's own** membership status in a chat — e.g. the bot was added to a group, promoted to admin, or removed.
+
+**Injectable parameters:** `ChatMemberUpdated`, `User` (the user who made the change), `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotMyChatMember
+public void onBotMemberChange(ChatMemberUpdated update, Chat chat) {
+    ChatMember newStatus = update.getNewChatMember();
+    if (newStatus instanceof ChatMemberMember) {
+        log.info("Bot was added to chat {}", chat.getId());
+    } else if (newStatus instanceof ChatMemberLeft) {
+        log.info("Bot was removed from chat {}", chat.getId());
+    }
+}
+```
+
+---
+
+### @BotChatMember
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes updates about **another user's** membership status in a chat managed by the bot. Requires the bot to have admin rights and the `chat_member` update type to be subscribed.
+
+**Injectable parameters:** `ChatMemberUpdated`, `User` (the user who made the change), `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotChatMember
+public void onUserMemberChange(ChatMemberUpdated event, Chat chat) {
+    User affected = event.getNewChatMember().getUser();
+    ChatMember newRole = event.getNewChatMember();
+    log.info("User {} status changed in chat {}: {}",
+        affected.getId(), chat.getId(), newRole.getStatus());
+}
+```
+
+---
+
+### @BotChatJoinRequest
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes join requests when a user asks to join a channel or group that requires admin approval. The bot can approve or decline via `ApproveChatJoinRequest` / `DeclineChatJoinRequest`.
+
+**Injectable parameters:** `ChatJoinRequest`, `User` (the requester), `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotChatJoinRequest
+public void onJoinRequest(
+        ChatJoinRequest request,
+        User requester,
+        TelegramClient client) throws TelegramApiException {
+    if (membershipService.isAllowed(requester.getId())) {
+        client.execute(ApproveChatJoinRequest.builder()
+            .chatId(request.getChat().getId())
+            .userId(requester.getId())
+            .build());
+    } else {
+        client.execute(DeclineChatJoinRequest.builder()
+            .chatId(request.getChat().getId())
+            .userId(requester.getId())
+            .build());
+    }
+}
+```
+
+---
+
+### @BotBusinessConnection
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes business connection updates — fired when a Telegram Business account connects or disconnects from your bot.
+
+**Injectable parameters:** `BusinessConnection`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotBusinessConnection
+public void onBusinessConnection(BusinessConnection connection) {
+    if (connection.getIsEnabled()) {
+        log.info("Business account {} connected", connection.getId());
+        businessService.activate(connection.getUser().getId());
+    } else {
+        log.info("Business account {} disconnected", connection.getId());
+        businessService.deactivate(connection.getUser().getId());
+    }
+}
+```
+
+---
+
+### @BotBusinessMessage
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes messages sent by customers to a connected Telegram Business account. The bot receives these to provide automated responses on behalf of the business.
+
+**Injectable parameters:** `Message`, `User`, `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotBusinessMessage
+public void onBusinessMessage(Message message, User customer) {
+    String reply = autoReplyService.generateReply(message.getText());
+    log.info("Business message from {}: '{}' → auto-reply: '{}'",
+        customer.getId(), message.getText(), reply);
+}
+```
+
+---
+
+### @BotEditedBusinessMessage
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes edit events for messages that were previously received via a connected business account.
+
+**Injectable parameters:** `Message` (the edited message), `User`, `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotEditedBusinessMessage
+public void onEditedBusinessMessage(Message edited) {
+    log.info("Business message {} was edited: '{}'",
+        edited.getMessageId(), edited.getText());
+}
+```
+
+---
+
+### @BotDeletedBusinessMessages
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes bulk-deletion events for messages in a connected business account chat.
+
+**Injectable parameters:** `BusinessMessagesDeleted`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotDeletedBusinessMessages
+public void onDeletedBusinessMessages(BusinessMessagesDeleted deleted) {
+    log.info("Business chat {}: {} messages deleted",
+        deleted.getChat().getId(),
+        deleted.getMessageIds().size());
+    auditService.recordDeletion(deleted.getBusinessConnectionId(), deleted.getMessageIds());
+}
+```
+
+---
+
+### @BotPaidMediaPurchased
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes the event fired when a user completes a paid media purchase. Inject `Update` and call `update.getPaidMediaPurchased()` to access the purchase details.
+
+**Injectable parameters:** `Update`, `User`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotPaidMediaPurchased
+public void onPaidMediaPurchased(Update update, User buyer) {
+    var purchase = update.getPaidMediaPurchased();
+    log.info("User {} purchased paid media. Payload: '{}'",
+        buyer.getId(), purchase.getPaidMediaPayload());
+    orderService.fulfil(buyer.getId(), purchase.getPaidMediaPayload());
+}
+```
 
 ---
 
