@@ -24,7 +24,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <library.version>0.0.1</library.version>
+        <library.version>0.0.2</library.version>
     </properties>
 
     <dependencies>
@@ -34,7 +34,7 @@
         -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>longpolling</artifactId>
+            <artifactId>spring-boot-starter</artifactId>
             <version>${library.version}</version>
         </dependency>
 

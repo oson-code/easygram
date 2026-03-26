@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.telegram.telegrambots.meta.api.objects.Contact;
 import org.telegram.telegrambots.meta.api.objects.User;
+import uz.osoncode.easygram.core.annotation.BotOrder;
 import uz.osoncode.easygram.core.bind.annotation.*;
 import uz.osoncode.easygram.core.chatstate.BotChatState;
 import uz.osoncode.easygram.core.i18n.LocalizedReply;
@@ -230,6 +231,7 @@ public class RegistrationController {
     @BotReplyButton("btn.cancel")
     @BotClearChatState
     @BotClearMarkup
+    @BotOrder(0)
     public LocalizedReply onCancelButton() {
         return LocalizedReply.of("register.cancelled");
     }
