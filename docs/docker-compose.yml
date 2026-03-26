@@ -6,6 +6,9 @@ x-source: &source-volumes
     - ./static:/docs/static
     - ./docusaurus.config.js:/docs/docusaurus.config.js
     - ./sidebars.js:/docs/sidebars.js
+    - ./versions.json:/docs/versions.json
+    - ./versioned_docs:/docs/versioned_docs
+    - ./versioned_sidebars:/docs/versioned_sidebars
     - ./package.json:/docs/package.json
     - ./package-lock.json:/docs/package-lock.json
   # node_modules / .docusaurus / build are NOT mounted → recreated fresh inside container every run
