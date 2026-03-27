@@ -21,9 +21,17 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!--
+            Marked optional: spring-boot-starter-amqp must NOT be forced onto every project
+            that depends on this module (e.g. via spring-boot-starter). Without it on the
+            classpath, Spring Boot's RabbitAutoConfiguration never runs and no broker connection
+            is attempted at startup. Users who actually want the RABBIT_CONSUMER transport must
+            add spring-boot-starter-amqp explicitly to their own project.
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
