@@ -21,6 +21,23 @@ spring:
     # Use the message key itself as the default if a translation is missing.
     use-code-as-default-message: false
 
+management:
+  endpoints:
+    web:
+      exposure:
+        # Expose health, info and prometheus endpoints.
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      # Show full health details (id, username, transport, …) from BotHealthIndicator.
+      show-details: always
+  metrics:
+    distribution:
+      # Enable full histogram buckets for telegram.bot.update so that Grafana can
+      # compute accurate quantiles (e.g. P95 latency) with histogram_quantile().
+      percentiles-histogram:
+        telegram.bot.update: true
+
 logging:
   level:
     uz.osoncode: DEBUG

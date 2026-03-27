@@ -44,6 +44,18 @@
             <artifactId>core-i18n</artifactId>
             <version>${library.version}</version>
         </dependency>
+
+        <!-- Actuator: /actuator/health, /actuator/info, /actuator/prometheus -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Prometheus metrics registry: exposes /actuator/prometheus for scraping -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
