@@ -7,6 +7,41 @@ title: Kafka Consumer Transport
 
 Consume Telegram updates from a Kafka topic instead of polling or webhook.
 
+## Add Dependencies
+
+`messaging-kafka-consumer` is included in `spring-boot-starter`, but `spring-kafka`
+is **not** pulled in transitively (it is marked optional to avoid unwanted broker connections
+when you are using a different transport). You must add it explicitly:
+
+```xml
+<!-- spring-boot-starter already includes messaging-kafka-consumer -->
+<dependency>
+    <groupId>uz.osoncode.easygram</groupId>
+    <artifactId>spring-boot-starter</artifactId>
+    <version>0.0.2</version>
+</dependency>
+
+<!-- Required: provides KafkaTemplate + ConsumerFactory for KAFKA_CONSUMER transport -->
+<dependency>
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
+</dependency>
+```
+
+If you are NOT using `spring-boot-starter`, add `messaging-kafka-consumer` directly:
+
+```xml
+<dependency>
+    <groupId>uz.osoncode.easygram</groupId>
+    <artifactId>messaging-kafka-consumer</artifactId>
+    <version>0.0.2</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
+</dependency>
+```
+
 ## Use Cases
 
 - Decouple bot from Telegram API

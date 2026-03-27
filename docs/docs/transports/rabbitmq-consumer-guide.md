@@ -7,6 +7,41 @@ title: RabbitMQ Consumer Transport
 
 Consume Telegram updates from a RabbitMQ queue.
 
+## Add Dependencies
+
+`messaging-rabbit-consumer` is included in `spring-boot-starter`, but `spring-boot-starter-amqp`
+is **not** pulled in transitively (it is marked optional to avoid unwanted broker connections
+when you are using a different transport). You must add it explicitly:
+
+```xml
+<!-- spring-boot-starter already includes messaging-rabbit-consumer -->
+<dependency>
+    <groupId>uz.osoncode.easygram</groupId>
+    <artifactId>spring-boot-starter</artifactId>
+    <version>0.0.2</version>
+</dependency>
+
+<!-- Required: provides ConnectionFactory + RabbitTemplate for RABBIT_CONSUMER transport -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+```
+
+If you are NOT using `spring-boot-starter`, add `messaging-rabbit-consumer` directly:
+
+```xml
+<dependency>
+    <groupId>uz.osoncode.easygram</groupId>
+    <artifactId>messaging-rabbit-consumer</artifactId>
+    <version>0.0.2</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+```
+
 ## Configuration
 
 **application.yml:**
