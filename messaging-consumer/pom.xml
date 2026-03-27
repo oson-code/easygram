@@ -16,11 +16,16 @@
     <dependencies>
 
         <!--
-            Both broker consumer modules are included as regular (non-optional) dependencies so
+            Both broker consumer modules are included as regular compile-scope dependencies so
             that adding messaging-consumer is the only dependency a user ever needs.
             The active broker is selected purely by
             telegram.bot.messaging.consumer.consumer-type (kafka | rabbit);
             @ConditionalOnProperty ensures only the chosen broker's beans are created.
+
+            spring-kafka and spring-boot-starter-amqp are declared directly here because
+            the individual consumer modules mark them scope=provided (non-propagating).
+            This aggregator must supply both broker jars explicitly, mirroring the pattern
+            used by messaging-producer.
         -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
@@ -32,6 +37,16 @@
             <groupId>uz.osoncode.easygram</groupId>
             <artifactId>messaging-rabbit-consumer</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
 
         <dependency>
