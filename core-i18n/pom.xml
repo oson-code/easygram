@@ -5,7 +5,7 @@
     <parent>
         <groupId>uz.osoncode.easygram</groupId>
         <artifactId>parent</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
     </parent>
 
     <artifactId>core-i18n</artifactId>
@@ -18,6 +18,19 @@
             <groupId>uz.osoncode.easygram</groupId>
             <artifactId>core-api</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>uz.osoncode.easygram</groupId>
+            <artifactId>core</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <dependency>

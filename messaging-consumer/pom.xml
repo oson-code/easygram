@@ -5,7 +5,7 @@
     <parent>
         <groupId>uz.osoncode.easygram</groupId>
         <artifactId>parent</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
     </parent>
 
     <artifactId>messaging-consumer</artifactId>
@@ -16,11 +16,16 @@
     <dependencies>
 
         <!--
-            Both broker consumer modules are included as regular (non-optional) dependencies so
+            Both broker consumer modules are included as regular compile-scope dependencies so
             that adding messaging-consumer is the only dependency a user ever needs.
             The active broker is selected purely by
             telegram.bot.messaging.consumer.consumer-type (kafka | rabbit);
             @ConditionalOnProperty ensures only the chosen broker's beans are created.
+
+            spring-kafka and spring-boot-starter-amqp are declared directly here because
+            the individual consumer modules mark them scope=provided (non-propagating).
+            This aggregator must supply both broker jars explicitly, mirroring the pattern
+            used by messaging-producer.
         -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
@@ -35,9 +40,43 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                Fork the compiler for test compilation to work around a JDK 25 in-process
+                javac NPE (NullPointerException in UnsharedNameTable.fromValidUtf) that
+                occurs when scanning the large transitive test classpath of this module
+                (spring-kafka + spring-amqp + spring-boot-test together).
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <fork>true</fork>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

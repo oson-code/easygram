@@ -20,7 +20,24 @@ Handlers are methods in `@BotController` classes that respond to Telegram update
 | `@BotDefaultCallbackQuery` | Any callback not matched | `@BotDefaultCallbackQuery` |
 | `@BotContact` | Contact-sharing message | `@BotContact` |
 | `@BotLocation` | Location-sharing message | `@BotLocation` |
-| `@BotReplyButton` | Reply keyboard button press | `@BotReplyButton("✅ Confirm")` |
+| `@BotReplyButton` | Reply keyboard button press | `@BotReplyButton(" Confirm")` |
+| `@BotEditedMessage` | Edited text/media messages | `@BotEditedMessage` |
+| `@BotChannelPost` | Channel publication messages | `@BotChannelPost` |
+| `@BotEditedChannelPost` | Edited channel posts | `@BotEditedChannelPost` |
+| `@BotInlineQuery` | Inline queries | `@BotInlineQuery("search")` |
+| `@BotChosenInlineResult` | Chosen inline results | `@BotChosenInlineResult` |
+| `@BotShippingQuery` | Shipping address queries | `@BotShippingQuery` |
+| `@BotPreCheckoutQuery` | Pre-checkout events | `@BotPreCheckoutQuery` |
+| `@BotPoll` | Poll state changes | `@BotPoll` |
+| `@BotPollAnswer` | User-voted-in-poll events | `@BotPollAnswer` |
+| `@BotMyChatMember` | Bot's own member status changes | `@BotMyChatMember` |
+| `@BotChatMember` | User member status changes | `@BotChatMember` |
+| `@BotChatJoinRequest` | User join requests to a chat | `@BotChatJoinRequest` |
+| `@BotBusinessConnection` | Business account connections | `@BotBusinessConnection` |
+| `@BotBusinessMessage` | Messages via business account | `@BotBusinessMessage` |
+| `@BotEditedBusinessMessage` | Edited messages via business account | `@BotEditedBusinessMessage` |
+| `@BotDeletedBusinessMessages` | Business messages-deleted events | `@BotDeletedBusinessMessages` |
+| `@BotPaidMediaPurchased` | Paid media purchase events | `@BotPaidMediaPurchased` |
 | `@BotDefaultHandler` | Global fallback | `@BotDefaultHandler` |
 | `@BotExceptionHandler` | Exception type handler | `@BotExceptionHandler(NullPointerException.class)` |
 
@@ -44,14 +61,14 @@ Multiple handlers for same command can use `@BotOrder` for priority:
 
 ```java
 @BotCommand("/admin")
-@BotOrder(1)  // Higher priority
+@BotOrder(1) // Higher priority
 public String onAdminAccess(User user) {
     if (isAdmin(user)) return "Admin panel";
     throw new UnauthorizedException();
 }
 
 @BotCommand("/admin")
-@BotOrder(100)  // Lower priority, fallback
+@BotOrder(100) // Lower priority, fallback
 public String onAdminDefault() {
     return "Admin access denied";
 }
@@ -62,7 +79,7 @@ public String onAdminDefault() {
 Route exact plain-text messages (case-sensitive, full-string match).
 
 ```java
-@BotText("hello")  // Case-sensitive
+@BotText("hello") // Case-sensitive
 public String onHello() {
     return "Hi there!";
 }
@@ -185,12 +202,12 @@ Telegram delivers button presses — as plain text messages with the button's la
 **Without `core-i18n`** — values are matched as literal strings:
 
 ```java
-@BotReplyButton("✅ Confirm")
+@BotReplyButton(" Confirm")
 public String onConfirm() {
     return "Confirmed!";
 }
 
-@BotReplyButton({"❌ Cancel", "Back"})
+@BotReplyButton({" Cancel", "Back"})
 @BotClearChatState
 public String onCancel() {
     return "Cancelled. State cleared.";
@@ -202,13 +219,318 @@ key in the user's current locale and compares the result against the incoming te
 annotation covers all supported languages automatically:
 
 ```java
-// messages/bot_en.properties: btn.confirm=✅ Confirm
-// messages/bot_ru.properties: btn.confirm=✅ Подтвердить
+// messages/bot_en.properties: btn.confirm= Confirm
+// messages/bot_ru.properties: btn.confirm= Подтвердить
 @BotReplyButton("btn.confirm")
 public String onConfirm() {
     return "Confirmed!";
 }
 ```
+
+## New Update Type Handlers (0.0.2)
+
+Easygram 0.0.2 adds handler annotations for every remaining Telegram `Update` field that was previously unaddressed. Each annotation follows the same rules as the existing ones: declare it on a method inside a `@BotController` class, inject the relevant update-specific types as method parameters, and combine freely with `@BotChatState`, `@BotOrder`, and other meta-annotations. All annotations live in `uz.osoncode.easygram.core.bind.annotation`.
+
+### @BotEditedMessage
+
+Routes updates where the user edits a previously sent text or media message (`update.getEditedMessage()`).
+
+**No configurable attributes.**
+
+```java
+@BotEditedMessage
+public String onEdited(Message editedMessage) {
+    return "You edited your message to: " + editedMessage.getText();
+}
+```
+
+---
+
+### @BotChannelPost
+
+Routes new messages published to a channel that the bot administers (`update.getChannelPost()`).
+
+**No configurable attributes.**
+
+```java
+@BotChannelPost
+public void onChannelPost(Message post) {
+    log.info("New channel post: {}", post.getText());
+}
+```
+
+---
+
+### @BotEditedChannelPost
+
+Routes edits to channel posts (`update.getEditedChannelPost()`).
+
+**No configurable attributes.**
+
+```java
+@BotEditedChannelPost
+public void onEditedChannelPost(Message edited) {
+    log.info("Channel post edited: {}", edited.getText());
+}
+```
+
+---
+
+### @BotInlineQuery
+
+Routes inline queries — triggered when users type `@BotUsername …` in any chat (`update.getInlineQuery()`).
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `value` | `String[]` | `{}` | Match inline query text; empty = all inline queries |
+
+**Without `core-i18n`** — values are matched as literal strings:
+
+```java
+// Match all inline queries
+@BotInlineQuery
+public void onAnyInlineQuery(InlineQuery query, @BotInlineQueryValue String queryText) {
+    log.info("Inline query: {}", queryText);
+}
+
+// Match only when query text is exactly "search"
+@BotInlineQuery("search")
+public void onSearchQuery(InlineQuery query, @BotInlineQueryValue String queryText) {
+    // Handle search inline query
+}
+```
+
+**With `core-i18n`** — values are treated as message-bundle keys. The framework resolves each
+key in the user's current locale and compares the result against the incoming query text. A single
+annotation covers all supported languages automatically:
+
+```java
+// messages/bot_en.properties: inline.search=search
+// messages/bot_ru.properties: inline.search=поиск
+@BotInlineQuery("inline.search")
+public void onSearchQuery(InlineQuery query, @BotInlineQueryValue String queryText) {
+    // matches "@YourBot search" for English users
+    // and "@YourBot поиск" for Russian users
+}
+```
+
+---
+
+### @BotChosenInlineResult
+
+Routes the event fired when a user selects a result from an inline query (`update.getChosenInlineQuery()`). Requires "inline feedback" to be enabled in BotFather.
+
+**No configurable attributes.**
+
+```java
+@BotChosenInlineResult
+public void onChosenResult(
+        ChosenInlineResult result,
+        @BotChosenInlineResultId String resultId) {
+    log.info("User chose inline result: {}", resultId);
+}
+```
+
+---
+
+### @BotShippingQuery
+
+Routes shipping address queries for payments with flexible shipping (`update.getShippingQuery()`).
+
+**No configurable attributes.**
+
+```java
+@BotShippingQuery
+public void onShipping(
+        ShippingQuery query,
+        @BotShippingPayload String invoicePayload) {
+    log.info("Shipping query for invoice: {}", invoicePayload);
+}
+```
+
+---
+
+### @BotPreCheckoutQuery
+
+Routes pre-checkout events sent just before a payment is confirmed (`update.getPreCheckoutQuery()`). You must answer with `AnswerPreCheckoutQuery` within 10 seconds.
+
+**No configurable attributes.**
+
+```java
+@BotPreCheckoutQuery
+public void onPreCheckout(
+        PreCheckoutQuery query,
+        @BotPreCheckoutPayload String invoicePayload,
+        TelegramClient client) throws TelegramApiException {
+    client.execute(AnswerPreCheckoutQuery.builder()
+        .preCheckoutQueryId(query.getId())
+        .ok(true)
+        .build());
+}
+```
+
+---
+
+### @BotPoll
+
+Routes poll state-change updates — sent when a poll is stopped or its vote counts change (`update.getPoll()`).
+
+**No configurable attributes.**
+
+```java
+@BotPoll
+public void onPollUpdate(Poll poll) {
+    log.info("Poll '{}' updated, total voters: {}", poll.getQuestion(), poll.getTotalVoterCount());
+}
+```
+
+---
+
+### @BotPollAnswer
+
+Routes events fired when a user votes in a non-anonymous poll (`update.getPollAnswer()`).
+
+**No configurable attributes.**
+
+```java
+@BotPollAnswer
+public void onPollAnswer(PollAnswer answer) {
+    log.info("User {} voted option(s) {}", answer.getUser().getId(), answer.getOptionIds());
+}
+```
+
+---
+
+### @BotMyChatMember
+
+Routes updates about the bot's own membership status changes in a chat (`update.getMyChatMember()`). Useful for detecting when the bot is added to or removed from groups/channels.
+
+**No configurable attributes.**
+
+```java
+@BotMyChatMember
+public void onBotMembershipChange(ChatMemberUpdated updated) {
+    log.info("Bot status in chat {} changed from {} to {}",
+        updated.getChat().getId(),
+        updated.getOldChatMember().getStatus(),
+        updated.getNewChatMember().getStatus());
+}
+```
+
+---
+
+### @BotChatMember
+
+Routes updates about a user's membership status changes in a chat (`update.getChatMember()`). Requires the bot to be an administrator.
+
+**No configurable attributes.**
+
+```java
+@BotChatMember
+public void onUserMembershipChange(ChatMemberUpdated updated) {
+    log.info("User {} status changed in chat {}",
+        updated.getFrom().getId(), updated.getChat().getId());
+}
+```
+
+---
+
+### @BotChatJoinRequest
+
+Routes join requests submitted to a chat that requires admin approval (`update.getChatJoinRequest()`).
+
+**No configurable attributes.**
+
+```java
+@BotChatJoinRequest
+public void onJoinRequest(ChatJoinRequest request, TelegramClient client) throws TelegramApiException {
+    // Approve the request automatically
+    client.execute(ApproveChatJoinRequest.builder()
+        .chatId(request.getChat().getId())
+        .userId(request.getUser().getId())
+        .build());
+}
+```
+
+---
+
+### @BotBusinessConnection
+
+Routes updates about business account connections (`update.getBusinessConnection()`). Fired when a user connects or disconnects their business account from the bot.
+
+**No configurable attributes.**
+
+```java
+@BotBusinessConnection
+public void onBusinessConnection(BusinessConnection connection) {
+    log.info("Business connection {} is enabled: {}", connection.getId(), connection.getIsEnabled());
+}
+```
+
+---
+
+### @BotBusinessMessage
+
+Routes messages sent on behalf of a connected business account (`update.getBusinessMessage()`).
+
+**No configurable attributes.**
+
+```java
+@BotBusinessMessage
+public void onBusinessMessage(Message message) {
+    log.info("Business message from {}: {}", message.getChat().getId(), message.getText());
+}
+```
+
+---
+
+### @BotEditedBusinessMessage
+
+Routes edits to messages sent via a connected business account (`update.getEditedBuinessMessage()`).
+
+**No configurable attributes.**
+
+```java
+@BotEditedBusinessMessage
+public void onEditedBusinessMessage(Message edited) {
+    log.info("Business message edited in chat {}", edited.getChat().getId());
+}
+```
+
+---
+
+### @BotDeletedBusinessMessages
+
+Routes events fired when messages sent via a business account are deleted (`update.getDeletedBusinessMessages()`).
+
+**No configurable attributes.**
+
+```java
+@BotDeletedBusinessMessages
+public void onDeletedBusinessMessages(BusinessMessagesDeleted deleted) {
+    log.info("Deleted {} messages in chat {}",
+        deleted.getMessageIds().size(), deleted.getChat().getId());
+}
+```
+
+---
+
+### @BotPaidMediaPurchased
+
+Routes paid media purchase events. Inject the raw `Update` and call `update.getPaidMediaPurchased()` to access the payload.
+
+**No configurable attributes.**
+
+```java
+@BotPaidMediaPurchased
+public void onPaidMedia(Update update) {
+    var purchase = update.getPaidMediaPurchased();
+    log.info("Paid media purchased by user {}, payload: {}",
+        purchase.getFrom().getId(), purchase.getPaidMediaPayload());
+}
+```
+
+---
 
 ## @BotDefaultHandler
 
@@ -256,7 +578,7 @@ distinct values when handler priority matters.
 @BotOrder(1)
 public String vipStart(User user) {
     if (isVip(user)) return "Welcome, VIP!";
-    throw new UnauthorizedException();  // Try next handler
+    throw new UnauthorizedException(); // Try next handler
 }
 
 @BotCommand("/start")

@@ -60,11 +60,11 @@ public class BotChatStateCondition implements BotHandlerCondition {
         if (states.isEmpty()) {
             return true;
         }
-        if (botRequest.getChat() == null) {
+        if (Objects.isNull(botRequest.getChat())) {
             return false;
         }
         String currentState = botChatStateService.getState(botRequest.getChat().getId());
-        if (currentState == null) {
+        if (Objects.isNull(currentState)) {
             return false;
         }
         return states.contains(currentState);

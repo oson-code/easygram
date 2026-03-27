@@ -5,6 +5,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 
+import java.util.Objects;
+
 /**
  * Built-in filter that populates the {@link BotRequest} context with the {@code Chat}
  * and {@code User} objects extracted from the incoming Telegram {@link Update}.
@@ -57,7 +59,7 @@ public class BotContextSetterFilter implements BotFilter {
 
         } else if (update.hasCallbackQuery()) {
             // getMessage() is null for inline-mode callbacks (inlineMessageId is set instead)
-            if (update.getCallbackQuery().getMessage() != null) {
+            if (Objects.nonNull(update.getCallbackQuery().getMessage())) {
                 botRequest.setChat(update.getCallbackQuery().getMessage().getChat());
             }
             botRequest.setUser(update.getCallbackQuery().getFrom());

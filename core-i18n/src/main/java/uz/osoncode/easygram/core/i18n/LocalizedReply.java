@@ -46,6 +46,112 @@ public final class LocalizedReply implements MarkupAware {
     }
 
     /**
+     * Creates a new {@link Builder} for {@code LocalizedReply}.
+     *
+     * @return a new builder instance
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link LocalizedReply}.
+     *
+     * <pre>{@code
+     * LocalizedReply reply = LocalizedReply.builder()
+     *         .key("welcome.message")
+     *         .args(user.getFirstName())
+     *         .markupId("main_menu")
+     *         .build();
+     * }</pre>
+     */
+    public static final class Builder {
+
+        private String key;
+        private Object[] args;
+        private String markupId;
+        private Map<String, Object> markupParams;
+        private ReplyKeyboard keyboard;
+        private boolean removeMarkup;
+
+        private Builder() {}
+
+        /**
+         * Sets the message bundle key.
+         *
+         * @param key the i18n message key; must not be {@code null}
+         * @return this builder
+         */
+        public Builder key(String key) {
+            this.key = key;
+            return this;
+        }
+
+        /**
+         * Sets the optional arguments for the message format.
+         *
+         * @param args the format arguments
+         * @return this builder
+         */
+        public Builder args(Object... args) {
+            this.args = args;
+            return this;
+        }
+
+        /**
+         * Sets the pre-registered markup ID.
+         *
+         * @param markupId the ID of a registered markup
+         * @return this builder
+         */
+        public Builder markupId(String markupId) {
+            this.markupId = markupId;
+            return this;
+        }
+
+        /**
+         * Sets the markup factory parameters forwarded to the {@code @BotMarkup} factory.
+         *
+         * @param markupParams the parameters map
+         * @return this builder
+         */
+        public Builder markupParams(Map<String, Object> markupParams) {
+            this.markupParams = markupParams;
+            return this;
+        }
+
+        /**
+         * Sets a directly-built keyboard (takes precedence over {@link #markupId}).
+         *
+         * @param keyboard the keyboard to attach
+         * @return this builder
+         */
+        public Builder keyboard(ReplyKeyboard keyboard) {
+            this.keyboard = keyboard;
+            return this;
+        }
+
+        /**
+         * Instructs the framework to send a {@code ReplyKeyboardRemove}.
+         *
+         * @return this builder
+         */
+        public Builder removeMarkup() {
+            this.removeMarkup = true;
+            return this;
+        }
+
+        /**
+         * Builds and returns the immutable {@link LocalizedReply}.
+         *
+         * @return a new {@code LocalizedReply} instance
+         */
+        public LocalizedReply build() {
+            return new LocalizedReply(key, args, markupId, markupParams, keyboard, removeMarkup);
+        }
+    }
+
+    /**
      * Creates a {@code LocalizedReply} with the given message key and arguments.
      *
      * @param key  the message bundle key (e.g. "welcome.message"); must not be {@code null}

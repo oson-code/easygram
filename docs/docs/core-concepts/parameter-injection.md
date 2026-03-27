@@ -25,8 +25,22 @@ Easygram automatically resolves and injects parameters into your handler methods
 | `@BotCommandQueryParam T` | core | Typed positional argument after the command (Jackson-converted) |
 | `Contact` | core | Contact object — only in `@BotContact` handlers |
 | `Location` | core | Location object — only in `@BotLocation` handlers |
+| `InlineQuery` | core | Inline query — only in `@BotInlineQuery` handlers |
+| `ChosenInlineResult` | core | Chosen inline result — only in `@BotChosenInlineResult` handlers |
+| `ShippingQuery` | core | Shipping query — only in `@BotShippingQuery` handlers |
+| `PreCheckoutQuery` | core | Pre-checkout query — only in `@BotPreCheckoutQuery` handlers |
+| `Poll` | core | Poll object — only in `@BotPoll` handlers |
+| `PollAnswer` | core | Poll answer — only in `@BotPollAnswer` handlers |
+| `ChatMemberUpdated` | core | Chat member update — only in `@BotMyChatMember` / `@BotChatMember` handlers |
+| `ChatJoinRequest` | core | Chat join request — only in `@BotChatJoinRequest` handlers |
+| `BusinessConnection` | core | Business connection — only in `@BotBusinessConnection` handlers |
+| `BusinessMessagesDeleted` | core | Deleted business messages — only in `@BotDeletedBusinessMessages` handlers |
 | `BotMarkupContext` | core | Dynamic markup params — only in `@BotMarkup` factory methods |
 | `Locale` | core-i18n | User's locale; requires `core-i18n` on the classpath |
+| `@BotInlineQueryValue String` | core | Inline query text string — only in `@BotInlineQuery` handlers |
+| `@BotChosenInlineResultId String` | core | Chosen result id — only in `@BotChosenInlineResult` handlers |
+| `@BotShippingPayload String` | core | Invoice payload string — only in `@BotShippingQuery` handlers |
+| `@BotPreCheckoutPayload String` | core | Invoice payload string — only in `@BotPreCheckoutQuery` handlers |
 
 ---
 
@@ -232,6 +246,166 @@ public PlainReply onDelete() {
 
 ---
 
+## New Parameter Types (0.0.2)
+
+The following type-based and annotation-based parameter resolvers were added in 0.0.2 to support the new update-type handler annotations.
+
+### InlineQuery (`@BotInlineQuery`)
+
+Inject the raw `InlineQuery` object in handlers annotated with `@BotInlineQuery`.
+
+```java
+@BotInlineQuery
+public void onInline(InlineQuery query) {
+    log.info("Inline query from user {}: {}", query.getFrom().getId(), query.getQuery());
+}
+```
+
+### ChosenInlineResult (`@BotChosenInlineResult`)
+
+Inject the `ChosenInlineResult` object in handlers annotated with `@BotChosenInlineResult`.
+
+```java
+@BotChosenInlineResult
+public void onChosen(ChosenInlineResult result) {
+    log.info("Result '{}' chosen by user {}", result.getResultId(), result.getFrom().getId());
+}
+```
+
+### ShippingQuery (`@BotShippingQuery`)
+
+Inject the `ShippingQuery` object in handlers annotated with `@BotShippingQuery`.
+
+```java
+@BotShippingQuery
+public void onShipping(ShippingQuery query) {
+    log.info("Shipping address: {}", query.getShippingAddress());
+}
+```
+
+### PreCheckoutQuery (`@BotPreCheckoutQuery`)
+
+Inject the `PreCheckoutQuery` object in handlers annotated with `@BotPreCheckoutQuery`.
+
+```java
+@BotPreCheckoutQuery
+public void onPreCheckout(PreCheckoutQuery query) {
+    log.info("Pre-checkout for {} {} from user {}", query.getTotalAmount(), query.getCurrency(), query.getFrom().getId());
+}
+```
+
+### Poll (`@BotPoll`)
+
+Inject the `Poll` object in handlers annotated with `@BotPoll`.
+
+```java
+@BotPoll
+public void onPoll(Poll poll) {
+    log.info("Poll '{}' updated", poll.getQuestion());
+}
+```
+
+### PollAnswer (`@BotPollAnswer`)
+
+Inject the `PollAnswer` object in handlers annotated with `@BotPollAnswer`.
+
+```java
+@BotPollAnswer
+public void onPollAnswer(PollAnswer answer) {
+    log.info("User {} answered poll {}", answer.getUser().getId(), answer.getPollId());
+}
+```
+
+### ChatMemberUpdated (`@BotMyChatMember` / `@BotChatMember`)
+
+Inject `ChatMemberUpdated` in handlers annotated with `@BotMyChatMember` or `@BotChatMember`.
+
+```java
+@BotMyChatMember
+public void onBotStatus(ChatMemberUpdated update) {
+    log.info("Bot status changed: {} → {}", update.getOldChatMember().getStatus(), update.getNewChatMember().getStatus());
+}
+```
+
+### ChatJoinRequest (`@BotChatJoinRequest`)
+
+Inject the `ChatJoinRequest` object in handlers annotated with `@BotChatJoinRequest`.
+
+```java
+@BotChatJoinRequest
+public void onJoinRequest(ChatJoinRequest request) {
+    log.info("Join request from user {}", request.getUser().getId());
+}
+```
+
+### BusinessConnection (`@BotBusinessConnection`)
+
+Inject the `BusinessConnection` object in handlers annotated with `@BotBusinessConnection`.
+
+```java
+@BotBusinessConnection
+public void onConnection(BusinessConnection connection) {
+    log.info("Business connection {} enabled: {}", connection.getId(), connection.getIsEnabled());
+}
+```
+
+### BusinessMessagesDeleted (`@BotDeletedBusinessMessages`)
+
+Inject `BusinessMessagesDeleted` in handlers annotated with `@BotDeletedBusinessMessages`.
+
+```java
+@BotDeletedBusinessMessages
+public void onDeleted(BusinessMessagesDeleted deleted) {
+    log.info("Deleted messages: {}", deleted.getMessageIds());
+}
+```
+
+### @BotInlineQueryValue
+
+Injects the inline query text string. Only available in `@BotInlineQuery` handlers.
+
+```java
+@BotInlineQuery
+public void onInline(@BotInlineQueryValue String queryText, InlineQuery query) {
+    log.info("Query text: {}", queryText);
+}
+```
+
+### @BotChosenInlineResultId
+
+Injects the chosen result ID string. Only available in `@BotChosenInlineResult` handlers.
+
+```java
+@BotChosenInlineResult
+public void onChosen(@BotChosenInlineResultId String resultId) {
+    log.info("Chosen result ID: {}", resultId);
+}
+```
+
+### @BotShippingPayload
+
+Injects the invoice payload string. Only available in `@BotShippingQuery` handlers.
+
+```java
+@BotShippingQuery
+public void onShipping(@BotShippingPayload String payload, ShippingQuery query) {
+    log.info("Invoice payload: {}", payload);
+}
+```
+
+### @BotPreCheckoutPayload
+
+Injects the invoice payload string. Only available in `@BotPreCheckoutQuery` handlers.
+
+```java
+@BotPreCheckoutQuery
+public void onPreCheckout(@BotPreCheckoutPayload String payload, PreCheckoutQuery query) {
+    log.info("Invoice payload: {}", payload);
+}
+```
+
+---
+
 ## Locale (core-i18n)
 
 `Locale` is resolved by `BotLocaleArgumentResolver`, which is auto-configured only when `core-i18n` is on the classpath.
@@ -330,7 +504,7 @@ public class PaginationResolver implements BotArgumentResolver {
 }
 
 // Use in any handler:
-@BotCallbackQuery("page:")
+@BotDefaultCallbackQuery
 public String onPage(PageRequest page, User user) {
     return "Showing page " + page.getPageNumber() + " for " + user.getFirstName();
 }

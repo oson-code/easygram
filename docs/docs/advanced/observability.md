@@ -6,8 +6,10 @@ title: Observability
 # Observability
 
 Easygram's `core-observability` module integrates with Micrometer for metrics and distributed
-tracing. Combined with Spring Boot Actuator, you get health indicators, Prometheus metrics, and
-trace context propagation with minimal configuration.
+tracing. It ships three auto-configured components: a **`BotObservabilityFilter`** that wraps
+every update in a Micrometer `Observation`, a **`BotHealthIndicator`** that reports the bot's
+health at `/actuator/health`, and a **`BotInfoContributor`** that exposes bot metadata at
+`/actuator/info`.
 
 ## Add Dependencies
 
@@ -17,10 +19,10 @@ trace context propagation with minimal configuration.
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-observability</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 
-<!-- Spring Boot Actuator (health, metrics, prometheus endpoints) -->
+<!-- Spring Boot Actuator — health, info, prometheus endpoints -->
 <dependency>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-actuator</artifactId>
@@ -29,7 +31,7 @@ trace context propagation with minimal configuration.
 
 ## Actuator Setup
 
-Expose the endpoints you need:
+Expose the endpoints you need and enable percentile histograms for accurate P95/P99 latency:
 
 ```yaml
 management:
@@ -39,26 +41,94 @@ management:
         include: health, info, metrics, prometheus
   endpoint:
     health:
-      show-details: always
+      show-details: always      # shows bot id, username, transport
   metrics:
-    tags:
-      application: ${spring.application.name}
+    distribution:
+      # Enable histogram buckets so Grafana can compute histogram_quantile()
+      percentiles-histogram:
+        telegram.bot.update: true
 ```
+
+---
+
+## Built-in Components
+
+### BotHealthIndicator
+
+Auto-registered bean that reports bot health at `/actuator/health` once the bot has
+authenticated with the Telegram Bot API (i.e. `GetMe` completed).
+
+```json
+{
+  "status": "UP",
+  "components": {
+    "bot": {
+      "status": "UP",
+      "details": {
+        "id": 123456789,
+        "username": "my_awesome_bot",
+        "firstName": "MyBot",
+        "transport": "LONG_POLLING"
+      }
+    }
+  }
+}
+```
+
+Reports `UNKNOWN` while the bot is still initializing (metadata not yet populated).
+
+### BotInfoContributor
+
+Auto-registered bean that adds a `telegram-bot` section to `/actuator/info`:
+
+```json
+{
+  "telegram-bot": {
+    "id": 123456789,
+    "username": "my_awesome_bot",
+    "firstName": "MyBot",
+    "transport": "LONG_POLLING"
+  }
+}
+```
+
+Both components are skipped if the bot has not finished its `GetMe` call.
+Override them with your own `@Bean` of the same type if you need custom logic.
+
+---
 
 ## Built-in Micrometer Observation
 
-The `BotObservationFilter` (order `BotFilterOrder.OBSERVATION = Integer.MIN_VALUE + 1`) wraps
-the entire update processing chain in a Micrometer `Observation`. Every update is automatically
-timed and recorded.
+`BotObservabilityFilter` (order `BotFilterOrder.OBSERVATION`) wraps the entire update
+processing chain in a Micrometer `Observation`. Every update is automatically timed and, when a
+tracing bridge is on the classpath, traced.
 
-### Built-in Metrics
+### Metric name
 
-| Metric name | Type | Description |
+| Micrometer name | Prometheus series |
+|---|---|
+| `telegram.bot.update` | `telegram_bot_update_seconds_count` |
+| | `telegram_bot_update_seconds_sum` |
+| | `telegram_bot_update_seconds_max` |
+| | `telegram_bot_update_seconds_bucket` (when histogram enabled) |
+
+### Tags
+
+**Low-cardinality** (present on both metrics and spans):
+
+| Tag | Values | Description |
 |---|---|---|
-| `bot.update.duration` | Timer | Full processing time per update |
-| `bot.update.errors` | Counter | Number of unhandled exceptions |
+| `update_type` | `message`, `callback_query`, `inline_query`, `edited_message`, `channel_post`, `poll`, `poll_answer`, `my_chat_member`, `chat_member`, `chat_join_request`, `business_connection`, `business_message`, `edited_business_message`, `deleted_business_message`, `paid_media_purchased`, … | Type of the incoming Telegram Update |
+| `transport_type` | `LONG_POLLING`, `WEBHOOK`, `KAFKA_CONSUMER`, `RABBIT_CONSUMER` | Active transport |
 
-Metrics include the `application` tag set in `management.metrics.tags`.
+**High-cardinality** (present in spans/traces only — not in Prometheus labels):
+
+| Tag | Description |
+|---|---|
+| `user_id` | Telegram user ID (when resolvable) |
+| `chat_id` | Telegram chat ID (when resolvable) |
+
+---
 
 ## Prometheus Integration
 
@@ -75,11 +145,73 @@ Metrics are exposed at `/actuator/prometheus`. Prometheus scrape config:
 # prometheus.yml
 scrape_configs:
   - job_name: telegram-bot
+    metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['localhost:8080']
-    metrics_path: /actuator/prometheus
     scrape_interval: 15s
 ```
+
+### Example Prometheus queries
+
+```promql
+# Update throughput (req/s, last 5 minutes)
+sum(rate(telegram_bot_update_seconds_count[5m]))
+
+# Throughput by update type
+sum by (update_type) (rate(telegram_bot_update_seconds_count[5m]))
+
+# Average processing time
+rate(telegram_bot_update_seconds_sum[5m]) / rate(telegram_bot_update_seconds_count[5m])
+
+# P95 latency (requires percentiles-histogram: true)
+histogram_quantile(0.95, sum by (le) (rate(telegram_bot_update_seconds_bucket[5m])))
+
+# Error rate (updates that threw an exception)
+sum(rate(telegram_bot_update_seconds_count{error!="none",error!=""}[5m]))
+```
+
+---
+
+## Prometheus + Grafana Quick Start
+
+The `samples/i18n-registration-bot` sample includes a ready-to-use observability stack with
+a pre-built Grafana dashboard. Use it as a reference or copy it into your own project.
+
+```
+samples/i18n-registration-bot/
+├── docker-compose.yml                              # bot + Prometheus + Grafana
+├── prometheus.yml                                  # scrape config
+└── grafana/
+    ├── provisioning/
+    │   ├── datasources/prometheus.yml              # auto-provision Prometheus datasource
+    │   └── dashboards/dashboard.yml                # auto-provision dashboards directory
+    └── dashboards/
+        └── easygram-bot.json                       # 8-panel Grafana dashboard
+```
+
+### Dashboard panels
+
+| Panel | Query |
+|---|---|
+| Total updates | `sum(telegram_bot_update_seconds_count)` |
+| Update rate | `rate(telegram_bot_update_seconds_count[5m])` |
+| Average processing time | `rate(sum) / rate(count)` |
+| Bot health | `up{job="…"}` |
+| Update rate by type | grouped by `update_type` |
+| P50/P95/P99 latency | `histogram_quantile(0.50/0.95/0.99, …)` |
+| Error rate | `update_type` with `error` tag set |
+| Max latency by type | `telegram_bot_update_seconds_max` |
+
+To spin up the full stack:
+
+```bash
+cd samples/i18n-registration-bot
+TELEGRAM_BOT_TOKEN=xxx docker compose up
+# Grafana: http://localhost:3000  (admin / admin)
+# Prometheus: http://localhost:9090
+```
+
+---
 
 ## Distributed Tracing
 
@@ -100,13 +232,15 @@ Add Micrometer Tracing with Brave/Zipkin:
 management:
   tracing:
     sampling:
-      probability: 1.0   # 100% sampling in dev; reduce to 0.1 in production
+      probability: 1.0   # 100% in dev; reduce to 0.1 in production
   zipkin:
     tracing:
       endpoint: http://localhost:9411/api/v2/spans
 ```
 
-Every update processed through the filter chain gets a trace span automatically.
+Every update processed through the filter chain gets a `telegram.bot.update` span automatically.
+
+---
 
 ## Adding Custom Metrics
 
@@ -140,153 +274,34 @@ public class CommandMetricsFilter implements BotFilter {
 }
 ```
 
-## Custom Health Indicator
-
-Verify the Telegram API connection is reachable:
-
-```java
-@Component
-public class BotHealthIndicator implements HealthIndicator {
-
-    private final TelegramClient telegramClient;
-
-    public BotHealthIndicator(TelegramClient telegramClient) {
-        this.telegramClient = telegramClient;
-    }
-
-    @Override
-    public Health health() {
-        try {
-            User bot = telegramClient.execute(new GetMe());
-            return Health.up()
-                    .withDetail("botUsername", bot.getUserName())
-                    .withDetail("botId", bot.getId())
-                    .build();
-        } catch (Exception ex) {
-            return Health.down()
-                    .withDetail("error", ex.getMessage())
-                    .build();
-        }
-    }
-}
-```
-
-Response at `/actuator/health`:
-
-```json
-{
-  "status": "UP",
-  "components": {
-    "bot": {
-      "status": "UP",
-      "details": {
-        "botUsername": "my_awesome_bot",
-        "botId": 1234567890
-      }
-    }
-  }
-}
-```
-
-## Prometheus + Grafana with Docker Compose
-
-```yaml
-version: '3.8'
-services:
-  bot:
-    image: my-bot:latest
-    environment:
-      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,metrics,prometheus
-    ports: ["8080:8080"]
-
-  prometheus:
-    image: prom/prometheus:latest
-    volumes: [./prometheus.yml:/etc/prometheus/prometheus.yml]
-    ports: ["9090:9090"]
-
-  grafana:
-    image: grafana/grafana:latest
-    ports: ["3000:3000"]
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
-```
+---
 
 ## Pub/Sub Trace Propagation
 
-When using Kafka or RabbitMQ transport (the `messaging-kafka` / `messaging-rabbit` + consumer
-modules), Easygram automatically propagates W3C `traceparent` headers through the broker **as
-long as Micrometer Tracing is configured** (i.e. an `ObservationRegistry` bean is present).
+When using Kafka or RabbitMQ transport, Easygram automatically propagates W3C `traceparent`
+headers through the broker when a Micrometer Tracing bridge is configured.
 
-### How it works
-
-The filter pipeline on the **producer** side executes in this order:
-
-```
-CONTEXT_SETTER (MIN_VALUE)
-  → OBSERVATION (MIN_VALUE + 1)   ← telegram.bot.update span starts HERE
-  → ...
-  → PUBLISHING (MIN_VALUE + 1000) ← KafkaTemplate / RabbitTemplate sends the message
-```
-
-Because `BotObservabilityFilter` runs _before_ `BotUpdatePublishingFilter`, an active span
-already exists when the template publishes. With observation enabled on the template, Spring
-automatically injects a `traceparent` header into every outgoing Kafka record / AMQP message.
-
-On the **consumer** side, the listener container (configured by Easygram with
-`observationEnabled=true`) extracts the `traceparent` header and creates a linked span before
-dispatching the message to the bot.
-
-### Resulting span tree
+### Span tree
 
 ```
 [producer service]
   telegram.bot.update  (BotObservabilityFilter)
-    └── spring.kafka.producer  (KafkaTemplate with observationEnabled=true)
-             ↓  W3C traceparent header in Kafka record
+    spring.kafka.producer  (KafkaTemplate — observationEnabled=true)
+           ↓ W3C traceparent in Kafka record
 
 [consumer service]
-  spring.kafka.consumer  (KafkaListenerContainerFactory with observationEnabled=true)
-    └── telegram.bot.update  (BotObservabilityFilter — child of kafka.consumer span)
+  spring.kafka.consumer  (listener container — observationEnabled=true)
+    telegram.bot.update  (BotObservabilityFilter — child span)
 ```
 
 The same pattern applies for RabbitMQ (`spring.rabbit.producer` / `spring.rabbit.listener`).
 
-### No extra configuration needed
-
-Easygram registers `botKafkaListenerContainerFactory` and `botRabbitListenerContainerFactory`
-automatically, conditioned on `ObservationRegistry` being present:
-
-| Condition | Template observation | Container factory observation |
-|---|---|---|
-| No `ObservationRegistry` bean | disabled (default) | disabled (default) |
-| `ObservationRegistry` present | ✅ enabled automatically | ✅ enabled automatically |
-
-You only need to add the tracing bridge (Brave or OTel) to your application — nothing extra in
-the consumer or producer modules:
-
-```xml
-<!-- Add to your consumer and producer applications -->
-<dependency>
-    <groupId>io.micrometer</groupId>
-    <artifactId>micrometer-tracing-bridge-brave</artifactId>
-</dependency>
-<dependency>
-    <groupId>io.zipkin.reporter2</groupId>
-    <artifactId>zipkin-reporter-brave</artifactId>
-</dependency>
-```
-
-```yaml
-management:
-  tracing:
-    sampling:
-      probability: 1.0
-```
+Easygram automatically enables `observationEnabled=true` on listener container factories when
+`ObservationRegistry` is present — no extra configuration needed.
 
 ### Disabling propagation
 
-To opt out of observation on the transport layer while keeping `core-observability` active,
-register your own beans:
+Register your own factory bean to opt out:
 
 ```java
 @Bean(name = "botKafkaListenerContainerFactory")
@@ -299,34 +314,33 @@ public ConcurrentKafkaListenerContainerFactory<Object, Object> customKafkaFactor
 }
 ```
 
-`@ConditionalOnMissingBean(name = "botKafkaListenerContainerFactory")` ensures Easygram's
-auto-configured factory is skipped when yours is present.
+---
 
+## Structured Log Correlation
 
-
-Enable trace context in log lines (requires Micrometer Tracing configured above):
+Enable trace/span IDs in log lines (requires Micrometer Tracing configured):
 
 ```yaml
 logging:
-  level:
-    uz.osoncode.easygram: INFO
-    uz.example: DEBUG
   pattern:
     console: "%d{HH:mm:ss} %-5level [%X{traceId},%X{spanId}] %logger{36} - %msg%n"
 ```
 
-The `traceId` and `spanId` MDC fields are populated automatically by Micrometer Tracing.
+---
 
 ## Feature Summary
 
 | Capability | How to enable |
 |---|---|
-| Update timing | Automatic via `BotObservationFilter` |
+| Update timing + error rate | Automatic via `BotObservabilityFilter` |
+| Health endpoint | Automatic via `BotHealthIndicator` (UP/UNKNOWN) |
+| Info endpoint | Automatic via `BotInfoContributor` |
 | Prometheus metrics | Add `micrometer-registry-prometheus` |
+| P95/P99 latency | Add `percentiles-histogram.telegram.bot.update: true` |
+| Grafana dashboard | Copy from `samples/i18n-registration-bot/grafana/` |
 | Distributed tracing | Add `micrometer-tracing-bridge-brave` + Zipkin |
 | Pub/sub trace propagation | Automatic when `ObservationRegistry` bean is present |
 | Custom counters/timers | Inject `MeterRegistry` |
-| Health endpoint | Implement `HealthIndicator` + register as `@Bean` |
 | Structured logging | Configure Logback with MDC trace pattern |
 
 ---
@@ -334,3 +348,5 @@ The `traceId` and `spanId` MDC fields are populated automatically by Micrometer 
 See also:
 - [Custom Filters](./custom-filters) — add cross-cutting metrics in a filter
 - [Architecture](../architecture) — `BotFilterOrder.OBSERVATION` in the pipeline
+- [RabbitMQ Consumer](../transports/rabbitmq-consumer-guide) — trace propagation details
+- [Kafka Consumer](../transports/kafka-consumer-guide) — trace propagation details

@@ -9,7 +9,7 @@
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-producer</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
@@ -25,7 +25,7 @@ Add the Kafka runtime dependency alongside `messaging-producer`:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-producer</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 <dependency>
     <groupId>org.springframework.kafka</groupId>
@@ -71,7 +71,7 @@ Add the AMQP runtime dependency alongside `messaging-producer`:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-producer</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -134,7 +134,7 @@ To publish to a custom target (SNS, SQS, Redis Pub/Sub, etc.), implement `BotUpd
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-api</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 

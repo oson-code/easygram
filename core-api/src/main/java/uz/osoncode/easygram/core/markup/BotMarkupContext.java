@@ -2,6 +2,7 @@ package uz.osoncode.easygram.core.markup;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Typed wrapper for parameters passed to a {@link BotMarkupRegistry} factory method
@@ -60,7 +61,7 @@ public final class BotMarkupContext {
      * @return a new immutable {@code BotMarkupContext}
      */
     public static BotMarkupContext of(Map<String, Object> params) {
-        if (params == null || params.isEmpty()) {
+        if (Objects.isNull(params) || params.isEmpty()) {
             return EMPTY;
         }
         return new BotMarkupContext(params);
@@ -97,7 +98,7 @@ public final class BotMarkupContext {
      */
     public <T> T get(String key, Class<T> type) {
         Object value = params.get(key);
-        return value == null ? null : type.cast(value);
+        return Objects.isNull(value) ? null : type.cast(value);
     }
 
     /**
@@ -111,7 +112,7 @@ public final class BotMarkupContext {
     @SuppressWarnings("unchecked")
     public <T> T getOrDefault(String key, T defaultValue) {
         Object value = params.get(key);
-        return value == null ? defaultValue : (T) value;
+        return Objects.isNull(value) ? defaultValue : (T) value;
     }
 
     /**

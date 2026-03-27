@@ -62,6 +62,112 @@ public final class LocalizedTemplate implements MarkupAware {
     }
 
     /**
+     * Creates a new {@link Builder} for {@code LocalizedTemplate}.
+     *
+     * @return a new builder instance
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link LocalizedTemplate}.
+     *
+     * <pre>{@code
+     * LocalizedTemplate reply = LocalizedTemplate.builder()
+     *         .template("${greeting} #{0}!")
+     *         .args(user.getFirstName())
+     *         .markupId("main_menu")
+     *         .build();
+     * }</pre>
+     */
+    public static final class Builder {
+
+        private String template;
+        private Object[] args;
+        private String markupId;
+        private Map<String, Object> markupParams;
+        private ReplyKeyboard keyboard;
+        private boolean removeMarkup;
+
+        private Builder() {}
+
+        /**
+         * Sets the template string (may contain {@code ${key}} and {@code #{index}} tokens).
+         *
+         * @param template the template; must not be {@code null}
+         * @return this builder
+         */
+        public Builder template(String template) {
+            this.template = template;
+            return this;
+        }
+
+        /**
+         * Sets the positional arguments substituted for {@code #{index}} tokens.
+         *
+         * @param args the arguments
+         * @return this builder
+         */
+        public Builder args(Object... args) {
+            this.args = args;
+            return this;
+        }
+
+        /**
+         * Sets the pre-registered markup ID.
+         *
+         * @param markupId the ID of a registered markup
+         * @return this builder
+         */
+        public Builder markupId(String markupId) {
+            this.markupId = markupId;
+            return this;
+        }
+
+        /**
+         * Sets the markup factory parameters forwarded to the {@code @BotMarkup} factory.
+         *
+         * @param markupParams the parameters map
+         * @return this builder
+         */
+        public Builder markupParams(Map<String, Object> markupParams) {
+            this.markupParams = markupParams;
+            return this;
+        }
+
+        /**
+         * Sets a directly-built keyboard (takes precedence over {@link #markupId}).
+         *
+         * @param keyboard the keyboard to attach
+         * @return this builder
+         */
+        public Builder keyboard(ReplyKeyboard keyboard) {
+            this.keyboard = keyboard;
+            return this;
+        }
+
+        /**
+         * Instructs the framework to send a {@code ReplyKeyboardRemove}.
+         *
+         * @return this builder
+         */
+        public Builder removeMarkup() {
+            this.removeMarkup = true;
+            return this;
+        }
+
+        /**
+         * Builds and returns the immutable {@link LocalizedTemplate}.
+         *
+         * @return a new {@code LocalizedTemplate} instance
+         */
+        public LocalizedTemplate build() {
+            return new LocalizedTemplate(template, args, markupId, markupParams, keyboard, removeMarkup);
+        }
+    }
+
+    /**
      * Creates a {@code LocalizedTemplate} with the given template and optional positional arguments.
      *
      * @param template the template string; must not be {@code null}

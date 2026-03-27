@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfigura
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
+import uz.osoncode.easygram.core.handler.inlinequery.BotInlineQueryMatcher;
 import uz.osoncode.easygram.core.handler.message.replybutton.BotReplyButtonMatcher;
 import uz.osoncode.easygram.core.i18n.BotI18nProperties;
 import uz.osoncode.easygram.core.i18n.BotLocaleResolver;
@@ -35,6 +36,8 @@ import java.util.Optional;
  *   <li>{@link BotKeyboardFactory} - builds localised InlineKeyboardMarkup / ReplyKeyboardMarkup</li>
  *   <li>{@link BotReplyButtonMatcher} - locale-aware matcher that replaces the default exact-text
  *       matcher in {@code core} for {@code @BotReplyButton} routing</li>
+ *   <li>{@link BotInlineQueryMatcher} - locale-aware matcher that replaces the default exact-text
+ *       matcher in {@code core} for {@code @BotInlineQuery} value routing</li>
  *   <li>{@link BotLocalizedTemplateReturnTypeHandler} - resolves {@link uz.osoncode.easygram.core.i18n.LocalizedTemplate}
  *       return values using inline {@code ${key}} / {@code #{index}} template syntax</li>
  *   <li>{@link BotLocalizedReplyReturnTypeHandler} - resolves {@link uz.osoncode.easygram.core.i18n.LocalizedReply}
@@ -44,7 +47,8 @@ import java.util.Optional;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
-@AutoConfiguration(after = MessageSourceAutoConfiguration.class)
+@AutoConfiguration(after = MessageSourceAutoConfiguration.class,
+        beforeName = "uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration")
 @EnableConfigurationProperties(BotI18nProperties.class)
 public class BotI18nAutoConfiguration {
 
@@ -85,6 +89,12 @@ public class BotI18nAutoConfiguration {
      * <p>Treats {@code @BotReplyButton} values as message-bundle keys, resolves them in the
      * user's locale, and compares against the incoming message text.</p>
      *
+     * <p>The {@code beforeName} ordering on this auto-configuration class guarantees that this
+     * bean is always registered before {@code CoreAutoConfiguration} is processed, so
+     * {@code CoreAutoConfiguration}'s {@code @ConditionalOnMissingBean(BotReplyButtonMatcher.class)}
+     * correctly defers to this locale-aware implementation when {@code core-i18n} is on the
+     * classpath.</p>
+     *
      * @param botMessageSource the message source used to resolve localised button labels
      * @return a locale-aware {@link BotReplyButtonMatcher}
      */
@@ -96,6 +106,38 @@ public class BotI18nAutoConfiguration {
             for (String key : values) {
                 String resolved = botMessageSource.getMessage(key, request);
                 if (incomingText.equals(resolved)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
+
+    /**
+     * Locale-aware {@link BotInlineQueryMatcher} that replaces the default exact-text matcher
+     * from {@code core} when {@code core-i18n} is on the classpath.
+     *
+     * <p>Treats {@code @BotInlineQuery} values as message-bundle keys, resolves them in the
+     * user's locale, and compares against the incoming inline query text — so a single
+     * {@code @BotInlineQuery("search.query")} annotation handles all supported languages
+     * automatically.</p>
+     *
+     * <p>The {@code beforeName} ordering on this auto-configuration class guarantees that this
+     * bean is registered before {@code CoreAutoConfiguration} is processed, so the
+     * {@code @ConditionalOnMissingBean(BotInlineQueryMatcher.class)} there correctly defers
+     * to this locale-aware implementation.</p>
+     *
+     * @param botMessageSource the message source used to resolve localised query values
+     * @return a locale-aware {@link BotInlineQueryMatcher}
+     */
+    @Bean
+    @ConditionalOnMissingBean(BotInlineQueryMatcher.class)
+    public BotInlineQueryMatcher botInlineQueryMatcher(BotMessageSource botMessageSource) {
+        return (values, request) -> {
+            String queryText = request.getUpdate().getInlineQuery().getQuery();
+            for (String key : values) {
+                String resolved = botMessageSource.getMessage(key, request);
+                if (queryText.equals(resolved)) {
                     return true;
                 }
             }

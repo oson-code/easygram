@@ -1,14 +1,17 @@
 package uz.osoncode.easygram.core.exceptionhandler;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import uz.osoncode.easygram.core.argumentresolver.BotArgumentResolverFactory;
+import uz.osoncode.easygram.core.chatstate.BotChatState;
+import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 import uz.osoncode.easygram.core.exception.BotHandlerException;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandlerFactory;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Reflective invoker for a method annotated with
@@ -24,11 +27,14 @@ import java.lang.reflect.Method;
  * the raw {@link Throwable}, and the {@link BotRequest} itself, depending on what the
  * handler method declares.
  *
+ * <p>When the handler method (or its controller class) is annotated with
+ * {@link BotChatState}, the handler is only selected if the current chat is in one of the
+ * declared states — identical to how regular handler methods respect {@link BotChatState}.
+ *
  * @param <T> the exception type handled by this instance.
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
-@RequiredArgsConstructor
 public class BotExceptionMethodHandler<T extends Throwable> {
 
     /** The exact exception type this handler is bound to. */
@@ -55,17 +61,96 @@ public class BotExceptionMethodHandler<T extends Throwable> {
     private final BotReturnTypeHandlerFactory botReturnTypeHandlerFactory;
 
     /**
-     * Returns {@code true} if this handler can handle the given exception.
-     *
-     * <p>Uses {@link Class#isAssignableFrom} so that subclasses of {@code exceptionType}
-     * are also accepted.
-     *
-     * @param exception the exception to check.
-     * @return {@code true} if the exception is an instance of {@link #exceptionType} or
-     *         a subclass thereof; {@code false} otherwise.
+     * Optional chat-state service used to check the current state of the chat.
+     * {@code null} when the chat-state module is not present.
      */
-    public boolean supports(Throwable exception) {
-        return exceptionType.isAssignableFrom(exception.getClass());
+    private final BotChatStateService botChatStateService;
+
+    /**
+     * The effective {@link BotChatState} annotation (method-level wins over class-level).
+     * {@code null} means no state restriction — the handler applies to any state.
+     */
+    private final BotChatState chatState;
+
+    /**
+     * Constructs a new exception method handler.
+     *
+     * @param exceptionType            the exception type this handler is bound to
+     * @param priority                 {@code 0} for local, {@code 1} for global advice
+     * @param method                   the annotated controller method
+     * @param bean                     the controller bean instance
+     * @param botArgumentResolverFactory factory for resolving method parameters
+     * @param botReturnTypeHandlerFactory factory for processing the return value
+     * @param botChatStateService      optional chat-state service; {@code null} if unavailable
+     * @param chatState                effective {@link BotChatState}, or {@code null} for no restriction
+     */
+    public BotExceptionMethodHandler(Class<T> exceptionType,
+                                     int priority,
+                                     Method method,
+                                     Object bean,
+                                     BotArgumentResolverFactory botArgumentResolverFactory,
+                                     BotReturnTypeHandlerFactory botReturnTypeHandlerFactory,
+                                     BotChatStateService botChatStateService,
+                                     BotChatState chatState) {
+        this.exceptionType = exceptionType;
+        this.priority = priority;
+        this.method = method;
+        this.bean = bean;
+        this.botArgumentResolverFactory = botArgumentResolverFactory;
+        this.botReturnTypeHandlerFactory = botReturnTypeHandlerFactory;
+        this.botChatStateService = botChatStateService;
+        this.chatState = chatState;
+    }
+
+    /**
+     * Returns {@code true} if this handler can handle the given exception for the given request.
+     *
+     * <p>Two conditions must both be satisfied:</p>
+     * <ol>
+     *   <li>The exception type matches — {@link Class#isAssignableFrom} so subclasses are accepted.</li>
+     *   <li>The chat-state requirement is satisfied — if a {@link BotChatState} with non-empty
+     *       states is declared, the current chat must be in one of those states.</li>
+     * </ol>
+     *
+     * @param exception  the exception to check
+     * @param botRequest the current bot request, used to read the active chat state
+     * @return {@code true} if both the exception type and chat state match
+     */
+    public boolean supports(Throwable exception, BotRequest botRequest) {
+        if (!exceptionType.isAssignableFrom(exception.getClass())) {
+            return false;
+        }
+        return matchesChatState(botRequest);
+    }
+
+    /**
+     * Checks whether the current chat state satisfies this handler's {@link BotChatState} requirement.
+     *
+     * <p>Returns {@code true} (handler allowed) when any of the following hold:</p>
+     * <ul>
+     *   <li>No {@link BotChatState} annotation is present (no restriction).</li>
+     *   <li>The {@link BotChatStateService} is unavailable (module not present).</li>
+     *   <li>The declared state set is empty (matches any state).</li>
+     * </ul>
+     * Returns {@code false} when the chat is absent, the current state is {@code null},
+     * or the current state is not in the declared set.
+     */
+    private boolean matchesChatState(BotRequest botRequest) {
+        if (Objects.isNull(chatState) || Objects.isNull(botChatStateService)) {
+            return true;
+        }
+        Set<String> requiredStates = Set.of(chatState.value());
+        if (requiredStates.isEmpty()) {
+            return true;
+        }
+        if (Objects.isNull(botRequest.getChat())) {
+            return false;
+        }
+        String currentState = botChatStateService.getState(botRequest.getChat().getId());
+        if (Objects.isNull(currentState)) {
+            return false;
+        }
+        return requiredStates.contains(currentState);
     }
 
     /**

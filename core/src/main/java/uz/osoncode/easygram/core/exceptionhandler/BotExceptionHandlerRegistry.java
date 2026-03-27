@@ -4,6 +4,7 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Registry that stores {@link BotExceptionMethodHandler} instances and keeps them sorted
@@ -77,7 +78,7 @@ public class BotExceptionHandlerRegistry {
      */
     private int getDepth(Class<?> type) {
         int depth = 0;
-        while (type != null) {
+        while (Objects.nonNull(type)) {
             depth++;
             type = type.getSuperclass();
         }

@@ -6,11 +6,17 @@ import uz.osoncode.easygram.core.markup.MarkupAware;
 import java.util.Map;
 
 /**
- * Immutable value object representing a plain text reply whose content is built via
- * {@link String#format(String, Object...)} at send time.
+ * Immutable value object representing a plain text reply whose content is built by
+ * substituting {@code #{index}} tokens with positional arguments at send time.
  *
  * <p>The content is NOT resolved against message bundles. Use
  * {@code LocalizedTemplate} (in {@code core-i18n}) when i18n is required.</p>
+ *
+ * <p>Token format:</p>
+ * <ul>
+ *   <li>{@code #{index}} — replaced with {@code args[index]} (0-based); if the index is
+ *       out of bounds the token is left unchanged.</li>
+ * </ul>
  *
  * <p>Keyboard markup can be attached in three ways, in order of precedence:</p>
  * <ol>
@@ -20,6 +26,22 @@ import java.util.Map;
  *   <li>{@link #withMarkup(String)} — resolve a registered keyboard by ID (no params).</li>
  *   <li>{@link #removeMarkup()} — send {@code ReplyKeyboardRemove} to clear the keyboard.</li>
  * </ol>
+ *
+ * <h2>Examples</h2>
+ * <pre>{@code
+ * // Static factory — no args
+ * return PlainTextTemplate.of("Hello!");
+ *
+ * // Static factory — with positional args
+ * return PlainTextTemplate.of("Hello #{0}! You are #{1} years old.", name, age);
+ *
+ * // Builder pattern
+ * return PlainTextTemplate.builder()
+ *         .template("Hello #{0}!")
+ *         .args(user.getFirstName())
+ *         .markupId("main_menu")
+ *         .build();
+ * }</pre>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
@@ -45,10 +67,119 @@ public final class PlainTextTemplate implements MarkupAware {
     }
 
     /**
-     * Creates a {@code PlainTextTemplate} with the given text and optional arguments.
+     * Creates a new {@link Builder} for {@code PlainTextTemplate}.
      *
-     * @param template the text template (e.g. "Hello %s"); must not be {@code null}
-     * @param args     optional arguments for {@link String#format}
+     * @return a new builder instance
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link PlainTextTemplate}.
+     *
+     * <pre>{@code
+     * PlainTextTemplate reply = PlainTextTemplate.builder()
+     *         .template("Hello #{0}!")
+     *         .args(user.getFirstName())
+     *         .markupId("main_menu")
+     *         .build();
+     * }</pre>
+     */
+    public static final class Builder {
+
+        private String template;
+        private Object[] args;
+        private String markupId;
+        private Map<String, Object> markupParams;
+        private ReplyKeyboard keyboard;
+        private boolean removeMarkup;
+
+        private Builder() {}
+
+        /**
+         * Sets the template string (may contain {@code #{index}} tokens).
+         *
+         * @param template the template; must not be {@code null}
+         * @return this builder
+         */
+        public Builder template(String template) {
+            this.template = template;
+            return this;
+        }
+
+        /**
+         * Sets the positional arguments substituted for {@code #{index}} tokens.
+         *
+         * @param args the arguments
+         * @return this builder
+         */
+        public Builder args(Object... args) {
+            this.args = args;
+            return this;
+        }
+
+        /**
+         * Sets the pre-registered markup ID.
+         *
+         * @param markupId the ID of a registered markup
+         * @return this builder
+         */
+        public Builder markupId(String markupId) {
+            this.markupId = markupId;
+            return this;
+        }
+
+        /**
+         * Sets the markup factory parameters forwarded to the {@code @BotMarkup} factory.
+         *
+         * @param markupParams the parameters map
+         * @return this builder
+         */
+        public Builder markupParams(Map<String, Object> markupParams) {
+            this.markupParams = markupParams;
+            return this;
+        }
+
+        /**
+         * Sets a directly-built keyboard (takes precedence over {@link #markupId}).
+         *
+         * @param keyboard the keyboard to attach
+         * @return this builder
+         */
+        public Builder keyboard(ReplyKeyboard keyboard) {
+            this.keyboard = keyboard;
+            return this;
+        }
+
+        /**
+         * Instructs the framework to send a {@code ReplyKeyboardRemove}.
+         *
+         * @return this builder
+         */
+        public Builder removeMarkup() {
+            this.removeMarkup = true;
+            return this;
+        }
+
+        /**
+         * Builds and returns the immutable {@link PlainTextTemplate}.
+         *
+         * @return a new {@code PlainTextTemplate} instance
+         */
+        public PlainTextTemplate build() {
+            return new PlainTextTemplate(template, args, markupId, markupParams, keyboard, removeMarkup);
+        }
+    }
+
+    /**
+     * Creates a {@code PlainTextTemplate} with the given template and optional positional arguments.
+     *
+     * <p>Use {@code #{index}} tokens in the template to reference arguments by 0-based index,
+     * e.g. {@code "Hello #{0}!"} with {@code args = [name]}.</p>
+     *
+     * @param template the template string; must not be {@code null}
+     * @param args     optional positional arguments referenced via {@code #{index}} tokens
      * @return a new {@code PlainTextTemplate} instance
      */
     public static PlainTextTemplate of(String template, Object... args) {

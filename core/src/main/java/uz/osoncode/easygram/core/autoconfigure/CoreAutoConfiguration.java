@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.meta.TelegramUrl;
+import java.util.Objects;
 import uz.osoncode.easygram.core.argumentresolver.BotArgumentResolver;
 import uz.osoncode.easygram.core.argumentresolver.BotArgumentResolverFactory;
 import uz.osoncode.easygram.core.argumentresolver.BotCallbackQueryDataArgumentResolver;
@@ -39,6 +40,20 @@ import uz.osoncode.easygram.core.argumentresolver.BotThrowableArgumentResolver;
 import uz.osoncode.easygram.core.argumentresolver.BotUpdateArgumentResolver;
 import uz.osoncode.easygram.core.argumentresolver.BotUserArgumentResolver;
 import uz.osoncode.easygram.core.argumentresolver.BotMetadataArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotInlineQueryArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotChosenInlineResultArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotShippingQueryArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotPreCheckoutQueryArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotPollArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotPollAnswerArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotChatMemberUpdatedArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotChatJoinRequestArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotBusinessConnectionArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotBusinessMessagesDeletedArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotInlineQueryValueArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotChosenInlineResultIdArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotShippingPayloadArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotPreCheckoutPayloadArgumentResolver;
 import uz.osoncode.easygram.core.bot.BotConfigurer;
 import uz.osoncode.easygram.core.bot.BotProperties;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
@@ -69,6 +84,24 @@ import uz.osoncode.easygram.core.handler.message.command.metadataresolver.BotCom
 import uz.osoncode.easygram.core.handler.message.command.metadataresolver.BotDefaultCommandMetaDataResolver;
 import uz.osoncode.easygram.core.handler.message.contact.metadataresolver.BotContactMetaDataResolver;
 import uz.osoncode.easygram.core.handler.message.location.metadataresolver.BotLocationMetaDataResolver;
+import uz.osoncode.easygram.core.handler.editedmessage.metadataresolver.BotEditedMessageMetaDataResolver;
+import uz.osoncode.easygram.core.handler.channelpost.metadataresolver.BotChannelPostMetaDataResolver;
+import uz.osoncode.easygram.core.handler.editedchannelpost.metadataresolver.BotEditedChannelPostMetaDataResolver;
+import uz.osoncode.easygram.core.handler.inlinequery.BotInlineQueryMatcher;
+import uz.osoncode.easygram.core.handler.inlinequery.metadataresolver.BotInlineQueryMetaDataResolver;
+import uz.osoncode.easygram.core.handler.choseninlineresult.metadataresolver.BotChosenInlineResultMetaDataResolver;
+import uz.osoncode.easygram.core.handler.shippingquery.metadataresolver.BotShippingQueryMetaDataResolver;
+import uz.osoncode.easygram.core.handler.precheckoutquery.metadataresolver.BotPreCheckoutQueryMetaDataResolver;
+import uz.osoncode.easygram.core.handler.poll.metadataresolver.BotPollMetaDataResolver;
+import uz.osoncode.easygram.core.handler.pollanswer.metadataresolver.BotPollAnswerMetaDataResolver;
+import uz.osoncode.easygram.core.handler.mychatmember.metadataresolver.BotMyChatMemberMetaDataResolver;
+import uz.osoncode.easygram.core.handler.chatmember.metadataresolver.BotChatMemberUpdateMetaDataResolver;
+import uz.osoncode.easygram.core.handler.chatjoinrequest.metadataresolver.BotChatJoinRequestMetaDataResolver;
+import uz.osoncode.easygram.core.handler.businessconnection.metadataresolver.BotBusinessConnectionMetaDataResolver;
+import uz.osoncode.easygram.core.handler.businessmessage.metadataresolver.BotBusinessMessageMetaDataResolver;
+import uz.osoncode.easygram.core.handler.editedbusinessmessage.metadataresolver.BotEditedBusinessMessageMetaDataResolver;
+import uz.osoncode.easygram.core.handler.deletedbusinessmessages.metadataresolver.BotDeletedBusinessMessagesMetaDataResolver;
+import uz.osoncode.easygram.core.handler.paidmediapurchased.metadataresolver.BotPaidMediaPurchasedMetaDataResolver;
 import uz.osoncode.easygram.core.handler.message.replybutton.BotReplyButtonMatcher;
 import uz.osoncode.easygram.core.handler.message.replybutton.metadataresolver.BotReplyButtonMetaDataResolver;
 import uz.osoncode.easygram.core.handler.message.text.metadataresolver.BotTextDefaultMetaDataResolver;
@@ -275,6 +308,147 @@ public class CoreAutoConfiguration {
     public BotUserArgumentResolver botUserArgumentResolver() {
         return new BotUserArgumentResolver();
     }
+
+    /**
+     * Registers the argument resolver that injects the {@code InlineQuery} object.
+     *
+     * @return a new {@link BotInlineQueryArgumentResolver} instance
+     */
+    @Bean
+    public BotInlineQueryArgumentResolver botInlineQueryArgumentResolver() {
+        return new BotInlineQueryArgumentResolver();
+    }
+
+    /**
+     * Registers the argument resolver that injects the {@code ChosenInlineQuery} object.
+     *
+     * @return a new {@link BotChosenInlineResultArgumentResolver} instance
+     */
+    @Bean
+    public BotChosenInlineResultArgumentResolver botChosenInlineResultArgumentResolver() {
+        return new BotChosenInlineResultArgumentResolver();
+    }
+
+    /**
+     * Registers the argument resolver that injects the {@code ShippingQuery} object.
+     *
+     * @return a new {@link BotShippingQueryArgumentResolver} instance
+     */
+    @Bean
+    public BotShippingQueryArgumentResolver botShippingQueryArgumentResolver() {
+        return new BotShippingQueryArgumentResolver();
+    }
+
+    /**
+     * Registers the argument resolver that injects the {@code PreCheckoutQuery} object.
+     *
+     * @return a new {@link BotPreCheckoutQueryArgumentResolver} instance
+     */
+    @Bean
+    public BotPreCheckoutQueryArgumentResolver botPreCheckoutQueryArgumentResolver() {
+        return new BotPreCheckoutQueryArgumentResolver();
+    }
+
+    /**
+     * Registers the argument resolver that injects the {@code Poll} object.
+     *
+     * @return a new {@link BotPollArgumentResolver} instance
+     */
+    @Bean
+    public BotPollArgumentResolver botPollArgumentResolver() {
+        return new BotPollArgumentResolver();
+    }
+
+    /**
+     * Registers the argument resolver that injects the {@code PollAnswer} object.
+     *
+     * @return a new {@link BotPollAnswerArgumentResolver} instance
+     */
+    @Bean
+    public BotPollAnswerArgumentResolver botPollAnswerArgumentResolver() {
+        return new BotPollAnswerArgumentResolver();
+    }
+
+    /**
+     * Registers the argument resolver that injects the {@code ChatMemberUpdated} object.
+     *
+     * @return a new {@link BotChatMemberUpdatedArgumentResolver} instance
+     */
+    @Bean
+    public BotChatMemberUpdatedArgumentResolver botChatMemberUpdatedArgumentResolver() {
+        return new BotChatMemberUpdatedArgumentResolver();
+    }
+
+    /**
+     * Registers the argument resolver that injects the {@code ChatJoinRequest} object.
+     *
+     * @return a new {@link BotChatJoinRequestArgumentResolver} instance
+     */
+    @Bean
+    public BotChatJoinRequestArgumentResolver botChatJoinRequestArgumentResolver() {
+        return new BotChatJoinRequestArgumentResolver();
+    }
+
+    /**
+     * Registers the argument resolver that injects the {@code BusinessConnection} object.
+     *
+     * @return a new {@link BotBusinessConnectionArgumentResolver} instance
+     */
+    @Bean
+    public BotBusinessConnectionArgumentResolver botBusinessConnectionArgumentResolver() {
+        return new BotBusinessConnectionArgumentResolver();
+    }
+
+    /**
+     * Registers the argument resolver that injects the {@code BusinessMessagesDeleted} object.
+     *
+     * @return a new {@link BotBusinessMessagesDeletedArgumentResolver} instance
+     */
+    @Bean
+    public BotBusinessMessagesDeletedArgumentResolver botBusinessMessagesDeletedArgumentResolver() {
+        return new BotBusinessMessagesDeletedArgumentResolver();
+    }
+
+    /**
+     * Registers the argument resolver that injects the inline query text string.
+     *
+     * @return a new {@link BotInlineQueryValueArgumentResolver} instance
+     */
+    @Bean
+    public BotInlineQueryValueArgumentResolver botInlineQueryValueArgumentResolver() {
+        return new BotInlineQueryValueArgumentResolver();
+    }
+
+    /**
+     * Registers the argument resolver that injects the chosen inline result ID string.
+     *
+     * @return a new {@link BotChosenInlineResultIdArgumentResolver} instance
+     */
+    @Bean
+    public BotChosenInlineResultIdArgumentResolver botChosenInlineResultIdArgumentResolver() {
+        return new BotChosenInlineResultIdArgumentResolver();
+    }
+
+    /**
+     * Registers the argument resolver that injects the shipping query invoice payload string.
+     *
+     * @return a new {@link BotShippingPayloadArgumentResolver} instance
+     */
+    @Bean
+    public BotShippingPayloadArgumentResolver botShippingPayloadArgumentResolver() {
+        return new BotShippingPayloadArgumentResolver();
+    }
+
+    /**
+     * Registers the argument resolver that injects the pre-checkout query invoice payload string.
+     *
+     * @return a new {@link BotPreCheckoutPayloadArgumentResolver} instance
+     */
+    @Bean
+    public BotPreCheckoutPayloadArgumentResolver botPreCheckoutPayloadArgumentResolver() {
+        return new BotPreCheckoutPayloadArgumentResolver();
+    }
+
 
     /**
      * Registers the factory that selects the appropriate {@link BotArgumentResolver} for each
@@ -505,6 +679,198 @@ public class CoreAutoConfiguration {
         return new BotDefaultHandlerMetaDataResolver();
     }
 
+    /**
+     * Registers the metadata resolver for the {@code @BotEditedMessage} annotation.
+     *
+     * @return a new {@link BotEditedMessageMetaDataResolver} instance
+     */
+    @Bean
+    public BotEditedMessageMetaDataResolver botEditedMessageMetaDataResolver() {
+        return new BotEditedMessageMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotChannelPost} annotation.
+     *
+     * @return a new {@link BotChannelPostMetaDataResolver} instance
+     */
+    @Bean
+    public BotChannelPostMetaDataResolver botChannelPostMetaDataResolver() {
+        return new BotChannelPostMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotEditedChannelPost} annotation.
+     *
+     * @return a new {@link BotEditedChannelPostMetaDataResolver} instance
+     */
+    @Bean
+    public BotEditedChannelPostMetaDataResolver botEditedChannelPostMetaDataResolver() {
+        return new BotEditedChannelPostMetaDataResolver();
+    }
+
+    /**
+     * Registers the default {@link BotInlineQueryMatcher} that performs exact case-sensitive
+     * comparison between annotation values and the incoming inline query text.
+     *
+     * <p>This bean is suppressed when {@code core-i18n} is present on the classpath — in that
+     * case {@code BotI18nAutoConfiguration} registers a locale-aware matcher instead.</p>
+     *
+     * @return a new exact-text {@link BotInlineQueryMatcher}
+     */
+    @Bean
+    @ConditionalOnMissingBean(BotInlineQueryMatcher.class)
+    public BotInlineQueryMatcher botInlineQueryMatcher() {
+        return (values, request) -> {
+            String queryText = request.getUpdate().getInlineQuery().getQuery();
+            for (String value : values) {
+                if (Objects.equals(value, queryText)) return true;
+            }
+            return false;
+        };
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotInlineQuery} annotation.
+     *
+     * @param matcher the matching strategy to use
+     * @return a new {@link BotInlineQueryMetaDataResolver} instance
+     */
+    @Bean
+    public BotInlineQueryMetaDataResolver botInlineQueryMetaDataResolver(BotInlineQueryMatcher matcher) {
+        return new BotInlineQueryMetaDataResolver(matcher);
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotChosenInlineResult} annotation.
+     *
+     * @return a new {@link BotChosenInlineResultMetaDataResolver} instance
+     */
+    @Bean
+    public BotChosenInlineResultMetaDataResolver botChosenInlineResultMetaDataResolver() {
+        return new BotChosenInlineResultMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotShippingQuery} annotation.
+     *
+     * @return a new {@link BotShippingQueryMetaDataResolver} instance
+     */
+    @Bean
+    public BotShippingQueryMetaDataResolver botShippingQueryMetaDataResolver() {
+        return new BotShippingQueryMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotPreCheckoutQuery} annotation.
+     *
+     * @return a new {@link BotPreCheckoutQueryMetaDataResolver} instance
+     */
+    @Bean
+    public BotPreCheckoutQueryMetaDataResolver botPreCheckoutQueryMetaDataResolver() {
+        return new BotPreCheckoutQueryMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotPoll} annotation.
+     *
+     * @return a new {@link BotPollMetaDataResolver} instance
+     */
+    @Bean
+    public BotPollMetaDataResolver botPollMetaDataResolver() {
+        return new BotPollMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotPollAnswer} annotation.
+     *
+     * @return a new {@link BotPollAnswerMetaDataResolver} instance
+     */
+    @Bean
+    public BotPollAnswerMetaDataResolver botPollAnswerMetaDataResolver() {
+        return new BotPollAnswerMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotMyChatMember} annotation.
+     *
+     * @return a new {@link BotMyChatMemberMetaDataResolver} instance
+     */
+    @Bean
+    public BotMyChatMemberMetaDataResolver botMyChatMemberMetaDataResolver() {
+        return new BotMyChatMemberMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotChatMemberUpdate} annotation.
+     *
+     * @return a new {@link BotChatMemberUpdateMetaDataResolver} instance
+     */
+    @Bean
+    public BotChatMemberUpdateMetaDataResolver botChatMemberUpdateMetaDataResolver() {
+        return new BotChatMemberUpdateMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotChatJoinRequest} annotation.
+     *
+     * @return a new {@link BotChatJoinRequestMetaDataResolver} instance
+     */
+    @Bean
+    public BotChatJoinRequestMetaDataResolver botChatJoinRequestMetaDataResolver() {
+        return new BotChatJoinRequestMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotBusinessConnection} annotation.
+     *
+     * @return a new {@link BotBusinessConnectionMetaDataResolver} instance
+     */
+    @Bean
+    public BotBusinessConnectionMetaDataResolver botBusinessConnectionMetaDataResolver() {
+        return new BotBusinessConnectionMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotBusinessMessage} annotation.
+     *
+     * @return a new {@link BotBusinessMessageMetaDataResolver} instance
+     */
+    @Bean
+    public BotBusinessMessageMetaDataResolver botBusinessMessageMetaDataResolver() {
+        return new BotBusinessMessageMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotEditedBusinessMessage} annotation.
+     *
+     * @return a new {@link BotEditedBusinessMessageMetaDataResolver} instance
+     */
+    @Bean
+    public BotEditedBusinessMessageMetaDataResolver botEditedBusinessMessageMetaDataResolver() {
+        return new BotEditedBusinessMessageMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotDeletedBusinessMessages} annotation.
+     *
+     * @return a new {@link BotDeletedBusinessMessagesMetaDataResolver} instance
+     */
+    @Bean
+    public BotDeletedBusinessMessagesMetaDataResolver botDeletedBusinessMessagesMetaDataResolver() {
+        return new BotDeletedBusinessMessagesMetaDataResolver();
+    }
+
+    /**
+     * Registers the metadata resolver for the {@code @BotPaidMediaPurchased} annotation.
+     *
+     * @return a new {@link BotPaidMediaPurchasedMetaDataResolver} instance
+     */
+    @Bean
+    public BotPaidMediaPurchasedMetaDataResolver botPaidMediaPurchasedMetaDataResolver() {
+        return new BotPaidMediaPurchasedMetaDataResolver();
+    }
+
 
     /**
      * Registers the argument resolver that extracts query parameters appended to a bot command
@@ -698,13 +1064,18 @@ public class CoreAutoConfiguration {
 
     /**
      * Registers the exception handler loader that scans the application context for
-     * {@code @BotControllerAdvice} beans and registers their exception handler methods in the
-     * {@link BotExceptionHandlerRegistry}.
+     * {@code @BotController} and {@code @BotControllerAdvice} beans and registers their
+     * exception handler methods in the {@link BotExceptionHandlerRegistry}.
+     *
+     * <p>The optional {@link BotChatStateService} is injected so that exception handlers
+     * annotated with {@link uz.osoncode.easygram.core.chatstate.BotChatState} are only
+     * selected when the current chat is in the required state.</p>
      *
      * @param applicationContext           the Spring application context used to discover exception handler beans
      * @param botArgumentResolverFactory   factory for resolving exception handler method parameters
      * @param botExceptionHandlerRegistry  registry where discovered exception handlers are stored
      * @param botReturnTypeHandlerFactory  factory for resolving exception handler method return types
+     * @param chatStateService             optional chat-state service; empty when the module is absent
      * @return a new {@link BotMethodExceptionHandlerLoader} instance
      */
     @Bean
@@ -713,9 +1084,10 @@ public class CoreAutoConfiguration {
             ApplicationContext applicationContext,
             BotArgumentResolverFactory botArgumentResolverFactory,
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
-            BotReturnTypeHandlerFactory botReturnTypeHandlerFactory) {
+            BotReturnTypeHandlerFactory botReturnTypeHandlerFactory,
+            Optional<BotChatStateService> chatStateService) {
         return new BotMethodExceptionHandlerLoader(applicationContext, botArgumentResolverFactory,
-                botExceptionHandlerRegistry, botReturnTypeHandlerFactory);
+                botExceptionHandlerRegistry, botReturnTypeHandlerFactory, chatStateService);
     }
 
 

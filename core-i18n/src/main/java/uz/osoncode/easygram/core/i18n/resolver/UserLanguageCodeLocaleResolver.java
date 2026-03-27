@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.telegram.telegrambots.meta.api.objects.User;
 import uz.osoncode.easygram.core.i18n.BotLocaleResolver;
 import uz.osoncode.easygram.core.model.BotRequest;
+import uz.osoncode.easygram.core.util.Strings;
 
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Default {@link BotLocaleResolver} that determines the locale from the Telegram
@@ -40,9 +42,9 @@ public class UserLanguageCodeLocaleResolver implements BotLocaleResolver {
     @Override
     public Locale resolve(BotRequest request) {
         User user = request.getUser();
-        if (user != null) {
+        if (Objects.nonNull(user)) {
             String langCode = user.getLanguageCode();
-            if (langCode != null && !langCode.isBlank()) {
+            if (Strings.isNotBlank(langCode)) {
                 try {
                     Locale locale = Locale.forLanguageTag(langCode);
                     // forLanguageTag returns Locale.ROOT for unknown tags — treat as missing

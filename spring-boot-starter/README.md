@@ -25,7 +25,7 @@ This starter pulls in the core engine, all transport modules, and i18n support w
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
@@ -171,7 +171,7 @@ Use individual modules for a **minimal dependency tree**:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>longpolling</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 

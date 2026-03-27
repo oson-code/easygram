@@ -16,6 +16,7 @@ import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -98,11 +99,11 @@ public class WebhookBot extends Bot implements InitializingBean, DisposableBean 
                 .url(webhookBotProperties.url())
                 .dropPendingUpdates(webhookBotProperties.dropPendingUpdates());
 
-        if (webhookBotProperties.secretToken() != null) {
+        if (Objects.nonNull(webhookBotProperties.secretToken())) {
             builder.secretToken(webhookBotProperties.secretToken());
         }
 
-        if (webhookBotProperties.maxConnections() != null) {
+        if (Objects.nonNull(webhookBotProperties.maxConnections())) {
             builder.maxConnections(webhookBotProperties.maxConnections());
         }
 

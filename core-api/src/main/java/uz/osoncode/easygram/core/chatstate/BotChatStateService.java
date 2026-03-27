@@ -1,5 +1,7 @@
 package uz.osoncode.easygram.core.chatstate;
 
+import java.util.Objects;
+
 /**
  * Service interface for managing per-chat conversational state.
  * Implementations persist and retrieve a string-based state token for each chat,
@@ -32,8 +34,12 @@ public interface BotChatStateService {
     /**
      * Stores or updates the state for the specified chat.
      *
+     * <p>To remove the current state use {@link #clearState(Long)} — passing {@code null}
+     * here is not permitted and will throw an {@link IllegalArgumentException}.</p>
+     *
      * @param chatId the unique Telegram chat identifier; must not be {@code null}
-     * @param state  the new state value to persist; may be {@code null} to clear the state
+     * @param state  the new state value to persist; must not be {@code null}
+     * @throws IllegalArgumentException if {@code state} is {@code null}
      */
     void setState(Long chatId, String state);
 
@@ -47,6 +53,17 @@ public interface BotChatStateService {
     default void setState(Long chatId, Enum<?> state) {
         setState(chatId, state.name());
     }
+
+    /**
+     * Clears (removes) the current state for the specified chat.
+     *
+     * <p>This is the only supported way to reset a chat's state. Calling
+     * {@code setState(chatId, null)} is not permitted and will throw an
+     * {@link IllegalArgumentException}.</p>
+     *
+     * @param chatId the unique Telegram chat identifier; must not be {@code null}
+     */
+    void clearState(Long chatId);
 
     /**
      * Retrieves the current state for the specified chat and parses it as an enum constant
@@ -64,6 +81,6 @@ public interface BotChatStateService {
      */
     default <T extends Enum<T>> T getStateAs(Long chatId, Class<T> type) {
         String raw = getState(chatId);
-        return raw != null ? Enum.valueOf(type, raw) : null;
+        return Objects.nonNull(raw) ? Enum.valueOf(type, raw) : null;
     }
 }

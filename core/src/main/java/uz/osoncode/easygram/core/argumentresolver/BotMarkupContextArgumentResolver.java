@@ -5,6 +5,7 @@ import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 
 import java.lang.reflect.Parameter;
+import java.util.Objects;
 
 /**
  * Argument resolver that injects the current {@link BotMarkupContext} into a
@@ -49,10 +50,10 @@ public class BotMarkupContextArgumentResolver implements BotArgumentResolver {
      */
     @Override
     public Object resolveArgument(Parameter parameter, BotRequest botRequest, BotResponse botResponse) {
-        if (botRequest == null) {
+        if (Objects.isNull(botRequest)) {
             return BotMarkupContext.empty();
         }
         BotMarkupContext ctx = botRequest.getAttribute(BotMarkupContext.REQUEST_ATTRIBUTE_KEY);
-        return ctx != null ? ctx : BotMarkupContext.empty();
+        return Objects.nonNull(ctx) ? ctx : BotMarkupContext.empty();
     }
 }

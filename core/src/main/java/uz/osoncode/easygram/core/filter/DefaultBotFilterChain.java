@@ -104,7 +104,7 @@ public class DefaultBotFilterChain implements BotFilterChain {
             }
             botExceptionHandlerRegistry.getBotHandlers()
                     .stream()
-                    .filter(h -> h.supports(targetException))
+                    .filter(h -> h.supports(targetException, botRequest))
                     .findFirst()
                     .ifPresentOrElse(
                             h -> h.handle(botRequest, botResponse, targetException),

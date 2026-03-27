@@ -2,6 +2,9 @@ package uz.example.i18n;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.telegram.telegrambots.meta.TelegramUrl;
+import uz.osoncode.easygram.core.provider.BotTelegramUrlProvider;
 
 /**
  * Entry point for the i18n Registration Bot sample.
@@ -28,5 +31,14 @@ public class I18nRegistrationBotApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(I18nRegistrationBotApplication.class, args);
+    }
+
+    @Bean
+    public BotTelegramUrlProvider botTelegramUrlProvider() {
+        return () -> TelegramUrl.builder()
+                .schema("https")
+                .host("api.telegram.org")
+                .port(443)
+                .build();
     }
 }

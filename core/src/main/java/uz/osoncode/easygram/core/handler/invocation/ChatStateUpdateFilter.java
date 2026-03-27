@@ -6,6 +6,7 @@ import uz.osoncode.easygram.core.bind.annotation.BotClearChatState;
 import uz.osoncode.easygram.core.bind.annotation.BotForwardChatState;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -55,18 +56,18 @@ public class ChatStateUpdateFilter implements BotHandlerInvocationFilter {
         chain.proceed(context);
 
         chatStateService.ifPresent(service -> {
-            if (context.getRequest().getChat() == null) return;
+            if (Objects.isNull(context.getRequest().getChat())) return;
             long chatId = context.getRequest().getChat().getId();
 
             BotClearChatState clearAnnotation =
                     AnnotationUtils.findAnnotation(context.getMethod(), BotClearChatState.class);
-            if (clearAnnotation != null) {
-                service.setState(chatId, (String) null);
+            if (Objects.nonNull(clearAnnotation)) {
+                service.clearState(chatId);
                 return;
             }
             BotForwardChatState forwardAnnotation =
                     AnnotationUtils.findAnnotation(context.getMethod(), BotForwardChatState.class);
-            if (forwardAnnotation != null) {
+            if (Objects.nonNull(forwardAnnotation)) {
                 service.setState(chatId, forwardAnnotation.value());
             }
         });

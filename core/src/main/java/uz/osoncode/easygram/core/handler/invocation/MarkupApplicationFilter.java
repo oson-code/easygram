@@ -12,6 +12,7 @@ import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.markup.MarkupAware;
 import uz.osoncode.easygram.core.reply.PlainReply;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -85,31 +86,31 @@ public class MarkupApplicationFilter implements BotHandlerInvocationFilter {
     public void invoke(BotHandlerInvocationContext context, BotHandlerInvocationChain chain) {
         Object returnValue = context.getReturnValue();
 
-        if (returnValue != null) {
+        if (Objects.nonNull(returnValue)) {
             BotClearMarkup clearMarkup = AnnotationUtils.findAnnotation(context.getMethod(), BotClearMarkup.class);
             BotReplyMarkup replyMarkup = AnnotationUtils.findAnnotation(context.getMethod(), BotReplyMarkup.class);
 
             if (returnValue instanceof MarkupAware markupAware) {
-                if (clearMarkup != null) {
+                if (Objects.nonNull(clearMarkup)) {
                     context.setReturnValue(markupAware.removeMarkup());
-                } else if (replyMarkup != null
-                        && markupAware.getKeyboard() == null
-                        && markupAware.getMarkupId() == null) {
+                } else if (Objects.nonNull(replyMarkup)
+                        && Objects.isNull(markupAware.getKeyboard())
+                        && Objects.isNull(markupAware.getMarkupId())) {
                     context.setReturnValue(markupAware.withMarkup(replyMarkup.value()));
-                } else if (markupAware.getKeyboard() == null && markupAware.getMarkupId() == null) {
+                } else if (Objects.isNull(markupAware.getKeyboard()) && Objects.isNull(markupAware.getMarkupId())) {
                     ReplyKeyboard stateKeyboard = resolveStateKeyboard(context);
-                    if (stateKeyboard != null) {
+                    if (Objects.nonNull(stateKeyboard)) {
                         context.setReturnValue(markupAware.withKeyboard(stateKeyboard));
                     }
                 }
             } else if (returnValue instanceof String text) {
-                if (clearMarkup != null) {
+                if (Objects.nonNull(clearMarkup)) {
                     context.setReturnValue(PlainReply.of(text).removeMarkup());
-                } else if (replyMarkup != null) {
+                } else if (Objects.nonNull(replyMarkup)) {
                     context.setReturnValue(PlainReply.of(text).withMarkup(replyMarkup.value()));
                 } else {
                     ReplyKeyboard stateKeyboard = resolveStateKeyboard(context);
-                    if (stateKeyboard != null) {
+                    if (Objects.nonNull(stateKeyboard)) {
                         context.setReturnValue(PlainReply.of(text).withKeyboard(stateKeyboard));
                     }
                 }
@@ -129,23 +130,23 @@ public class MarkupApplicationFilter implements BotHandlerInvocationFilter {
         return markupRegistry.map(registry -> {
             BotClearChatState clearState =
                     AnnotationUtils.findAnnotation(context.getMethod(), BotClearChatState.class);
-            if (clearState != null) {
+            if (Objects.nonNull(clearState)) {
                 return null;
             }
 
             String effectiveState;
             BotForwardChatState forwardState =
                     AnnotationUtils.findAnnotation(context.getMethod(), BotForwardChatState.class);
-            if (forwardState != null) {
+            if (Objects.nonNull(forwardState)) {
                 effectiveState = forwardState.value();
             } else {
                 effectiveState = chatStateService
-                        .filter(s -> context.getRequest().getChat() != null)
+                        .filter(s -> Objects.nonNull(context.getRequest().getChat()))
                         .map(s -> s.getState(context.getRequest().getChat().getId()))
                         .orElse(null);
             }
 
-            if (effectiveState == null) {
+            if (Objects.isNull(effectiveState)) {
                 return null;
             }
             return registry.resolveByState(effectiveState, context.getRequest());

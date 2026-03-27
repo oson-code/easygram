@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * {@link BotReturnTypeHandler} implementation that handles handler methods returning
@@ -83,7 +84,7 @@ public class BotBotApiMethodsReturnHandler implements BotReturnTypeHandler {
     @Override
     @SuppressWarnings("unchecked")
     public void handleReturnType(BotRequest botRequest, BotResponse botResponse, Object returnValue) {
-        if (returnValue != null) {
+        if (Objects.nonNull(returnValue)) {
             botResponse.addBotApiMethods((Collection<BotApiMethod<?>>) returnValue);
         }
     }

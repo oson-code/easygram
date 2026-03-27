@@ -12,8 +12,8 @@ Complete reference for all easygram annotations, interfaces, model classes, and 
 ## Table of Contents
 
 - [Structural Annotations](#structural-annotations) — `@BotController`, `@BotControllerAdvice`, `@BotConfiguration`, `@BotMarkup`, `@BotOrder`
-- [Handler Routing Annotations](#handler-routing-annotations) — `@BotCommand`, `@BotText`, `@BotTextPattern`, `@BotCallbackQuery`, `@BotContact`, `@BotLocation`, `@BotReplyButton`, `@BotDefaultHandler`, `@BotExceptionHandler`, …
-- [Parameter Annotations](#parameter-annotations) — `@BotCommandValue`, `@BotTextValue`, `@BotCallbackQueryData`, `@BotCommandQueryParam`
+- [Handler Routing Annotations](#handler-routing-annotations) — `@BotCommand`, `@BotText`, `@BotTextPattern`, `@BotCallbackQuery`, `@BotContact`, `@BotLocation`, `@BotReplyButton`, `@BotEditedMessage`, `@BotInlineQuery`, `@BotMyChatMember`, `@BotDefaultHandler`, `@BotExceptionHandler`, … (+14 more update types)
+- [Parameter Annotations](#parameter-annotations) — `@BotCommandValue`, `@BotTextValue`, `@BotCallbackQueryData`, `@BotCommandQueryParam`, `@BotInlineQueryValue`, `@BotChosenInlineResultId`, `@BotShippingPayload`, `@BotPreCheckoutPayload`
 - [Response Annotations](#response-annotations) — `@BotReplyMarkup`, `@BotClearMarkup`
 - [Chat State Annotations](#chat-state-annotations) — `@BotChatState`, `@BotForwardChatState`, `@BotClearChatState`
 - [Return Types](#return-types)
@@ -30,7 +30,7 @@ Complete reference for all easygram annotations, interfaces, model classes, and 
 
 ### @BotController
 
-**Package:** `uz.osoncode.easygram.core.annotation`  
+**Package:** `uz.osoncode.easygram.core.annotation`
 **Target:** `TYPE`
 
 Marks a class as a bot controller. All handler method annotations (`@BotCommand`, `@BotText`, etc.) inside are scanned and registered at startup. Equivalent to Spring's `@Component` — auto-detected by component scanning.
@@ -54,7 +54,7 @@ public class StartController {
 
 ### @BotControllerAdvice
 
-**Package:** `uz.osoncode.easygram.core.annotation`  
+**Package:** `uz.osoncode.easygram.core.annotation`
 **Target:** `TYPE`
 
 Marks a class as a global exception handler. `@BotExceptionHandler` methods inside apply to all `@BotController` classes. Controller-local handlers always take priority over advice handlers for the same exception type.
@@ -91,7 +91,7 @@ public class PaymentExceptionHandler {
 
 ### @BotConfiguration
 
-**Package:** `uz.osoncode.easygram.core.annotation`  
+**Package:** `uz.osoncode.easygram.core.annotation`
 **Target:** `TYPE`
 
 Marks a class as a markup factory holder. Methods annotated with `@BotMarkup` inside are scanned and registered in `BotMarkupRegistry` at startup. Equivalent to Spring's `@Component`.
@@ -118,14 +118,14 @@ public class MyMarkups {
 
 ### @BotMarkup
 
-**Package:** `uz.osoncode.easygram.core.annotation`  
+**Package:** `uz.osoncode.easygram.core.annotation`
 **Target:** `METHOD`
 
 Registers a method as a keyboard factory under a string ID in `BotMarkupRegistry`. The method must return `ReplyKeyboard` (or a subtype).
 
 | Attribute | Type | Required | Description |
 |---|---|---|---|
-| `value` | `String` | ✅ | Registry key used with `@BotReplyMarkup("id")` and `.withMarkup("id")` |
+| `value` | `String` | | Registry key used with `@BotReplyMarkup("id")` and `.withMarkup("id")` |
 
 **Supported method signatures:**
 - `() → ReplyKeyboard` — static, no context
@@ -141,8 +141,8 @@ public class Markups {
     public ReplyKeyboard confirmKeyboard() {
         return InlineKeyboardMarkup.builder()
                 .keyboardRow(List.of(
-                    InlineKeyboardButton.builder().text("✅ Yes").callbackData("yes").build(),
-                    InlineKeyboardButton.builder().text("❌ No").callbackData("no").build()
+                    InlineKeyboardButton.builder().text(" Yes").callbackData("yes").build(),
+                    InlineKeyboardButton.builder().text(" No").callbackData("no").build()
                 ))
                 .build();
     }
@@ -165,7 +165,7 @@ public class Markups {
 
 ### @BotOrder
 
-**Package:** `uz.osoncode.easygram.core.annotation`  
+**Package:** `uz.osoncode.easygram.core.annotation`
 **Target:** `METHOD`
 
 Controls handler execution priority within the same routing tier. Lower value = higher priority. State-specific handlers always beat state-agnostic ones at equal order.
@@ -265,7 +265,7 @@ Routes text messages matching a regular expression. Matching uses `Matcher.find(
 
 | Attribute | Type | Required | Description |
 |---|---|---|---|
-| `value` | `String[]` | ✅ | Regex patterns — fires if **any** pattern matches |
+| `value` | `String[]` | | Regex patterns — fires if **any** pattern matches |
 
 ```java
 // Full-string phone number match
@@ -383,10 +383,10 @@ Routes text messages matching a reply keyboard button label. With `core-i18n` on
 
 | Attribute | Type | Required | Description |
 |---|---|---|---|
-| `value` | `String[]` | ✅ | Button labels or i18n message keys |
+| `value` | `String[]` | | Button labels or i18n message keys |
 
 ```java
-@BotReplyButton("❌ Cancel")
+@BotReplyButton(" Cancel")
 @BotClearChatState
 @BotClearMarkup
 public String onCancel() { return "Cancelled."; }
@@ -395,6 +395,405 @@ public String onCancel() { return "Cancelled."; }
 @BotReplyButton("button.cancel")
 @BotClearChatState
 public String onCancel() { return "Cancelled."; }
+```
+
+---
+
+### @BotEditedMessage
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes updates where a user edits a previously-sent text or media message. The original message is replaced in Telegram but the bot receives the edited copy.
+
+**Injectable parameters:** `Message` (the edited message), `User`, `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotEditedMessage
+public void onEdited(Message edited, User user) {
+    log.info("User {} edited message {}: '{}'",
+        user.getId(), edited.getMessageId(), edited.getText());
+}
+```
+
+---
+
+### @BotChannelPost
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes messages posted to a Telegram channel where the bot is an admin. `User` is not available (channel posts have no sender user); use `Chat` for the channel details.
+
+**Injectable parameters:** `Message` (the channel post), `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotChannelPost
+public void onChannelPost(Message post, Chat channel) {
+    log.info("New post in channel @{}: '{}'",
+        channel.getUserName(), post.getText());
+}
+```
+
+---
+
+### @BotEditedChannelPost
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes updates when a previously-published channel post is edited.
+
+**Injectable parameters:** `Message` (the edited channel post), `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotEditedChannelPost
+public void onEditedChannelPost(Message edited, Chat channel) {
+    log.info("Channel @{} edited post {}", channel.getUserName(), edited.getMessageId());
+}
+```
+
+---
+
+### @BotInlineQuery
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes inline queries — triggered when a user types `@YourBot …` in any chat. The optional `value` attribute filters by query text; omit it to match all inline queries.
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `value` | `String[]` | `{}` (match all) | Match inline query text against these strings; empty = any query |
+
+**Injectable parameters:** `InlineQuery`, `@BotInlineQueryValue String` (query text), `User`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+**Without `core-i18n`** — values are compared as literal strings (exact match):
+
+```java
+// Match any inline query
+@BotInlineQuery
+public void onAnyInline(InlineQuery query, @BotInlineQueryValue String text) {
+    List<InlineQueryResult> results = searchProducts(text);
+    bot.execute(AnswerInlineQuery.builder()
+        .inlineQueryId(query.getId())
+        .results(results)
+        .build());
+}
+
+// Match only when query text is exactly "search"
+@BotInlineQuery("search")
+public void onSearchInline(@BotInlineQueryValue String text, InlineQuery query) {
+    // triggered only when user types "@YourBot search"
+}
+```
+
+**With `core-i18n`** — values are treated as message-bundle keys resolved per user locale.
+A single annotation covers all languages automatically:
+
+```java
+// messages/bot_en.properties: inline.search=search
+// messages/bot_ru.properties: inline.search=поиск
+@BotInlineQuery("inline.search")
+public void onSearchInline(InlineQuery query, @BotInlineQueryValue String text) {
+    // matches "@YourBot search" for English users
+    // and "@YourBot поиск" for Russian users
+}
+```
+
+The matching strategy is provided by `BotInlineQueryMatcher` (default: exact-text; with `core-i18n`: locale-aware). Override the bean to implement custom matching logic.
+
+---
+
+### @BotChosenInlineResult
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes the feedback event sent by Telegram when a user selects one of the inline results your bot returned. Requires **inline feedback** to be enabled in BotFather.
+
+**Injectable parameters:** `ChosenInlineResult`, `@BotChosenInlineResultId String` (the chosen result's ID), `User`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotChosenInlineResult
+public void onChosen(
+        ChosenInlineResult result,
+        @BotChosenInlineResultId String resultId,
+        User user) {
+    analytics.track(user.getId(), "inline_chosen", resultId);
+}
+```
+
+---
+
+### @BotShippingQuery
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes shipping address queries sent by Telegram during the payment flow when the invoice has `is_flexible = true`. The bot must reply with `AnswerShippingQuery` to confirm or reject shipping options.
+
+**Injectable parameters:** `ShippingQuery`, `@BotShippingPayload String` (invoice payload), `User`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotShippingQuery
+public void onShipping(
+        ShippingQuery query,
+        @BotShippingPayload String payload,
+        TelegramClient client) throws TelegramApiException {
+    List<ShippingOption> options = shippingService.getOptions(query.getShippingAddress());
+    client.execute(AnswerShippingQuery.builder()
+        .shippingQueryId(query.getId())
+        .ok(true)
+        .shippingOptions(options)
+        .build());
+}
+```
+
+---
+
+### @BotPreCheckoutQuery
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes the pre-checkout event fired by Telegram just before a payment is completed. The bot **must** respond with `AnswerPreCheckoutQuery` within 10 seconds to confirm or cancel the transaction.
+
+**Injectable parameters:** `PreCheckoutQuery`, `@BotPreCheckoutPayload String` (invoice payload), `User`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotPreCheckoutQuery
+public void onPreCheckout(
+        PreCheckoutQuery query,
+        @BotPreCheckoutPayload String payload,
+        TelegramClient client) throws TelegramApiException {
+    boolean valid = orderService.validate(payload, query.getTotalAmount());
+    client.execute(AnswerPreCheckoutQuery.builder()
+        .preCheckoutQueryId(query.getId())
+        .ok(valid)
+        .errorMessage(valid ? null : "Order is no longer available.")
+        .build());
+}
+```
+
+---
+
+### @BotPoll
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes poll state-change updates. Telegram sends these when a non-anonymous poll is stopped or its vote counts change.
+
+**Injectable parameters:** `Poll`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotPoll
+public void onPollUpdate(Poll poll) {
+    if (poll.getIsClosed()) {
+        int winner = findWinner(poll.getOptions());
+        log.info("Poll '{}' closed. Winner option index: {}", poll.getQuestion(), winner);
+    }
+}
+```
+
+---
+
+### @BotPollAnswer
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes individual vote events — triggered when a user votes (or retracts their vote) in a non-anonymous poll created by the bot.
+
+**Injectable parameters:** `PollAnswer`, `User`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotPollAnswer
+public void onVote(PollAnswer answer, User user) {
+    List<Integer> chosen = answer.getOptionIds();
+    log.info("User {} voted: options {}", user.getId(), chosen);
+}
+```
+
+---
+
+### @BotMyChatMember
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes updates about the **bot's own** membership status in a chat — e.g. the bot was added to a group, promoted to admin, or removed.
+
+**Injectable parameters:** `ChatMemberUpdated`, `User` (the user who made the change), `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotMyChatMember
+public void onBotMemberChange(ChatMemberUpdated update, Chat chat) {
+    ChatMember newStatus = update.getNewChatMember();
+    if (newStatus instanceof ChatMemberMember) {
+        log.info("Bot was added to chat {}", chat.getId());
+    } else if (newStatus instanceof ChatMemberLeft) {
+        log.info("Bot was removed from chat {}", chat.getId());
+    }
+}
+```
+
+---
+
+### @BotChatMember
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes updates about **another user's** membership status in a chat managed by the bot. Requires the bot to have admin rights and the `chat_member` update type to be subscribed.
+
+**Injectable parameters:** `ChatMemberUpdated`, `User` (the user who made the change), `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotChatMember
+public void onUserMemberChange(ChatMemberUpdated event, Chat chat) {
+    User affected = event.getNewChatMember().getUser();
+    ChatMember newRole = event.getNewChatMember();
+    log.info("User {} status changed in chat {}: {}",
+        affected.getId(), chat.getId(), newRole.getStatus());
+}
+```
+
+---
+
+### @BotChatJoinRequest
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes join requests when a user asks to join a channel or group that requires admin approval. The bot can approve or decline via `ApproveChatJoinRequest` / `DeclineChatJoinRequest`.
+
+**Injectable parameters:** `ChatJoinRequest`, `User` (the requester), `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotChatJoinRequest
+public void onJoinRequest(
+        ChatJoinRequest request,
+        User requester,
+        TelegramClient client) throws TelegramApiException {
+    if (membershipService.isAllowed(requester.getId())) {
+        client.execute(ApproveChatJoinRequest.builder()
+            .chatId(request.getChat().getId())
+            .userId(requester.getId())
+            .build());
+    } else {
+        client.execute(DeclineChatJoinRequest.builder()
+            .chatId(request.getChat().getId())
+            .userId(requester.getId())
+            .build());
+    }
+}
+```
+
+---
+
+### @BotBusinessConnection
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes business connection updates — fired when a Telegram Business account connects or disconnects from your bot.
+
+**Injectable parameters:** `BusinessConnection`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotBusinessConnection
+public void onBusinessConnection(BusinessConnection connection) {
+    if (connection.getIsEnabled()) {
+        log.info("Business account {} connected", connection.getId());
+        businessService.activate(connection.getUser().getId());
+    } else {
+        log.info("Business account {} disconnected", connection.getId());
+        businessService.deactivate(connection.getUser().getId());
+    }
+}
+```
+
+---
+
+### @BotBusinessMessage
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes messages sent by customers to a connected Telegram Business account. The bot receives these to provide automated responses on behalf of the business.
+
+**Injectable parameters:** `Message`, `User`, `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotBusinessMessage
+public void onBusinessMessage(Message message, User customer) {
+    String reply = autoReplyService.generateReply(message.getText());
+    log.info("Business message from {}: '{}' → auto-reply: '{}'",
+        customer.getId(), message.getText(), reply);
+}
+```
+
+---
+
+### @BotEditedBusinessMessage
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes edit events for messages that were previously received via a connected business account.
+
+**Injectable parameters:** `Message` (the edited message), `User`, `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotEditedBusinessMessage
+public void onEditedBusinessMessage(Message edited) {
+    log.info("Business message {} was edited: '{}'",
+        edited.getMessageId(), edited.getText());
+}
+```
+
+---
+
+### @BotDeletedBusinessMessages
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes bulk-deletion events for messages in a connected business account chat.
+
+**Injectable parameters:** `BusinessMessagesDeleted`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotDeletedBusinessMessages
+public void onDeletedBusinessMessages(BusinessMessagesDeleted deleted) {
+    log.info("Business chat {}: {} messages deleted",
+        deleted.getChat().getId(),
+        deleted.getMessageIds().size());
+    auditService.recordDeletion(deleted.getBusinessConnectionId(), deleted.getMessageIds());
+}
+```
+
+---
+
+### @BotPaidMediaPurchased
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Routes the event fired when a user completes a paid media purchase. Inject `Update` and call `update.getPaidMediaPurchased()` to access the purchase details.
+
+**Injectable parameters:** `Update`, `User`, `BotRequest`, `BotResponse`, `TelegramClient`.
+
+```java
+@BotPaidMediaPurchased
+public void onPaidMediaPurchased(Update update, User buyer) {
+    var purchase = update.getPaidMediaPurchased();
+    log.info("User {} purchased paid media. Payload: '{}'",
+        buyer.getId(), purchase.getPaidMediaPayload());
+    orderService.fulfil(buyer.getId(), purchase.getPaidMediaPayload());
+}
 ```
 
 ---
@@ -422,7 +821,7 @@ Handles exceptions thrown by handler methods. Declare inside `@BotController` (c
 
 | Attribute | Type | Required | Description |
 |---|---|---|---|
-| `value` | `Class<? extends Throwable>[]` | ✅ | Exception types this handler handles |
+| `value` | `Class<? extends Throwable>[]` | | Exception types this handler handles |
 
 ```java
 // In a controller — handles RuntimeException thrown by this controller's handlers only
@@ -519,11 +918,38 @@ public String onOpen(@BotCommandQueryParam MyParams params) {
 
 ---
 
+### Update-Type Parameter Annotations (0.0.2)
+
+All annotations below are in package `uz.osoncode.easygram.core.bind.annotation`, target `PARAMETER`.
+
+| Annotation | Injects | Available in |
+|---|---|---|
+| `@BotInlineQueryValue` | `String` — inline query text | `@BotInlineQuery` handlers |
+| `@BotChosenInlineResultId` | `String` — chosen result ID | `@BotChosenInlineResult` handlers |
+| `@BotShippingPayload` | `String` — invoice payload | `@BotShippingQuery` handlers |
+| `@BotPreCheckoutPayload` | `String` — invoice payload | `@BotPreCheckoutQuery` handlers |
+
+```java
+@BotInlineQuery
+public void onInline(@BotInlineQueryValue String queryText, InlineQuery query) { ... }
+
+@BotChosenInlineResult
+public void onChosen(@BotChosenInlineResultId String resultId) { ... }
+
+@BotShippingQuery
+public void onShipping(@BotShippingPayload String payload, ShippingQuery query) { ... }
+
+@BotPreCheckoutQuery
+public void onPreCheckout(@BotPreCheckoutPayload String payload, PreCheckoutQuery query) { ... }
+```
+
+---
+
 ## Response Annotations
 
 ### @BotReplyMarkup
 
-**Package:** `uz.osoncode.easygram.core.bind.annotation`  
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
 **Target:** `METHOD`
 
 Attaches a pre-registered keyboard to the response by looking it up in `BotMarkupRegistry` at invocation time. Acts as a **fallback** — only applied if the return value itself carries no markup (i.e. `PlainReply.withMarkup(...)` takes precedence).
@@ -542,7 +968,7 @@ Compatible with `String`, `PlainReply`, `PlainTextTemplate`, and `LocalizedReply
 
 ### @BotClearMarkup
 
-**Package:** `uz.osoncode.easygram.core.bind.annotation`  
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
 **Target:** `METHOD`
 
 Sends a `ReplyKeyboardRemove` along with the response. Always overrides `@BotReplyMarkup` when both are present.
@@ -586,7 +1012,7 @@ public class RegistrationController {
     public String onText(@BotTextValue String text) { ... }
 
     @BotCommand("/cancel")
-    @BotChatState  // empty — overrides class restriction, accepts any state
+    @BotChatState // empty — overrides class restriction, accepts any state
     public String onCancel() { return "Cancelled."; }
 }
 ```
@@ -595,14 +1021,14 @@ public class RegistrationController {
 
 ### @BotForwardChatState
 
-**Package:** `uz.osoncode.easygram.core.bind.annotation`  
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
 **Target:** `METHOD`
 
 Transitions the chat to a new state **after** the handler method returns successfully.
 
 | Attribute | Type | Required | Description |
 |---|---|---|---|
-| `value` | `String` | ✅ | State name to set |
+| `value` | `String` | | State name to set |
 
 ```java
 @BotTextDefault
@@ -618,7 +1044,7 @@ public String step1(@BotTextValue String name, BotRequest request) {
 
 ### @BotClearChatState
 
-**Package:** `uz.osoncode.easygram.core.bind.annotation`  
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
 **Target:** `METHOD`
 
 Clears the chat state (sets to `null`) **after** the handler method returns successfully.
@@ -643,7 +1069,7 @@ Handler methods may return any of the following types. `null` is treated as no-o
 | `null` | `core` | No-op — same as `void` |
 | `String` | `core` | `SendMessage` to current chat. `@BotReplyMarkup`/`@BotClearMarkup` applied by `BotStringReturnHandler` |
 | `PlainReply` | `core` | `SendMessage` with optional markup. Implements `MarkupAware` |
-| `PlainTextTemplate` | `core` | `SendMessage` with `String.format()` substitution. Implements `MarkupAware` |
+| `PlainTextTemplate` | `core` | `SendMessage` with `#{index}` token substitution. Implements `MarkupAware` |
 | `BotApiMethod<?>` | `core` | Enqueued and executed directly by `BotApiSenderFilter` |
 | `Collection<BotApiMethod<?>>` | `core` | All methods enqueued and executed in order |
 | `Collection<Object>` | `core` | Each element individually dispatched to matching `BotReturnTypeHandler` via `supportsElement()` |
@@ -652,7 +1078,7 @@ Handler methods may return any of the following types. `null` is treated as no-o
 
 ### PlainReply — Fluent API
 
-`PlainReply` is an immutable value object. All builder methods return new instances.
+`PlainReply` is an immutable value object. All wither methods return new instances. A builder is also available.
 
 ```java
 PlainReply.of("Hello!")                          // text only
@@ -661,15 +1087,28 @@ PlainReply.of("Buy?").withMarkup("product_kb",   // attach keyboard with params
     Map.of("productId", "42"))
 PlainReply.of("Pick:").withKeyboard(myKeyboard)  // attach ReplyKeyboard directly
 PlainReply.of("Done.").removeMarkup()            // send ReplyKeyboardRemove
+
+// Builder
+PlainReply.builder()
+    .text("Choose:")
+    .markupId("main_menu")
+    .build()
 ```
 
 ### PlainTextTemplate — Fluent API
 
-Uses `String.format()` internally. Same markup methods as `PlainReply`.
+Uses `#{index}` positional tokens (0-based) for value substitution. Same markup methods as `PlainReply`.
 
 ```java
-PlainTextTemplate.of("Hello, %s! You have %d messages.", user.getFirstName(), count)
-PlainTextTemplate.of("Order #%s ready.", orderId).withMarkup("order_kb")
+PlainTextTemplate.of("Hello, #{0}! You have #{1} messages.", user.getFirstName(), count)
+PlainTextTemplate.of("Order ##{0} ready.", orderId).withMarkup("order_kb")
+
+// Builder
+PlainTextTemplate.builder()
+    .template("Hello, #{0}! Order ##{1} is ready.")
+    .args(user.getFirstName(), orderId)
+    .markupId("order_kb")
+    .build()
 ```
 
 ### LocalizedReply — Fluent API *(core-i18n)*
@@ -680,14 +1119,29 @@ Key is resolved via `BotMessageSource` using the request locale.
 LocalizedReply.of("welcome.message", user.getFirstName())
 LocalizedReply.of("choose.option").withMarkup("main_menu")
 LocalizedReply.of("confirm.prompt").withMarkup("confirm_kb", Map.of("id", itemId))
+
+// Builder
+LocalizedReply.builder()
+    .key("welcome.message")
+    .args(user.getFirstName())
+    .markupId("main_menu")
+    .build()
 ```
 
 ### LocalizedTemplate — Fluent API *(core-i18n)*
 
-Supports mixed `${messageKey}` token substitution and `#{argIndex}` positional args.
+Supports mixed `${messageKey}` bundle lookups and `#{index}` positional arg substitution.
 
 ```java
-LocalizedTemplate.of("profile.summary", user.getFirstName(), user.getLastName())
+LocalizedTemplate.of("${welcome.title}\n\nHello, #{0}!", user.getFirstName())
+LocalizedTemplate.of("${stats.header}\n\nMessages: #{0}", count).withMarkup("stats_menu")
+
+// Builder
+LocalizedTemplate.builder()
+    .template("${stats.header}\n\nMessages: #{0}\nCommands: #{1}")
+    .args(messages, commands)
+    .markupId("stats_menu")
+    .build()
 ```
 
 ---
@@ -702,17 +1156,17 @@ The per-request context object. Created once per incoming Telegram update and ca
 
 ```java
 // Core data
-Update    getUpdate()            // raw Telegram Update
-User      getUser()              // resolved sender (set by BotContextSetterFilter)
-Chat      getChat()              // resolved chat  (set by BotContextSetterFilter)
+Update getUpdate() // raw Telegram Update
+User getUser() // resolved sender (set by BotContextSetterFilter)
+Chat getChat() // resolved chat (set by BotContextSetterFilter)
 TelegramClient getTelegramClient()
-BotMetadata    getBotMetadata()  // bot id, username, token
-Throwable      getThrowable()    // populated inside @BotExceptionHandler
+BotMetadata getBotMetadata() // bot id, username, token
+Throwable getThrowable() // populated inside @BotExceptionHandler
 
 // Request-scoped attribute store
-void              setAttribute(String key, Object value) // null value removes the key
-<T> T             getAttribute(String key)
-Map<String,Object> getAttributes()                       // unmodifiable view
+void setAttribute(String key, Object value) // null value removes the key
+<T> T getAttribute(String key)
+Map<String,Object> getAttributes() // unmodifiable view
 ```
 
 **Sharing data between filters and handlers via attributes:**
@@ -736,11 +1190,11 @@ The per-request response accumulator. Queued `BotApiMethod` calls are executed i
 ```java
 void addBotApiMethod(BotApiMethod<?> method)
 void addBotApiMethods(Collection<BotApiMethod<?>> methods)
-Collection<BotApiMethod<?>> getBotApiMethods()   // current queue, read-only
+Collection<BotApiMethod<?>> getBotApiMethods() // current queue, read-only
 
 // Response-scoped attribute store
-void              setAttribute(String key, Object value)
-<T> T             getAttribute(String key)
+void setAttribute(String key, Object value)
+<T> T getAttribute(String key)
 Map<String,Object> getAttributes()
 ```
 
@@ -753,7 +1207,7 @@ public void doFilter(BotRequest request, BotResponse response, BotFilterChain ch
         response.addBotApiMethod(
             SendMessage.builder()
                 .chatId(request.getChat().getId())
-                .text("⛔ Access denied.")
+                .text(" Access denied.")
                 .build()
         );
         return; // do NOT call chain.doFilter — pipeline stops here
@@ -771,7 +1225,7 @@ public void doFilter(BotRequest request, BotResponse response, BotFilterChain ch
 Bot's own registration data. Available via `BotRequest.getBotMetadata()`.
 
 ```java
-Long   getId()
+Long getId()
 String getUsername()
 String getToken()
 ```
@@ -788,10 +1242,10 @@ Carries parameters into a `@BotMarkup` factory method when the keyboard was requ
 static BotMarkupContext of(Map<String,Object> params)
 static BotMarkupContext empty()
 
-<T> T    get(String key)
-<T> T    get(String key, Class<T> type)
-<T> T    getOrDefault(String key, T defaultValue)
-boolean  has(String key)
+<T> T get(String key)
+<T> T get(String key, Class<T> type)
+<T> T getOrDefault(String key, T defaultValue)
+boolean has(String key)
 Map<String,Object> asMap()
 
 String REQUEST_ATTRIBUTE_KEY = "__botMarkupContext__"
@@ -808,7 +1262,7 @@ public ReplyKeyboard productKeyboard(BotMarkupContext ctx) {
     return InlineKeyboardMarkup.builder()
             .keyboardRow(List.of(
                 InlineKeyboardButton.builder()
-                    .text("🛒 Buy").callbackData("buy:" + id).build()
+                    .text(" Buy").callbackData("buy:" + id).build()
             ))
             .build();
 }
@@ -985,7 +1439,8 @@ Persistence layer for per-chat state. The default `InMemoryBotChatStateService` 
 public interface BotChatStateService {
 
     String getState(Long chatId);
-    void   setState(Long chatId, String state); // null clears the state
+    void setState(Long chatId, String state); // throws IllegalArgumentException if state is null (since 0.0.2)
+    void clearState(Long chatId);             // Added in 0.0.2 — removes state without null check
 
     // Enum convenience helpers
     default void setState(Long chatId, Enum<?> state) { setState(chatId, state.name()); }
@@ -1164,8 +1619,8 @@ BotKeyboardFactory.ReplyKeyboardBuilder builder = factory.reply(request);
 builder
     .row("btn.option1", "btn.option2") // message keys → resolved to localized button labels
     .row("btn.cancel")
-    .resizeKeyboard(true)              // default: true
-    .oneTimeKeyboard(false)            // default: false
+    .resizeKeyboard(true) // default: true
+    .oneTimeKeyboard(false) // default: false
     .build(); // → ReplyKeyboardMarkup
 ```
 
@@ -1173,7 +1628,7 @@ builder
 
 ```java
 InlineKeyboardButton btn = factory.inlineButton("btn.details", "cb_details", request);
-KeyboardButton        btn = factory.replyButton("btn.share_contact", request);
+KeyboardButton btn = factory.replyButton("btn.share_contact", request);
 ```
 
 **Example — localized markup factory:**
@@ -1240,7 +1695,7 @@ Custom filters that need to run **after** context is set but **before** the hand
 ```yaml
 telegram:
   bot:
-    token: YOUR_BOT_TOKEN   # From @BotFather — required for all transports
+    token: YOUR_BOT_TOKEN # From @BotFather — required for all transports
 ```
 
 ### Transport
@@ -1248,20 +1703,13 @@ telegram:
 ```yaml
 telegram:
   bot:
-    transport: LONG_POLLING   # Default
+    transport: LONG_POLLING # Default
                               # Options: LONG_POLLING | WEBHOOK | KAFKA_CONSUMER | RABBIT_CONSUMER
 ```
 
 ### Long-Polling
 
-```yaml
-telegram:
-  bot:
-    long-polling:
-      polling-timeout: 50           # Telegram server timeout in seconds (default: 50)
-      limit: 100                    # Max updates per poll batch (default: 100)
-      allow-users-init-updates: true
-```
+Long-polling has no additional configurable properties. The polling behaviour (timeout, batch size, back-off) is handled internally by the telegrambots library and cannot be overridden via `application.yml`.
 
 ### Webhook
 
@@ -1269,9 +1717,9 @@ telegram:
 telegram:
   bot:
     webhook:
-      url: https://my-bot.example.com/webhook   # Required — publicly reachable HTTPS URL
-      path: /webhook                             # Local handler path (default: /webhook)
-      secret-token: ${WEBHOOK_SECRET}            # Recommended — validates Telegram requests
+      url: https://my-bot.example.com/webhook # Required — publicly reachable HTTPS URL
+      path: /webhook # Local handler path (default: /webhook)
+      secret-token: ${WEBHOOK_SECRET} # Recommended — validates Telegram requests
       max-connections: 40
       drop-pending-updates: false
       unregister-on-shutdown: false
@@ -1283,9 +1731,9 @@ telegram:
 telegram:
   bot:
     messaging:
-      forward-only: false       # true = publish to broker only, skip local handler dispatch
+      forward-only: false # true = publish to broker only, skip local handler dispatch
       producer:
-        producer-type: kafka    # kafka | rabbit
+        producer-type: kafka # kafka | rabbit
       kafka:
         topic: telegram-updates
         create-if-absent: true
@@ -1317,11 +1765,11 @@ telegram:
 telegram:
   bot:
     i18n:
-      default-locale: en    # Fallback locale when user language_code is absent
+      default-locale: en # Fallback locale when user language_code is absent
 
 spring:
   messages:
-    basename: messages/bot  # Classpath location of .properties files (e.g. messages/bot_en.properties)
+    basename: messages/bot # Classpath location of .properties files (e.g. messages/bot_en.properties)
     encoding: UTF-8
     cache-duration: 3600
 ```

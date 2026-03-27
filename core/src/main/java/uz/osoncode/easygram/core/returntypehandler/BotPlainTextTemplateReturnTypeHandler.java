@@ -11,17 +11,24 @@ import uz.osoncode.easygram.core.model.BotResponse;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * {@link BotReturnTypeHandler} that processes handler methods returning a {@link PlainTextTemplate}.
- * Formats the text using {@link String#format} if arguments are present, otherwise uses it as-is.
- * Does NOT perform any message bundle lookups.
+ *
+ * <p>Resolves {@code #{index}} tokens in the template by substituting positional arguments
+ * (0-based). Does NOT perform any message-bundle lookups — use {@code LocalizedTemplate}
+ * (from {@code core-i18n}) when i18n is required.</p>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
 public class BotPlainTextTemplateReturnTypeHandler implements BotReturnTypeHandler {
+
+    private static final Pattern ARG_PATTERN = Pattern.compile("#\\{(\\d+)}");
 
     private final Optional<BotMarkupRegistry> botMarkupRegistry;
 
@@ -36,39 +43,35 @@ public class BotPlainTextTemplateReturnTypeHandler implements BotReturnTypeHandl
 
     @Override
     public void handleReturnType(BotRequest botRequest, BotResponse botResponse, Object returnValue) {
-        if (returnValue == null) {
+        if (Objects.isNull(returnValue)) {
             return;
         }
         PlainTextTemplate reply = (PlainTextTemplate) returnValue;
-        String text = reply.getTemplate();
-        
-        if (reply.getArgs() != null && reply.getArgs().length > 0) {
-            text = String.format(text, reply.getArgs());
-        }
-        
+        String text = resolveArgs(reply.getTemplate(), reply.getArgs());
+
         SendMessage.SendMessageBuilder<?, ?> builder = SendMessage.builder()
                 .chatId(botRequest.getChat().getId())
                 .text(text);
                 
         if (reply.isRemoveMarkup()) {
             builder.replyMarkup(ReplyKeyboardRemove.builder().removeKeyboard(true).build());
-        } else if (reply.getKeyboard() != null) {
+        } else if (Objects.nonNull(reply.getKeyboard())) {
             builder.replyMarkup(reply.getKeyboard());
         } else {
             String markupId = reply.getMarkupId();
-            if (markupId != null) {
+            if (Objects.nonNull(markupId)) {
                 botMarkupRegistry.ifPresent(registry -> {
                     Map<String, Object> params = reply.getMarkupParams();
-                    if (params != null) {
+                    if (Objects.nonNull(params)) {
                         botRequest.setAttribute(BotMarkupContext.REQUEST_ATTRIBUTE_KEY, BotMarkupContext.of(params));
                     }
                     try {
                         ReplyKeyboard markup = registry.resolve(markupId, botRequest);
-                        if (markup != null) {
+                        if (Objects.nonNull(markup)) {
                             builder.replyMarkup(markup);
                         }
                     } finally {
-                        if (params != null) {
+                        if (Objects.nonNull(params)) {
                             botRequest.setAttribute(BotMarkupContext.REQUEST_ATTRIBUTE_KEY, null);
                         }
                     }
@@ -82,5 +85,20 @@ public class BotPlainTextTemplateReturnTypeHandler implements BotReturnTypeHandl
     @Override
     public boolean supportsElement(Object element) {
         return element instanceof PlainTextTemplate;
+    }
+
+    private String resolveArgs(String template, Object[] args) {
+        if (Objects.isNull(template)) return null;
+        Matcher matcher = ARG_PATTERN.matcher(template);
+        StringBuffer result = new StringBuffer();
+        while (matcher.find()) {
+            int index = Integer.parseInt(matcher.group(1));
+            String value = (Objects.nonNull(args) && index < args.length)
+                    ? String.valueOf(args[index])
+                    : matcher.group(0);
+            matcher.appendReplacement(result, Matcher.quoteReplacement(value));
+        }
+        matcher.appendTail(result);
+        return result.toString();
     }
 }

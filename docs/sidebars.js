@@ -63,6 +63,14 @@ module.exports = {
       items: [
         'api-reference',
         'faq',
+        'contributing',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Migration',
+      items: [
+        'migration/0.0.1-to-0.0.2',
       ],
     },
   ],

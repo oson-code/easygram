@@ -34,6 +34,12 @@ import java.util.Map;
  *
  * // Directly built keyboard
  * return PlainReply.of("Dynamic:").withKeyboard(buildKeyboard(items));
+ *
+ * // Builder pattern
+ * return PlainReply.builder()
+ *         .text("Choose an option:")
+ *         .markupId("main_menu")
+ *         .build();
  * }</pre>
  *
  * @author Islom Mirsaburov
@@ -54,6 +60,99 @@ public final class PlainReply implements MarkupAware {
         this.markupParams = markupParams;
         this.keyboard = keyboard;
         this.removeMarkup = removeMarkup;
+    }
+
+    /**
+     * Creates a new {@link Builder} for {@code PlainReply}.
+     *
+     * @return a new builder instance
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link PlainReply}.
+     *
+     * <pre>{@code
+     * PlainReply reply = PlainReply.builder()
+     *         .text("Choose an option:")
+     *         .markupId("main_menu")
+     *         .build();
+     * }</pre>
+     */
+    public static final class Builder {
+
+        private String text;
+        private String markupId;
+        private Map<String, Object> markupParams;
+        private ReplyKeyboard keyboard;
+        private boolean removeMarkup;
+
+        private Builder() {}
+
+        /**
+         * Sets the reply text.
+         *
+         * @param text the reply text; must not be {@code null}
+         * @return this builder
+         */
+        public Builder text(String text) {
+            this.text = text;
+            return this;
+        }
+
+        /**
+         * Sets the pre-registered markup ID.
+         *
+         * @param markupId the ID of a registered markup
+         * @return this builder
+         */
+        public Builder markupId(String markupId) {
+            this.markupId = markupId;
+            return this;
+        }
+
+        /**
+         * Sets the markup factory parameters forwarded to the {@code @BotMarkup} factory.
+         *
+         * @param markupParams the parameters map
+         * @return this builder
+         */
+        public Builder markupParams(Map<String, Object> markupParams) {
+            this.markupParams = markupParams;
+            return this;
+        }
+
+        /**
+         * Sets a directly-built keyboard (takes precedence over {@link #markupId}).
+         *
+         * @param keyboard the keyboard to attach
+         * @return this builder
+         */
+        public Builder keyboard(ReplyKeyboard keyboard) {
+            this.keyboard = keyboard;
+            return this;
+        }
+
+        /**
+         * Instructs the framework to send a {@code ReplyKeyboardRemove}.
+         *
+         * @return this builder
+         */
+        public Builder removeMarkup() {
+            this.removeMarkup = true;
+            return this;
+        }
+
+        /**
+         * Builds and returns the immutable {@link PlainReply}.
+         *
+         * @return a new {@code PlainReply} instance
+         */
+        public PlainReply build() {
+            return new PlainReply(text, markupId, markupParams, keyboard, removeMarkup);
+        }
     }
 
     /**
