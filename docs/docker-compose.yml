@@ -11,7 +11,7 @@ x-source: &source-volumes
     - ./versioned_sidebars:/docs/versioned_sidebars
     - ./package.json:/docs/package.json
     - ./package-lock.json:/docs/package-lock.json
-  # node_modules / .docusaurus / build are NOT mounted → recreated fresh inside container every run
+    - cache:/docs/node_modules
 
 services:
   doc:
@@ -40,3 +40,6 @@ services:
              ./node_modules/.bin/docusaurus serve --dir /tmp/docbuild --host 0.0.0.0 --port 7006"
     profiles:
       - production
+
+volumes:
+  cache:
