@@ -37,7 +37,7 @@ public class I18nRegistrationBotApplication {
     public BotTelegramUrlProvider botTelegramUrlProvider() {
         return () -> TelegramUrl.builder()
                 .schema("https")
-                .host("tg.imirsaburov.uz")
+                .host("api.telegram.org")
                 .port(443)
                 .build();
     }
