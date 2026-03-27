@@ -555,7 +555,7 @@ public class RegistrationController {
 
 - Set `spring.messages.cache-duration` to avoid file re-reads on every request.
 - Always use `UTF-8` encoding for properties files containing non-ASCII characters.
-- For right-to-left languages (Arabic, Hebrew), test keyboard and message layout manually.
+- For languages with special character sets or text direction (Arabic, Japanese), test keyboard and message layout manually.
 - Use a database-backed `BotLocaleResolver` when users can switch language inside the bot.
 
 ---
