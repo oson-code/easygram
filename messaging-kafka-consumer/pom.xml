@@ -21,9 +21,17 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!--
+            Marked optional: spring-kafka must NOT be forced onto every project that depends on
+            this module (e.g. via spring-boot-starter). Without it on the classpath, Spring
+            Boot's KafkaAutoConfiguration never runs and no broker connection is attempted at
+            startup. Users who actually want the KAFKA_CONSUMER transport must add spring-kafka
+            (or spring-boot-starter) explicitly to their own project.
+        -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
