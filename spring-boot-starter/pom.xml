@@ -39,5 +39,10 @@
             <artifactId>core-i18n</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>uz.osoncode.easygram</groupId>
+            <artifactId>core-observability</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>
