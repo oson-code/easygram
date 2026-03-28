@@ -32,7 +32,7 @@ This starter pulls in the core engine, all transport modules, and i18n support w
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("uz.osoncode.easygram:spring-boot-starter:0.0.1")
+implementation("uz.osoncode.easygram:spring-boot-starter:0.0.2")
 ```
 
 ---

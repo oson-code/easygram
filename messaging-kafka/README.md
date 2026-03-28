@@ -45,7 +45,7 @@ telegram:
   bot:
     messaging:
       producer:
-        consumer-type: kafka
+        producer-type: kafka
       kafka:
         topic: telegram-updates
         create-if-absent: true         # default: true
@@ -61,7 +61,7 @@ spring:
 
 | Property | Required | Default | Description |
 |---|---|---|---|
-| `telegram.bot.messaging.producer.consumer-type` | ✅ | — | Must be `kafka` to activate this publisher |
+| `telegram.bot.messaging.producer.producer-type` | ✅ | — | Must be `kafka` to activate this publisher |
 | `telegram.bot.messaging.kafka.topic` | ✅ | — | Kafka topic to publish updates to |
 | `telegram.bot.messaging.kafka.create-if-absent` | ❌ | `true` | Auto-create the topic if absent |
 | `telegram.bot.messaging.kafka.partitions` | ❌ | `1` | Partitions for auto-created topic |
@@ -98,7 +98,7 @@ telegram:
     messaging:
       forward-only: true
       producer:
-        consumer-type: kafka
+        producer-type: kafka
       kafka:
         topic: telegram-updates
 ```

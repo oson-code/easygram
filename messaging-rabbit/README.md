@@ -58,7 +58,7 @@ telegram:
   bot:
     messaging:
       producer:
-        consumer-type: rabbit
+        producer-type: rabbit
       rabbit:
         exchange: telegram-exchange
         routing-key: telegram.updates
@@ -76,7 +76,7 @@ spring:
 
 | Property | Required | Default | Description |
 |---|---|---|---|
-| `telegram.bot.messaging.producer.consumer-type` | ✅ | — | Must be `rabbit` to activate this publisher |
+| `telegram.bot.messaging.producer.producer-type` | ✅ | — | Must be `rabbit` to activate this publisher |
 | `telegram.bot.messaging.rabbit.exchange` | ✅ | — | RabbitMQ exchange to publish to |
 | `telegram.bot.messaging.rabbit.routing-key` | ✅ | `telegram.updates` | Routing key for published messages |
 | `telegram.bot.messaging.rabbit.queue` | ❌ | `telegram-updates` | Queue bound during auto-creation |
@@ -106,7 +106,7 @@ telegram:
     messaging:
       forward-only: true
       producer:
-        consumer-type: rabbit
+        producer-type: rabbit
       rabbit:
         exchange: telegram-exchange
         routing-key: telegram.updates

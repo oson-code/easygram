@@ -38,7 +38,7 @@
 ```
 
 > **Note:** `core-chatstate` is pulled in transitively by `longpolling`, `webhook`,
-> `kafka-consumer`, `rabbit-consumer`, and `spring-boot-starter`. You only need this
+> `messaging-kafka-consumer`, `messaging-rabbit-consumer`, and `spring-boot-starter`. You only need this
 > explicit dependency when building a custom transport module.
 
 ---
