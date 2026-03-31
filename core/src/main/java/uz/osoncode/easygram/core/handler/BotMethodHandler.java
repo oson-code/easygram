@@ -7,6 +7,7 @@ import uz.osoncode.easygram.core.handler.invocation.DefaultBotHandlerInvocationC
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.function.Predicate;
@@ -40,20 +41,26 @@ import java.util.function.Predicate;
  * handler relative to others supporting the same request.</p>
  *
  * @author Islom Mirsaburov
- * @since 0.0.1
  * @see BotHandlerInvocationFilter
  * @see BotHandlerCondition
  * @see BotHandlerLoader
+ * @since 0.0.1
  */
 public class BotMethodHandler implements BotHandler {
 
-    /** The controller method to be invoked when this handler is selected. */
+    /**
+     * The controller method to be invoked when this handler is selected.
+     */
     private final Method method;
 
-    /** The controller bean instance that owns the method. */
+    /**
+     * The controller bean instance that owns the method.
+     */
     private final Object bean;
 
-    /** Composed predicate built from {@link BotHandlerCondition} objects at registration time. */
+    /**
+     * Composed predicate built from {@link BotHandlerCondition} objects at registration time.
+     */
     private final Predicate<BotRequest> supportsPredicate;
 
     /**
@@ -62,7 +69,9 @@ public class BotMethodHandler implements BotHandler {
      */
     private final List<BotHandlerInvocationFilter> invocationFilters;
 
-    /** Priority order; lower values are checked first. */
+    /**
+     * Priority order; lower values are checked first.
+     */
     @Getter
     private final int order;
 
@@ -148,8 +157,13 @@ public class BotMethodHandler implements BotHandler {
      * @param botResponse the response object populated by the handler or return-type handler
      */
     @Override
-    public void handle(BotRequest botRequest, BotResponse botResponse) {
+    public void handle(BotRequest botRequest, BotResponse botResponse) throws InvocationTargetException, IllegalAccessException {
         BotHandlerInvocationContext context = new BotHandlerInvocationContext(botRequest, botResponse, method, bean);
         new DefaultBotHandlerInvocationChain(invocationFilters).proceed(context);
+    }
+
+    @Override
+    public String info() {
+        return method.toString();
     }
 }

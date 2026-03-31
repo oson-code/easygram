@@ -5,6 +5,8 @@ import uz.osoncode.easygram.core.markup.MarkupAware;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandler;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandlerFactory;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * {@link BotHandlerInvocationFilter} that selects the appropriate
  * {@link BotReturnTypeHandler} and dispatches the handler method's return value.
@@ -49,7 +51,7 @@ public class ReturnTypeDispatchFilter implements BotHandlerInvocationFilter {
      * @param chain   the remaining filter chain
      */
     @Override
-    public void invoke(BotHandlerInvocationContext context, BotHandlerInvocationChain chain) {
+    public void invoke(BotHandlerInvocationContext context, BotHandlerInvocationChain chain) throws InvocationTargetException, IllegalAccessException {
         Object returnValue = context.getReturnValue();
         BotReturnTypeHandler handler;
 

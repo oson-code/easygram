@@ -1,5 +1,7 @@
 package uz.osoncode.easygram.core.handler.invocation;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * Interceptor interface for the bot handler method invocation pipeline.
  *
@@ -67,7 +69,7 @@ public interface BotHandlerInvocationFilter extends Comparable<BotHandlerInvocat
      * @param context the mutable invocation context; must not be {@code null}
      * @param chain   the remaining chain to delegate to; must not be {@code null}
      */
-    void invoke(BotHandlerInvocationContext context, BotHandlerInvocationChain chain);
+    void invoke(BotHandlerInvocationContext context, BotHandlerInvocationChain chain) throws InvocationTargetException, IllegalAccessException;
 
     /**
      * Compares this filter to another for ordering.

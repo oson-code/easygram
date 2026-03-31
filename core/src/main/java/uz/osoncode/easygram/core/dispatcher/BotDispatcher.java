@@ -2,9 +2,12 @@ package uz.osoncode.easygram.core.dispatcher;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import uz.osoncode.easygram.core.handler.BotHandler;
 import uz.osoncode.easygram.core.handler.BotHandlerRegistry;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Central dispatcher responsible for routing an incoming {@link BotRequest} to
@@ -27,7 +30,9 @@ import uz.osoncode.easygram.core.model.BotResponse;
 @RequiredArgsConstructor
 public final class BotDispatcher {
 
-    /** Registry holding all registered state, specific, and default bot handlers. */
+    /**
+     * Registry holding all registered state, specific, and default bot handlers.
+     */
     private final BotHandlerRegistry botHandlerRegistry;
 
     /**
@@ -44,23 +49,24 @@ public final class BotDispatcher {
      * @param botResponse the response object that the handler may populate with API methods.
      * @throws IllegalStateException if no handler in any tier supports the current request.
      */
-    public void dispatch(BotRequest botRequest, BotResponse botResponse) {
-        botHandlerRegistry
-                .getStateHandlers()
-                .stream()
-                .filter(botHandler -> botHandler.supports(botRequest))
-                .findFirst()
-                .or(() -> botHandlerRegistry.getBotHandlers()
-                        .stream()
-                        .filter(botHandler -> botHandler.supports(botRequest))
-                        .findFirst())
-                .orElse(
-                        botHandlerRegistry.getDefaultHandlers()
-                                .stream()
-                                .filter(botHandler -> botHandler.supports(botRequest))
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalStateException("No handler found for update: " + botRequest.getUpdate()))
-                )
-                .handle(botRequest, botResponse);
+    public void dispatch(BotRequest botRequest, BotResponse botResponse) throws InvocationTargetException, IllegalAccessException {
+        resolveHandler(botRequest).handle(botRequest, botResponse);
+    }
+
+    private BotHandler resolveHandler(BotRequest botRequest) {
+        return botHandlerRegistry.getStateHandlers().stream()
+                .filter(h -> h.supports(botRequest))
+                .peek(h -> log.debug("Matched state handler: {}", h.info()))
+                .findAny()
+                .orElseGet(() -> botHandlerRegistry.getBotHandlers().stream()
+                        .filter(h -> h.supports(botRequest))
+                        .peek(h -> log.debug("Matched specific handler: {}", h.info()))
+                        .findAny()
+                        .orElseGet(() -> botHandlerRegistry.getDefaultHandlers().stream()
+                                .filter(h -> h.supports(botRequest))
+                                .peek(h -> log.debug("Matched default handler: {}", h.info()))
+                                .findAny()
+                                .orElseThrow(() -> new IllegalStateException(
+                                        "No handler found for update: " + botRequest.getUpdate()))));
     }
 }

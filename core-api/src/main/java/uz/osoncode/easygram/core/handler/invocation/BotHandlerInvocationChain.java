@@ -1,5 +1,7 @@
 package uz.osoncode.easygram.core.handler.invocation;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * Functional contract for advancing the bot handler invocation pipeline.
  *
@@ -26,5 +28,5 @@ public interface BotHandlerInvocationChain {
      *
      * @param context the mutable invocation context; must not be {@code null}
      */
-    void proceed(BotHandlerInvocationContext context);
+    void proceed(BotHandlerInvocationContext context) throws InvocationTargetException, IllegalAccessException;
 }
