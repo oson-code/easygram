@@ -18,7 +18,7 @@ public class BotPreCheckoutQueryArgumentResolver implements BotArgumentResolver 
 
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return parameter.getType().equals(PreCheckoutQuery.class);
+        return ParameterUtils.effectiveType(parameter).equals(PreCheckoutQuery.class);
     }
 
     @Override

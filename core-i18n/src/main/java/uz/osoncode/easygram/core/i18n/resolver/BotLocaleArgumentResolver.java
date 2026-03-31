@@ -2,6 +2,7 @@ package uz.osoncode.easygram.core.i18n.resolver;
 
 import lombok.RequiredArgsConstructor;
 import uz.osoncode.easygram.core.argumentresolver.BotArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.ParameterUtils;
 import uz.osoncode.easygram.core.i18n.BotLocaleResolver;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
@@ -44,7 +45,7 @@ public class BotLocaleArgumentResolver implements BotArgumentResolver {
      */
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return Locale.class.isAssignableFrom(parameter.getType());
+        return Locale.class.isAssignableFrom(ParameterUtils.effectiveType(parameter));
     }
 
     /**

@@ -69,7 +69,7 @@ public class BotCommandQueryParamBotArgumentResolver implements BotArgumentResol
                     if (parts.length < 2) {
                         return null;
                     }
-                    return botConfigurer.objectMapper().convertValue(parts[1], parameter.getType());
+                    return botConfigurer.objectMapper().convertValue(parts[1], ParameterUtils.effectiveType(parameter));
                 })
                 .orElse(null);
     }

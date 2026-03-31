@@ -18,7 +18,7 @@ public class BotPollAnswerArgumentResolver implements BotArgumentResolver {
 
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return parameter.getType().equals(PollAnswer.class);
+        return ParameterUtils.effectiveType(parameter).equals(PollAnswer.class);
     }
 
     @Override

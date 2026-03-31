@@ -18,7 +18,7 @@ public class BotInlineQueryArgumentResolver implements BotArgumentResolver {
 
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return parameter.getType().equals(InlineQuery.class);
+        return ParameterUtils.effectiveType(parameter).equals(InlineQuery.class);
     }
 
     @Override

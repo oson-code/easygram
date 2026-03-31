@@ -18,7 +18,7 @@ public class BotChatJoinRequestArgumentResolver implements BotArgumentResolver {
 
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return parameter.getType().equals(ChatJoinRequest.class);
+        return ParameterUtils.effectiveType(parameter).equals(ChatJoinRequest.class);
     }
 
     @Override

@@ -34,7 +34,7 @@ public class BotLocationArgumentResolver implements BotArgumentResolver {
      */
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return parameter.getType().equals(Location.class);
+        return ParameterUtils.effectiveType(parameter).equals(Location.class);
     }
 
     /**

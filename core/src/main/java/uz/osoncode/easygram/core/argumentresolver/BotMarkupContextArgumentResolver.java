@@ -36,7 +36,7 @@ public class BotMarkupContextArgumentResolver implements BotArgumentResolver {
      */
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return BotMarkupContext.class.isAssignableFrom(parameter.getType());
+        return BotMarkupContext.class.isAssignableFrom(ParameterUtils.effectiveType(parameter));
     }
 
     /**

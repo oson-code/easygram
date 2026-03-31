@@ -34,7 +34,7 @@ public class BotContactArgumentResolver implements BotArgumentResolver {
      */
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return parameter.getType().equals(Contact.class);
+        return ParameterUtils.effectiveType(parameter).equals(Contact.class);
     }
 
     /**
