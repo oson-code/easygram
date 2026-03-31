@@ -61,7 +61,7 @@ public class BotApiMethodsSenderFilter implements BotFilter {
 
         try {
             for (BotApiMethod<?> botApiMethod : botResponse.getBotApiMethods()) {
-                telegramClient.executeAsync(botApiMethod);
+                telegramClient.execute(botApiMethod);
             }
         } catch (Throwable e) {
             log.error("Error while sending BotApiMethod for update: {}", botRequest.getUpdate(), e);
