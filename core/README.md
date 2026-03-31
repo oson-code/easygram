@@ -86,7 +86,8 @@ All handler methods must reside in a class annotated with **`@BotController`** (
 
 ## Parameter Injection
 
-Mix and match parameters in any order — the framework resolves them automatically:
+Mix and match parameters in any order — the framework resolves them automatically.
+Every type can also be wrapped in `Optional<T>` (e.g. `Optional<User>`) — `Optional.empty()` is injected when no value is available.
 
 | Parameter | Description |
 |---|---|
@@ -106,6 +107,7 @@ Mix and match parameters in any order — the framework resolves them automatica
 | `BotMetadata` | Metadata about the current bot (token, username, ID) |
 | `BotChatStateService` | Chat state service — inject to read/write state inside any handler |
 | `Throwable` (subtype) | *(Exception handlers only)* The thrown exception |
+| `Optional<T>` | Any of the above wrapped in Optional; `Optional.empty()` when unavailable |
 
 ## Return Types
 

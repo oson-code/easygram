@@ -30,7 +30,7 @@
 - **Zero-config autoconfiguration** — a single property is all that's required to start
 - **Four transports** — long-polling (default), webhook, Kafka consumer, RabbitMQ consumer; switch with one property
 - **Annotation-driven routing** — `@BotCommand`, `@BotText`, `@BotCallbackQuery`, `@BotContact`, `@BotLocation`, `@BotDefaultHandler`, and more
-- **Smart parameter injection** — inject `Update`, `User`, `Chat`, `CallbackQuery`, `TelegramClient`, `BotRequest`, `BotResponse`, or annotated scalars
+- **Smart parameter injection** — inject `Update`, `User`, `Chat`, `CallbackQuery`, `TelegramClient`, `BotRequest`, `BotResponse`, or annotated scalars; wrap any type in `Optional<T>` for safe optional injection
 - **Composable filter pipeline** — `BotFilter` to intercept every update before handlers (auth, logging, rate-limiting, …)
 - **Chat state management** — `@BotChatState` + pluggable `BotChatStateService`; ships with a thread-safe in-memory default; annotation-driven transitions via `@BotForwardChatState` / `@BotClearChatState`
 - **Handler priority** — `@BotOrder` for fine-grained control when multiple handlers match

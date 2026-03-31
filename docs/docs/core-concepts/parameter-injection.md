@@ -7,6 +7,8 @@ title: Parameter Injection
 
 Easygram automatically resolves and injects parameters into your handler methods via a set of built-in argument resolvers. You can declare any combination of supported types in any order — the framework matches each parameter by type (and annotation, where required).
 
+Every supported type can also be wrapped in `Optional<T>`. The framework resolves `T` normally and wraps the result in `Optional.ofNullable()`. If no value is available (e.g. the update has no contact when `Optional<Contact>` is declared), `Optional.empty()` is injected. See [Optional Parameters](#optional-parameters) for details.
+
 ## Complete Reference
 
 | Resolved type / annotation | Module | Notes |
@@ -41,6 +43,11 @@ Easygram automatically resolves and injects parameters into your handler methods
 | `@BotChosenInlineResultId String` | core | Chosen result id — only in `@BotChosenInlineResult` handlers |
 | `@BotShippingPayload String` | core | Invoice payload string — only in `@BotShippingQuery` handlers |
 | `@BotPreCheckoutPayload String` | core | Invoice payload string — only in `@BotPreCheckoutQuery` handlers |
+
+:::tip Optional wrapping
+Every type in this table can be wrapped in `Optional<T>`. The resolved value is wrapped in
+`Optional.ofNullable()` — `Optional.empty()` is injected when no value is available.
+:::
 
 ---
 
@@ -489,7 +496,8 @@ public class PaginationResolver implements BotArgumentResolver {
 
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return parameter.getType() == PageRequest.class;
+        // Use ParameterUtils.effectiveType so Optional<PageRequest> is also supported
+        return ParameterUtils.effectiveType(parameter) == PageRequest.class;
     }
 
     @Override
@@ -512,11 +520,75 @@ public String onPage(PageRequest page, User user) {
 
 ---
 
+## Optional Parameters {#optional-parameters}
+
+Any supported parameter type can be wrapped in `Optional<T>`. The framework resolves `T`
+as normal and wraps the result:
+
+- **Value present** → `Optional.of(value)`
+- **No value** (resolver returns `null`) → `Optional.empty()`
+- **No matching resolver** → `Optional.empty()`
+
+```java
+// Optional.empty() when no user is attached (e.g. channel posts)
+@BotCommand("/start")
+public String start(Optional<User> user) {
+    return user.map(u -> "Hello, " + u.getFirstName()).orElse("Hello!");
+}
+
+// Optional.empty() when the message carries no text
+@BotText("input")
+public String onInput(@BotTextValue Optional<String> text) {
+    return text.orElse("(no text)");
+}
+
+// Optional.empty() when the update has no contact
+@BotContact
+public String savePhone(Optional<Contact> contact) {
+    return contact.map(c -> "Saved: " + c.getPhoneNumber())
+                  .orElse("No contact shared.");
+}
+
+// Works with i18n types too
+@BotCommand("/lang")
+public String lang(Optional<Locale> locale) {
+    return locale.map(Locale::getDisplayLanguage).orElse("unknown");
+}
+```
+
+### Custom resolvers and Optional
+
+If you write a custom `BotArgumentResolver` that matches by type, use
+`ParameterUtils.effectiveType(parameter)` instead of `parameter.getType()` so that
+`Optional<YourType>` parameters are also matched:
+
+```java
+@Component
+public class AppUserArgumentResolver implements BotArgumentResolver {
+
+    @Override
+    public boolean supportsParameter(Parameter parameter) {
+        // Handles both AppUser and Optional<AppUser>
+        return ParameterUtils.effectiveType(parameter) == AppUser.class;
+    }
+
+    @Override
+    public Object resolveArgument(Parameter parameter, BotRequest request, BotResponse response) {
+        return request.getAttribute("appUser"); // return null → Optional.empty() is injected automatically
+    }
+}
+```
+
+Annotation-based resolvers (`parameter.isAnnotationPresent(...)`) require no changes — the
+annotation is present on the `Optional<T>` parameter itself and the factory handles the wrapping.
+
+---
+
 ## Parameter Order and Null Safety
 
 - Parameters may be declared in **any order** — the framework matches them by type and annotation, not position.
-- If a parameter cannot be resolved, an `IllegalStateException` is thrown with a descriptive message.
-- Parameters are never injected as `null` by the built-in resolvers.
+- If a parameter cannot be resolved, `null` is injected (or `Optional.empty()` for `Optional<T>` parameters).
+- Wrap any parameter in `Optional<T>` to safely handle cases where the value may not be present for a given update type.
 
 ```java
 @BotCommand("/profile")
