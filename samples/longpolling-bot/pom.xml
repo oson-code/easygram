@@ -12,13 +12,13 @@
 
     <groupId>uz.osoncode.easygram.samples</groupId>
     <artifactId>longpolling-bot</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <name>sample :: longpolling-bot</name>
     <description>Sample: Telegram bot using long-polling transport</description>
 
     <properties>
         <java.version>17</java.version>
-        <library.version>0.0.2</library.version>
+        <library.version>0.0.3</library.version>
     </properties>
 
     <dependencies>
