@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.markup;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -39,6 +40,7 @@ import java.util.Objects;
  * @see BotMarkupFactory
  * @see DefaultBotMarkupFactory
  */
+@Slf4j
 @RequiredArgsConstructor
 public class BotMarkupLoader implements ApplicationRunner {
 
@@ -63,8 +65,15 @@ public class BotMarkupLoader implements ApplicationRunner {
 
                 BotChatState chatState = AnnotationUtils.findAnnotation(method, BotChatState.class);
                 if (Objects.nonNull(chatState)) {
-                    for (String state : chatState.value()) {
-                        markupRegistry.registerForState(state, factory);
+                    if (chatState.value().length == 0) {
+                        log.warn("@BotChatState on @BotMarkup method '{}' has an empty value array — " +
+                                "no state-bound keyboard will be registered. " +
+                                "Specify at least one state name to enable auto-attachment.",
+                                method.getName());
+                    } else {
+                        for (String state : chatState.value()) {
+                            markupRegistry.registerForState(state, factory);
+                        }
                     }
                 }
             }

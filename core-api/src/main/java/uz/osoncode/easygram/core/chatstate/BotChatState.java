@@ -17,6 +17,23 @@ import java.lang.annotation.Target;
  * <p>An empty {@code value} array (the default) means the element accepts <em>any</em> state,
  * making it a convenient method-level override to "opt out" of a class-level restriction.</p>
  *
+ * <h2>State-bound keyboards ({@link uz.osoncode.easygram.core.annotation.BotMarkup} combined usage)</h2>
+ * <p>When {@code @BotChatState} is placed on a
+ * {@link uz.osoncode.easygram.core.annotation.BotMarkup @BotMarkup} method inside a
+ * {@link uz.osoncode.easygram.core.annotation.BotConfiguration @BotConfiguration} class,
+ * the keyboard factory is additionally registered as the <em>default keyboard</em> for each
+ * declared state. Handlers that enter that state — either because they are already in it or
+ * because they carry {@code @BotForwardChatState("STATE")} — will receive the keyboard
+ * automatically, without an explicit
+ * {@link uz.osoncode.easygram.core.bind.annotation.BotReplyMarkup @BotReplyMarkup}.</p>
+ *
+ * <p><b>Constraint:</b> {@code value} must not be empty when used on a {@code @BotMarkup}
+ * method; an empty array has no states to bind to and is silently ignored by the loader.</p>
+ *
+ * <p><b>Edit-mode constraint:</b> in edit-message context only {@code InlineKeyboardMarkup}
+ * is supported by Telegram. A state-bound {@code ReplyKeyboardMarkup} is silently skipped
+ * when the handler returns with {@code editMessage = true}.</p>
+ *
  * <pre>{@code
  * // All handlers in this class require "REGISTRATION" state.
  * @BotController
@@ -33,9 +50,22 @@ import java.lang.annotation.Target;
  *     @BotChatState   // empty value overrides class-level -> matches ANY state
  *     public String cancel() { ... }
  * }
+ *
+ * // State-bound keyboard — automatically shown when entering "REGISTRATION"
+ * @BotConfiguration
+ * public class MyMarkups {
+ *
+ *     @BotMarkup("registration_kb")
+ *     @BotChatState("REGISTRATION")
+ *     public ReplyKeyboardMarkup registrationKeyboard() {
+ *         return ReplyKeyboardMarkup.builder()...build();
+ *     }
+ * }
  * }</pre>
  *
  * @author Islom Mirsaburov
+ * @see uz.osoncode.easygram.core.annotation.BotMarkup
+ * @see uz.osoncode.easygram.core.markup.BotMarkupRegistry
  * @since 0.0.1
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
