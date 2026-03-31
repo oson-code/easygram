@@ -15,13 +15,13 @@ the method's declared return type wins.
 |---|---|---|
 | `void` | `core` | No response sent |
 | `String` | `core` | `SendMessage` to the current chat |
-| `PlainReply` | `core` | `SendMessage` with optional keyboard |
-| `PlainTextTemplate` | `core` | `SendMessage` with `#{index}` token substitution |
+| `PlainReply` | `core` | `SendMessage` (or `EditMessageText` when `editMessage=true`) with optional keyboard |
+| `PlainTextTemplate` | `core` | `SendMessage` (or `EditMessageText`) with `#{index}` token substitution |
 | `BotApiMethod<?>` | `core` | Executed directly via `TelegramClient` |
 | `Collection<BotApiMethod<?>>` | `core` | All executed in insertion order |
 | `Collection<Object>` | `core` | Per-element dispatch via `supportsElement()` |
-| `LocalizedReply` | `core-i18n` | `MessageSource` key lookup with `Locale` |
-| `LocalizedTemplate` | `core-i18n` | Mixed `${key}` / `#{index}` template with `MessageSource` |
+| `LocalizedReply` | `core-i18n` | `MessageSource` key lookup with `Locale` (or `EditMessageText` when `editMessage=true`) |
+| `LocalizedTemplate` | `core-i18n` | Mixed `${key}` / `#{index}` template with `MessageSource` (or `EditMessageText` when `editMessage=true`) |
 
 ---
 
@@ -97,6 +97,37 @@ public PlainReply start() {
 
 See the [MarkupAware section](#markupaware) for all keyboard attachment options.
 
+### Edit-Message {#edit-message}
+
+When a handler is triggered by a callback query button, you often want to **edit** the
+message the button is on instead of sending a new one. Set `editMessage(true)` on the builder,
+or call `withEditMessage()` on an existing instance:
+
+```java
+@BotCallbackQuery("confirm")
+public PlainReply onConfirm() {
+    return PlainReply.builder()
+            .text("Confirmed! ✓")
+            .editMessage(true)       // edits the message that held the inline button
+            .build();
+}
+
+// Wither style
+@BotCallbackQuery("cancel")
+public PlainReply onCancel(PlainReply reply) {
+    return PlainReply.of("Cancelled.").withEditMessage();
+}
+```
+
+When `editMessage=true` and the request has a callback query, the framework emits:
+1. `EditMessageText` — updates the message text.
+2. `EditMessageReplyMarkup` — updates the inline keyboard (omitted if no keyboard is set and `removeMarkup` is false).
+
+:::caution Inline keyboards only
+Telegram's `EditMessageReplyMarkup` API only accepts `InlineKeyboardMarkup`. If you attach a
+`ReplyKeyboardMarkup` in edit context it is silently ignored.
+:::
+
 ---
 
 ## `PlainTextTemplate`
@@ -133,6 +164,9 @@ public PlainTextTemplate info(User user) {
 `PlainTextTemplate` uses `#{index}` tokens (same format as `LocalizedTemplate`). If the index
 is out of bounds the token is left unchanged.
 :::
+
+`PlainTextTemplate` also supports the `editMessage` flag — see [Edit-Message](#edit-message)
+above for details (the behaviour is identical to `PlainReply`).
 
 ---
 
@@ -313,6 +347,9 @@ return LocalizedReply.builder()
     .build();
 ```
 
+`LocalizedReply` also supports the `editMessage` flag — see [Edit-Message](#edit-message)
+for details. Use `withEditMessage()` or `Builder.editMessage(true)`.
+
 ---
 
 ## `LocalizedTemplate` *(core-i18n)*
@@ -383,6 +420,9 @@ return LocalizedTemplate.builder()
 not `{0}`. The `${key}` tokens are message bundle lookups, not Spring EL.
 :::
 
+`LocalizedTemplate` also supports the `editMessage` flag — see [Edit-Message](#edit-message)
+for details. Use `withEditMessage()` or `Builder.editMessage(true)`.
+
 ---
 
 ## MarkupAware
@@ -390,7 +430,7 @@ not `{0}`. The `${key}` tokens are message bundle lookups, not Spring EL.
 `PlainReply`, `PlainTextTemplate`, `LocalizedReply`, and `LocalizedTemplate` all implement
 `MarkupAware`. They are **immutable** — every method returns a new instance with the change applied.
 
-Four methods are available:
+Five methods are available:
 
 ### `.withMarkup(String id)`
 
@@ -436,6 +476,15 @@ Sends a `ReplyKeyboardRemove` to clear the user's reply keyboard:
 
 ```java
 return PlainReply.of("Done. Keyboard removed.").removeMarkup();
+```
+
+### `.withEditMessage()`
+
+Returns a copy with `editMessage=true`. When the request comes from a callback query, the
+framework edits the original message instead of sending a new one:
+
+```java
+return PlainReply.of("Updated!").withEditMessage();
 ```
 
 ---

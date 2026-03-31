@@ -276,6 +276,47 @@ public class RegistrationController {
 Use state-bound keyboards when a keyboard naturally belongs to a state (e.g. a cancel keyboard for every step of a wizard). Use `@BotReplyMarkup` or `.withMarkup("id")` when the keyboard is specific to a single handler regardless of state.
 :::
 
+### Edit-message context constraint
+
+When a handler returns with `editMessage=true` (see [Return Types — Edit-Message](../core-concepts/return-types#edit-message)), Telegram's edit-message API only accepts `InlineKeyboardMarkup`. If the state-bound keyboard resolved for the effective next state is a `ReplyKeyboardMarkup` or any other non-inline type, it is **silently skipped** in that context.
+
+Use an `InlineKeyboardMarkup` factory when combining state-bound keyboards with edit-message handlers:
+
+```java
+@BotMarkup("confirm_inline_kb")
+@BotChatState("CONFIRM")
+public InlineKeyboardMarkup confirmButtons() {
+    return InlineKeyboardMarkup.builder()
+        .keyboardRow(List.of(
+            InlineKeyboardButton.builder().text("Yes").callbackData("yes").build(),
+            InlineKeyboardButton.builder().text("No").callbackData("no").build()
+        ))
+        .build();
+}
+```
+
+### Warning: empty `@BotChatState` on `@BotMarkup`
+
+If `@BotChatState` is placed on a `@BotMarkup` method with an **empty `value` array**, no state binding is registered and a `WARN` log is emitted at startup:
+
+```
+@BotChatState on @BotMarkup method 'myKeyboard' has an empty value array —
+no state-bound keyboard will be registered.
+Specify at least one state name to enable auto-attachment.
+```
+
+Always provide at least one state name:
+
+```java
+@BotMarkup("my_kb")
+@BotChatState("SOME_STATE")   // ✓ correct — binds to "SOME_STATE"
+public ReplyKeyboard myKeyboard() { ... }
+
+@BotMarkup("other_kb")
+@BotChatState                  // ✗ empty — no binding, warning emitted
+public ReplyKeyboard otherKeyboard() { ... }
+```
+
 ---
 
 ## 4. Markup Precedence
