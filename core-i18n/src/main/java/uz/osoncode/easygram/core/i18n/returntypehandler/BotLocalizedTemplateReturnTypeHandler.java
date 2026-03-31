@@ -1,18 +1,14 @@
 package uz.osoncode.easygram.core.i18n.returntypehandler;
 
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import uz.osoncode.easygram.core.i18n.BotMessageSource;
 import uz.osoncode.easygram.core.i18n.LocalizedTemplate;
-import uz.osoncode.easygram.core.markup.BotMarkupContext;
 import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandler;
+import uz.osoncode.easygram.core.returntypehandler.BotReplyMessageHelper;
 
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -24,15 +20,16 @@ import java.util.regex.Pattern;
  * <p>The template string inside {@link LocalizedTemplate} is resolved as follows:</p>
  * <ol>
  *   <li>Every {@code ${key}} token is replaced with the message obtained from
- *       {@link BotMessageSource#getMessage(String, BotRequest, Object...)} — locale is derived automatically
- *       from the user's language code in the request.</li>
+ *       {@link BotMessageSource#getMessage(String, BotRequest, Object...)} — locale is derived
+ *       automatically from the user's language code in the request.</li>
  *   <li>Every {@code #{index}} token is replaced with {@code String.valueOf(args[index])}.
  *       If {@code index} is out of bounds the token is left unchanged.</li>
  * </ol>
  *
- * <p>The fully-resolved text is then wrapped in a {@link SendMessage} targeted at the
- * originating chat and added to {@link BotResponse}. If a markup ID is present, the
- * registered markup is resolved and attached.</p>
+ * <p>When {@link LocalizedTemplate#isEditMessage()} is {@code true} and the request originates
+ * from a callback query, the originating message is edited in-place via {@code EditMessageText}
+ * instead of sending a new message. In edit context only {@code InlineKeyboardMarkup} is
+ * supported; other keyboard types are silently ignored.</p>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
@@ -62,38 +59,16 @@ public class BotLocalizedTemplateReturnTypeHandler implements BotReturnTypeHandl
         }
         LocalizedTemplate reply = (LocalizedTemplate) returnValue;
         String resolved = resolveTemplate(reply.getTemplate(), botRequest, reply.getArgs());
-        
-        SendMessage.SendMessageBuilder<?, ?> builder = SendMessage.builder()
-                .chatId(botRequest.getChat().getId())
-                .text(resolved);
-                
-        if (reply.isRemoveMarkup()) {
-            builder.replyMarkup(ReplyKeyboardRemove.builder().removeKeyboard(true).build());
-        } else if (Objects.nonNull(reply.getKeyboard())) {
-            builder.replyMarkup(reply.getKeyboard());
-        } else {
-            String markupId = reply.getMarkupId();
-            if (Objects.nonNull(markupId)) {
-                botMarkupRegistry.ifPresent(registry -> {
-                    Map<String, Object> params = reply.getMarkupParams();
-                    if (Objects.nonNull(params)) {
-                        botRequest.setAttribute(BotMarkupContext.REQUEST_ATTRIBUTE_KEY, BotMarkupContext.of(params));
-                    }
-                    try {
-                        ReplyKeyboard markup = registry.resolve(markupId, botRequest);
-                        if (Objects.nonNull(markup)) {
-                            builder.replyMarkup(markup);
-                        }
-                    } finally {
-                        if (Objects.nonNull(params)) {
-                            botRequest.setAttribute(BotMarkupContext.REQUEST_ATTRIBUTE_KEY, null);
-                        }
-                    }
-                });
-            }
-        }
-        
-        botResponse.addBotApiMethod(builder.build());
+        BotReplyMessageHelper.addReply(
+                botResponse,
+                botRequest,
+                resolved,
+                reply.isEditMessage(),
+                reply.getKeyboard(),
+                reply.isRemoveMarkup(),
+                botMarkupRegistry,
+                reply.getMarkupId(),
+                reply.getMarkupParams());
     }
 
     /**
@@ -104,15 +79,12 @@ public class BotLocalizedTemplateReturnTypeHandler implements BotReturnTypeHandl
     public boolean supportsElement(Object element) {
         return element instanceof LocalizedTemplate;
     }
-    
+
     private String resolveTemplate(String template, BotRequest request, Object[] args) {
-        // Replace ${key} tokens with message-bundle values
         String resolvedTemplate = resolveKeys(template, request);
-        
-        // Replace #{index} tokens with positional args
         return resolveArgs(resolvedTemplate, args);
     }
-    
+
     private String resolveKeys(String template, BotRequest request) {
         Matcher keyMatcher = KEY_PATTERN.matcher(template);
         StringBuffer keyResult = new StringBuffer();
@@ -124,7 +96,7 @@ public class BotLocalizedTemplateReturnTypeHandler implements BotReturnTypeHandl
         keyMatcher.appendTail(keyResult);
         return keyResult.toString();
     }
-    
+
     private String resolveArgs(String text, Object[] args) {
         Matcher argMatcher = ARG_PATTERN.matcher(text);
         StringBuffer argResult = new StringBuffer();

@@ -1,0 +1,178 @@
+package uz.osoncode.easygram.core.returntypehandler;
+
+import lombok.extern.slf4j.Slf4j;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.message.MaybeInaccessibleMessage;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
+import uz.osoncode.easygram.core.markup.BotMarkupContext;
+import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
+import uz.osoncode.easygram.core.model.BotRequest;
+import uz.osoncode.easygram.core.model.BotResponse;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+
+/**
+ * Shared utility for building outgoing Telegram API methods from return type handlers.
+ *
+ * <p>When {@code editMessage} is {@code true} and the current request originates from a
+ * callback query, the helper emits:</p>
+ * <ol>
+ *   <li>{@link EditMessageText} — to update the message text.</li>
+ *   <li>{@link EditMessageReplyMarkup} — to update the inline keyboard (when a markup is
+ *       present or {@code removeMarkup} is {@code true}).</li>
+ * </ol>
+ *
+ * <p>In all other cases a single {@link SendMessage} is added to the response.</p>
+ *
+ * <p><b>Keyboard constraint in edit context:</b> only {@link InlineKeyboardMarkup} is
+ * supported by {@link EditMessageReplyMarkup}. Non-inline keyboards are silently ignored.
+ * When {@code removeMarkup} is {@code true} in edit context, an empty
+ * {@link InlineKeyboardMarkup} is used to clear the inline buttons.</p>
+ *
+ * @author Islom Mirsaburov
+ * @since 0.0.2
+ */
+@Slf4j
+public final class BotReplyMessageHelper {
+
+    private BotReplyMessageHelper() {}
+
+    /**
+     * Adds the appropriate Telegram API method(s) to {@code botResponse}.
+     *
+     * <p>In edit context (editMessage &amp;&amp; hasCallbackQuery) this may add up to two methods:
+     * {@link EditMessageText} for text and {@link EditMessageReplyMarkup} for the keyboard.
+     * Otherwise a single {@link SendMessage} is added.</p>
+     *
+     * @param botResponse  the response object to add method(s) to
+     * @param botRequest   the current bot request
+     * @param text         the resolved message text
+     * @param editMessage  when {@code true} and the request has a callback query, edits the original message
+     * @param keyboard     the keyboard to attach directly, or {@code null}
+     * @param removeMarkup when {@code true}, removes keyboard (or clears inline keyboard in edit context)
+     * @param registry     optional markup registry for ID-based keyboard resolution
+     * @param markupId     the pre-registered markup ID, or {@code null}
+     * @param markupParams parameters forwarded to the markup factory, or {@code null}
+     */
+    public static void addReply(
+            BotResponse botResponse,
+            BotRequest botRequest,
+            String text,
+            boolean editMessage,
+            ReplyKeyboard keyboard,
+            boolean removeMarkup,
+            Optional<BotMarkupRegistry> registry,
+            String markupId,
+            Map<String, Object> markupParams) {
+
+        if (editMessage && botRequest.getUpdate().hasCallbackQuery()) {
+            addEditMethods(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams);
+        } else {
+            addSendMessage(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams);
+        }
+    }
+
+    private static void addSendMessage(
+            BotResponse botResponse,
+            BotRequest botRequest,
+            String text,
+            ReplyKeyboard keyboard,
+            boolean removeMarkup,
+            Optional<BotMarkupRegistry> registry,
+            String markupId,
+            Map<String, Object> markupParams) {
+
+        SendMessage.SendMessageBuilder<?, ?> builder = SendMessage.builder()
+                .chatId(botRequest.getChat().getId())
+                .text(text);
+
+        if (removeMarkup) {
+            builder.replyMarkup(ReplyKeyboardRemove.builder().removeKeyboard(true).build());
+        } else if (Objects.nonNull(keyboard)) {
+            builder.replyMarkup(keyboard);
+        } else if (Objects.nonNull(markupId)) {
+            applyRegistryMarkup(botRequest, registry, markupId, markupParams,
+                    markup -> builder.replyMarkup(markup));
+        }
+        botResponse.addBotApiMethod(builder.build());
+    }
+
+    private static void addEditMethods(
+            BotResponse botResponse,
+            BotRequest botRequest,
+            String text,
+            ReplyKeyboard keyboard,
+            boolean removeMarkup,
+            Optional<BotMarkupRegistry> registry,
+            String markupId,
+            Map<String, Object> markupParams) {
+
+        MaybeInaccessibleMessage original =
+                botRequest.getUpdate().getCallbackQuery().getMessage();
+        Long chatId = original.getChatId();
+        Integer messageId = original.getMessageId();
+
+        // 1. Edit the message text
+        botResponse.addBotApiMethod(EditMessageText.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .text(text)
+                .build());
+
+        // 2. Update the inline keyboard separately via EditMessageReplyMarkup
+        EditMessageReplyMarkup.EditMessageReplyMarkupBuilder markupBuilder =
+                EditMessageReplyMarkup.builder()
+                        .chatId(chatId)
+                        .messageId(messageId);
+
+        if (removeMarkup) {
+            markupBuilder.replyMarkup(InlineKeyboardMarkup.builder().build());
+            botResponse.addBotApiMethod(markupBuilder.build());
+        } else if (keyboard instanceof InlineKeyboardMarkup inlineMarkup) {
+            markupBuilder.replyMarkup(inlineMarkup);
+            botResponse.addBotApiMethod(markupBuilder.build());
+        } else if (Objects.nonNull(markupId)) {
+            applyRegistryMarkup(botRequest, registry, markupId, markupParams, markup -> {
+                if (markup instanceof InlineKeyboardMarkup inlineMarkup) {
+                    markupBuilder.replyMarkup(inlineMarkup);
+                    botResponse.addBotApiMethod(markupBuilder.build());
+                } else {
+                    log.warn("Markup '{}' resolved to {} which is not supported by EditMessageReplyMarkup. " +
+                             "Only InlineKeyboardMarkup can be used in edit-message context; keyboard was skipped.",
+                            markupId, markup.getClass().getSimpleName());
+                }
+            });
+        }
+    }
+
+    private static void applyRegistryMarkup(
+            BotRequest botRequest,
+            Optional<BotMarkupRegistry> registry,
+            String markupId,
+            Map<String, Object> markupParams,
+            Consumer<ReplyKeyboard> applyFn) {
+
+        registry.ifPresent(r -> {
+            if (Objects.nonNull(markupParams)) {
+                botRequest.setAttribute(BotMarkupContext.REQUEST_ATTRIBUTE_KEY, BotMarkupContext.of(markupParams));
+            }
+            try {
+                ReplyKeyboard markup = r.resolve(markupId, botRequest);
+                if (Objects.nonNull(markup)) {
+                    applyFn.accept(markup);
+                }
+            } finally {
+                if (Objects.nonNull(markupParams)) {
+                    botRequest.setAttribute(BotMarkupContext.REQUEST_ATTRIBUTE_KEY, null);
+                }
+            }
+        });
+    }
+}
