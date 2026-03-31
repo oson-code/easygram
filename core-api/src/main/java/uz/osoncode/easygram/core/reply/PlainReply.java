@@ -52,14 +52,16 @@ public final class PlainReply implements MarkupAware {
     private final Map<String, Object> markupParams;
     private final ReplyKeyboard keyboard;
     private final boolean removeMarkup;
+    private final boolean editMessage;
 
     private PlainReply(String text, String markupId, Map<String, Object> markupParams,
-                       ReplyKeyboard keyboard, boolean removeMarkup) {
+                       ReplyKeyboard keyboard, boolean removeMarkup, boolean editMessage) {
         this.text = text;
         this.markupId = markupId;
         this.markupParams = markupParams;
         this.keyboard = keyboard;
         this.removeMarkup = removeMarkup;
+        this.editMessage = editMessage;
     }
 
     /**
@@ -88,6 +90,7 @@ public final class PlainReply implements MarkupAware {
         private Map<String, Object> markupParams;
         private ReplyKeyboard keyboard;
         private boolean removeMarkup;
+        private boolean editMessage;
 
         private Builder() {}
 
@@ -146,12 +149,25 @@ public final class PlainReply implements MarkupAware {
         }
 
         /**
+         * Instructs the framework to edit the original message (via {@code EditMessageText})
+         * when this reply is returned from a callback query handler.
+         *
+         * @param editMessage {@code true} to edit; {@code false} to send a new message (default)
+         * @return this builder
+         * @since 0.0.2
+         */
+        public Builder editMessage(boolean editMessage) {
+            this.editMessage = editMessage;
+            return this;
+        }
+
+        /**
          * Builds and returns the immutable {@link PlainReply}.
          *
          * @return a new {@code PlainReply} instance
          */
         public PlainReply build() {
-            return new PlainReply(text, markupId, markupParams, keyboard, removeMarkup);
+            return new PlainReply(text, markupId, markupParams, keyboard, removeMarkup, editMessage);
         }
     }
 
@@ -162,7 +178,7 @@ public final class PlainReply implements MarkupAware {
      * @return a new {@code PlainReply} instance
      */
     public static PlainReply of(String text) {
-        return new PlainReply(text, null, null, null, false);
+        return new PlainReply(text, null, null, null, false, false);
     }
 
     /**
@@ -173,7 +189,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withMarkup(String markupId) {
-        return new PlainReply(this.text, markupId, null, null, false);
+        return new PlainReply(this.text, markupId, null, null, false, this.editMessage);
     }
 
     /**
@@ -189,7 +205,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withMarkup(String markupId, Map<String, Object> params) {
-        return new PlainReply(this.text, markupId, params, null, false);
+        return new PlainReply(this.text, markupId, params, null, false, this.editMessage);
     }
 
     /**
@@ -203,7 +219,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withKeyboard(ReplyKeyboard keyboard) {
-        return new PlainReply(this.text, null, null, keyboard, false);
+        return new PlainReply(this.text, null, null, keyboard, false, this.editMessage);
     }
 
     /**
@@ -213,7 +229,20 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply removeMarkup() {
-        return new PlainReply(this.text, null, null, null, true);
+        return new PlainReply(this.text, null, null, null, true, this.editMessage);
+    }
+
+    /**
+     * Returns a new {@code PlainReply} with the {@code editMessage} flag set to {@code true}.
+     *
+     * <p>When this flag is set and the request originates from a callback query, the framework
+     * will edit the originating message instead of sending a new one.</p>
+     *
+     * @return a new {@code PlainReply} with {@code editMessage = true}
+     * @since 0.0.2
+     */
+    public PlainReply withEditMessage() {
+        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup, true);
     }
 
     /**
@@ -263,6 +292,18 @@ public final class PlainReply implements MarkupAware {
     @Override
     public boolean isRemoveMarkup() {
         return removeMarkup;
+    }
+
+    /**
+     * Returns {@code true} if the framework should edit the original callback-query message
+     * instead of sending a new message.
+     *
+     * @return {@code true} to edit the originating message
+     * @since 0.0.2
+     */
+    @Override
+    public boolean isEditMessage() {
+        return editMessage;
     }
 }
 

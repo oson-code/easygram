@@ -54,16 +54,18 @@ public final class PlainTextTemplate implements MarkupAware {
     private final Map<String, Object> markupParams;
     private final ReplyKeyboard keyboard;
     private final boolean removeMarkup;
+    private final boolean editMessage;
 
     private PlainTextTemplate(String template, Object[] args, String markupId,
                                Map<String, Object> markupParams, ReplyKeyboard keyboard,
-                               boolean removeMarkup) {
+                               boolean removeMarkup, boolean editMessage) {
         this.template = template;
         this.args = args;
         this.markupId = markupId;
         this.markupParams = markupParams;
         this.keyboard = keyboard;
         this.removeMarkup = removeMarkup;
+        this.editMessage = editMessage;
     }
 
     /**
@@ -94,6 +96,7 @@ public final class PlainTextTemplate implements MarkupAware {
         private Map<String, Object> markupParams;
         private ReplyKeyboard keyboard;
         private boolean removeMarkup;
+        private boolean editMessage;
 
         private Builder() {}
 
@@ -163,12 +166,25 @@ public final class PlainTextTemplate implements MarkupAware {
         }
 
         /**
+         * Instructs the framework to edit the original message (via {@code EditMessageText})
+         * when this reply is returned from a callback query handler.
+         *
+         * @param editMessage {@code true} to edit; {@code false} to send a new message (default)
+         * @return this builder
+         * @since 0.0.2
+         */
+        public Builder editMessage(boolean editMessage) {
+            this.editMessage = editMessage;
+            return this;
+        }
+
+        /**
          * Builds and returns the immutable {@link PlainTextTemplate}.
          *
          * @return a new {@code PlainTextTemplate} instance
          */
         public PlainTextTemplate build() {
-            return new PlainTextTemplate(template, args, markupId, markupParams, keyboard, removeMarkup);
+            return new PlainTextTemplate(template, args, markupId, markupParams, keyboard, removeMarkup, editMessage);
         }
     }
 
@@ -183,12 +199,12 @@ public final class PlainTextTemplate implements MarkupAware {
      * @return a new {@code PlainTextTemplate} instance
      */
     public static PlainTextTemplate of(String template, Object... args) {
-        return new PlainTextTemplate(template, args, null, null, null, false);
+        return new PlainTextTemplate(template, args, null, null, null, false, false);
     }
 
     @Override
     public PlainTextTemplate withMarkup(String markupId) {
-        return new PlainTextTemplate(this.template, this.args, markupId, null, null, false);
+        return new PlainTextTemplate(this.template, this.args, markupId, null, null, false, this.editMessage);
     }
 
     /**
@@ -200,7 +216,7 @@ public final class PlainTextTemplate implements MarkupAware {
      */
     @Override
     public PlainTextTemplate withMarkup(String markupId, Map<String, Object> params) {
-        return new PlainTextTemplate(this.template, this.args, markupId, params, null, false);
+        return new PlainTextTemplate(this.template, this.args, markupId, params, null, false, this.editMessage);
     }
 
     /**
@@ -211,12 +227,25 @@ public final class PlainTextTemplate implements MarkupAware {
      */
     @Override
     public PlainTextTemplate withKeyboard(ReplyKeyboard keyboard) {
-        return new PlainTextTemplate(this.template, this.args, null, null, keyboard, false);
+        return new PlainTextTemplate(this.template, this.args, null, null, keyboard, false, this.editMessage);
     }
 
     @Override
     public PlainTextTemplate removeMarkup() {
-        return new PlainTextTemplate(this.template, this.args, null, null, null, true);
+        return new PlainTextTemplate(this.template, this.args, null, null, null, true, this.editMessage);
+    }
+
+    /**
+     * Returns a new {@code PlainTextTemplate} with the {@code editMessage} flag set to {@code true}.
+     *
+     * <p>When this flag is set and the request originates from a callback query, the framework
+     * will edit the originating message instead of sending a new one.</p>
+     *
+     * @return a new {@code PlainTextTemplate} with {@code editMessage = true}
+     * @since 0.0.2
+     */
+    public PlainTextTemplate withEditMessage() {
+        return new PlainTextTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup, true);
     }
 
     public String getTemplate() {
@@ -245,6 +274,18 @@ public final class PlainTextTemplate implements MarkupAware {
     @Override
     public boolean isRemoveMarkup() {
         return removeMarkup;
+    }
+
+    /**
+     * Returns {@code true} if the framework should edit the original callback-query message
+     * instead of sending a new message.
+     *
+     * @return {@code true} to edit the originating message
+     * @since 0.0.2
+     */
+    @Override
+    public boolean isEditMessage() {
+        return editMessage;
     }
 }
 
