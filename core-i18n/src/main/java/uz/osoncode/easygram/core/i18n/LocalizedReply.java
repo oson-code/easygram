@@ -33,16 +33,18 @@ public final class LocalizedReply implements MarkupAware {
     private final Map<String, Object> markupParams;
     private final ReplyKeyboard keyboard;
     private final boolean removeMarkup;
+    private final boolean editMessage;
 
     private LocalizedReply(String key, Object[] args, String markupId,
                             Map<String, Object> markupParams, ReplyKeyboard keyboard,
-                            boolean removeMarkup) {
+                            boolean removeMarkup, boolean editMessage) {
         this.key = key;
         this.args = args;
         this.markupId = markupId;
         this.markupParams = markupParams;
         this.keyboard = keyboard;
         this.removeMarkup = removeMarkup;
+        this.editMessage = editMessage;
     }
 
     /**
@@ -73,6 +75,7 @@ public final class LocalizedReply implements MarkupAware {
         private Map<String, Object> markupParams;
         private ReplyKeyboard keyboard;
         private boolean removeMarkup;
+        private boolean editMessage;
 
         private Builder() {}
 
@@ -142,12 +145,25 @@ public final class LocalizedReply implements MarkupAware {
         }
 
         /**
+         * Instructs the framework to edit the original message (via {@code EditMessageText})
+         * when this reply is returned from a callback query handler.
+         *
+         * @param editMessage {@code true} to edit; {@code false} to send a new message (default)
+         * @return this builder
+         * @since 0.0.2
+         */
+        public Builder editMessage(boolean editMessage) {
+            this.editMessage = editMessage;
+            return this;
+        }
+
+        /**
          * Builds and returns the immutable {@link LocalizedReply}.
          *
          * @return a new {@code LocalizedReply} instance
          */
         public LocalizedReply build() {
-            return new LocalizedReply(key, args, markupId, markupParams, keyboard, removeMarkup);
+            return new LocalizedReply(key, args, markupId, markupParams, keyboard, removeMarkup, editMessage);
         }
     }
 
@@ -159,12 +175,12 @@ public final class LocalizedReply implements MarkupAware {
      * @return a new {@code LocalizedReply} instance
      */
     public static LocalizedReply of(String key, Object... args) {
-        return new LocalizedReply(key, args, null, null, null, false);
+        return new LocalizedReply(key, args, null, null, null, false, false);
     }
 
     @Override
     public LocalizedReply withMarkup(String markupId) {
-        return new LocalizedReply(this.key, this.args, markupId, null, null, false);
+        return new LocalizedReply(this.key, this.args, markupId, null, null, false, this.editMessage);
     }
 
     /**
@@ -176,7 +192,7 @@ public final class LocalizedReply implements MarkupAware {
      */
     @Override
     public LocalizedReply withMarkup(String markupId, Map<String, Object> params) {
-        return new LocalizedReply(this.key, this.args, markupId, params, null, false);
+        return new LocalizedReply(this.key, this.args, markupId, params, null, false, this.editMessage);
     }
 
     /**
@@ -187,12 +203,25 @@ public final class LocalizedReply implements MarkupAware {
      */
     @Override
     public LocalizedReply withKeyboard(ReplyKeyboard keyboard) {
-        return new LocalizedReply(this.key, this.args, null, null, keyboard, false);
+        return new LocalizedReply(this.key, this.args, null, null, keyboard, false, this.editMessage);
     }
 
     @Override
     public LocalizedReply removeMarkup() {
-        return new LocalizedReply(this.key, this.args, null, null, null, true);
+        return new LocalizedReply(this.key, this.args, null, null, null, true, this.editMessage);
+    }
+
+    /**
+     * Returns a new {@code LocalizedReply} with the {@code editMessage} flag set to {@code true}.
+     *
+     * <p>When this flag is set and the request originates from a callback query, the framework
+     * will edit the originating message instead of sending a new one.</p>
+     *
+     * @return a new {@code LocalizedReply} with {@code editMessage = true}
+     * @since 0.0.2
+     */
+    public LocalizedReply withEditMessage() {
+        return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup, true);
     }
 
     public String getKey() {
@@ -221,6 +250,18 @@ public final class LocalizedReply implements MarkupAware {
     @Override
     public boolean isRemoveMarkup() {
         return removeMarkup;
+    }
+
+    /**
+     * Returns {@code true} if the framework should edit the original callback-query message
+     * instead of sending a new message.
+     *
+     * @return {@code true} to edit the originating message
+     * @since 0.0.2
+     */
+    @Override
+    public boolean isEditMessage() {
+        return editMessage;
     }
 }
 
