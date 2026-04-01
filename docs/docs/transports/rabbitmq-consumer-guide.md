@@ -18,7 +18,7 @@ when you are using a different transport). You must add it explicitly:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 
 <!-- Required: provides ConnectionFactory + RabbitTemplate for RABBIT_CONSUMER transport -->
@@ -34,7 +34,7 @@ If you are NOT using `spring-boot-starter`, add `messaging-rabbit-consumer` dire
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-rabbit-consumer</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 <dependency>
     <groupId>org.springframework.boot</groupId>
