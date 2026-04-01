@@ -125,14 +125,14 @@ Add the starter to your `pom.xml` — it includes all transports and the core en
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 ```
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("uz.osoncode.easygram:spring-boot-starter:0.0.2")
+implementation("uz.osoncode.easygram:spring-boot-starter:0.0.3")
 ```
 
 > For broker publisher/consumer dependencies, see the relevant [module READMEs](#-module-documentation).
@@ -162,7 +162,7 @@ Only **one** transport is active at a time. See the linked module README for ful
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 ```
 
