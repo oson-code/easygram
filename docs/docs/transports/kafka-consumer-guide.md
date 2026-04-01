@@ -18,7 +18,7 @@ when you are using a different transport). You must add it explicitly:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 
 <!-- Required: provides KafkaTemplate + ConsumerFactory for KAFKA_CONSUMER transport -->
@@ -34,7 +34,7 @@ If you are NOT using `spring-boot-starter`, add `messaging-kafka-consumer` direc
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-kafka-consumer</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 <dependency>
     <groupId>org.springframework.kafka</groupId>
@@ -151,7 +151,7 @@ Use messaging-kafka module to publish:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-kafka</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 ```
 

@@ -30,7 +30,7 @@ public class BotThrowableArgumentResolver implements BotArgumentResolver {
      */
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return Throwable.class.isAssignableFrom(parameter.getType());
+        return Throwable.class.isAssignableFrom(ParameterUtils.effectiveType(parameter));
     }
 
     /**

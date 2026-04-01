@@ -13,6 +13,20 @@ import java.lang.reflect.Parameter;
  * The framework queries all registered resolvers via {@link #supportsParameter(Parameter)} and
  * delegates to the first matching resolver's {@link #resolveArgument} to obtain the value.
  *
+ * <h2>Optional parameter support</h2>
+ * <p>Parameters declared as {@code Optional<T>} are automatically unwrapped by
+ * {@code BotArgumentResolverFactory}: it calls
+ * {@link ParameterUtils#effectiveType(Parameter)} to determine {@code T}, selects the
+ * matching resolver, and wraps the resolved value in {@code Optional.ofNullable()}.
+ * If no resolver matches the inner type, {@code Optional.empty()} is injected.</p>
+ *
+ * <p>Implementations that match by type should use
+ * {@link ParameterUtils#effectiveType(Parameter)} instead of
+ * {@code parameter.getType()} so that both {@code T} and {@code Optional<T>} declarations
+ * are supported without any additional code in the resolver.
+ * Annotation-based resolvers (those that call {@code parameter.isAnnotationPresent(...)})
+ * do not need any changes — the annotation is present on the parameter regardless of wrapping.</p>
+ *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */

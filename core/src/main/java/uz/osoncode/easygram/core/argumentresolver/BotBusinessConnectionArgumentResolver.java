@@ -18,7 +18,7 @@ public class BotBusinessConnectionArgumentResolver implements BotArgumentResolve
 
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return parameter.getType().equals(BusinessConnection.class);
+        return ParameterUtils.effectiveType(parameter).equals(BusinessConnection.class);
     }
 
     @Override

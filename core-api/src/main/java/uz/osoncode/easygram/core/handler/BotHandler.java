@@ -3,6 +3,8 @@ package uz.osoncode.easygram.core.handler;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * Core strategy interface for processing incoming Telegram updates.
  * Each implementation declares which {@link BotRequest} types it can process via
@@ -52,5 +54,11 @@ public interface BotHandler extends Comparable<BotHandler> {
      * @param botRequest  the current request context containing the incoming update; must not be {@code null}
      * @param botResponse the mutable response object to which API methods may be added; must not be {@code null}
      */
-    void handle(BotRequest botRequest, BotResponse botResponse);
+    void handle(BotRequest botRequest, BotResponse botResponse) throws InvocationTargetException, IllegalAccessException;
+
+    /**
+     * Returns a human-readable description of this handler for logging and debugging purposes.
+     * @return
+     */
+    String info();
 }

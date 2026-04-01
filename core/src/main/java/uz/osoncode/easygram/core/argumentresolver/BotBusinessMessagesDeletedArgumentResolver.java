@@ -18,7 +18,7 @@ public class BotBusinessMessagesDeletedArgumentResolver implements BotArgumentRe
 
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return parameter.getType().equals(BusinessMessagesDeleted.class);
+        return ParameterUtils.effectiveType(parameter).equals(BusinessMessagesDeleted.class);
     }
 
     @Override

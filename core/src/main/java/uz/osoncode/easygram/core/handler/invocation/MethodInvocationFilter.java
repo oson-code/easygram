@@ -99,7 +99,7 @@ public class MethodInvocationFilter implements BotHandlerInvocationFilter {
      * @throws BotHandlerException          if argument resolution or method invocation fails
      */
     @Override
-    public void invoke(BotHandlerInvocationContext context, BotHandlerInvocationChain chain) {
+    public void invoke(BotHandlerInvocationContext context, BotHandlerInvocationChain chain) throws InvocationTargetException, IllegalAccessException {
         Object[] args;
         try {
             args = botArgumentResolverFactory.resolveArguments(
@@ -121,14 +121,14 @@ public class MethodInvocationFilter implements BotHandlerInvocationFilter {
             }
         });
 
+        Object returnValue = null;
         try {
-            Object returnValue = context.getMethod().invoke(context.getBean(), args);
+            returnValue = context.getMethod().invoke(context.getBean(), args);
             context.setReturnValue(returnValue);
             chain.proceed(context);
-        } catch (InvocationTargetException e) {
-            throw new BotHandlerException("Handler method threw an exception: " + context.getMethod(), e.getCause());
-        } catch (Exception e) {
-            throw new BotHandlerException("Failed to invoke handler method: " + context.getMethod(), e);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw e;
         }
+
     }
 }

@@ -6,6 +6,7 @@ import uz.osoncode.easygram.core.bind.annotation.BotClearChatState;
 import uz.osoncode.easygram.core.bind.annotation.BotForwardChatState;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -52,7 +53,7 @@ public class ChatStateUpdateFilter implements BotHandlerInvocationFilter {
      * @param chain   the remaining filter chain
      */
     @Override
-    public void invoke(BotHandlerInvocationContext context, BotHandlerInvocationChain chain) {
+    public void invoke(BotHandlerInvocationContext context, BotHandlerInvocationChain chain) throws InvocationTargetException, IllegalAccessException {
         chain.proceed(context);
 
         chatStateService.ifPresent(service -> {

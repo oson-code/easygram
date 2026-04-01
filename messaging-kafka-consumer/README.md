@@ -1,4 +1,4 @@
-# kafka-consumer
+# messaging-kafka-consumer
 
 > Kafka consumer transport for the Easygram framework.
 > Receives Telegram updates from a Kafka topic and feeds them into the bot handler pipeline.

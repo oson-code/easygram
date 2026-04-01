@@ -6,6 +6,7 @@ import uz.osoncode.easygram.core.model.BotResponse;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Factory that holds all registered {@link BotArgumentResolver} instances and selects
@@ -49,13 +50,14 @@ public class BotArgumentResolverFactory {
     public Object[] resolveArguments(Parameter[] parameters, BotRequest botRequest, BotResponse botResponse) {
         List<Object> objects = new ArrayList<>(parameters.length);
         for (Parameter parameter : parameters) {
-            Object o = botArgumentResolvers
+            boolean optional = ParameterUtils.isOptional(parameter);
+            Object resolved = botArgumentResolvers
                     .stream()
                     .filter(argumentResolver -> argumentResolver.supportsParameter(parameter))
                     .findFirst()
                     .map(argumentResolver -> argumentResolver.resolveArgument(parameter, botRequest, botResponse))
                     .orElse(null);
-            objects.add(o);
+            objects.add(optional ? Optional.ofNullable(resolved) : resolved);
         }
         return objects.toArray();
     }

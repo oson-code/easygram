@@ -19,7 +19,7 @@ health at `/actuator/health`, and a **`BotInfoContributor`** that exposes bot me
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-observability</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 
 <!-- Spring Boot Actuator — health, info, prometheus endpoints -->

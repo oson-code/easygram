@@ -132,11 +132,11 @@ spring:
 @BotController
 public class EchoBotController {
 
-    @BotMessage
-    public SendMessage onMessage(Message message) {
+    @BotTextDefault
+    public SendMessage onMessage(BotRequest request) {
         return SendMessage.builder()
-                .chatId(message.getChatId())
-                .text("Echo: " + message.getText())
+                .chatId(request.getChat().getId())
+                .text("Echo: " + request.getUpdate().getMessage().getText())
                 .build();
     }
 }

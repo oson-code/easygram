@@ -26,13 +26,13 @@ Create a new Spring Boot project (using Spring Initializr or your IDE) with depe
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 ```
 
 **Gradle (build.gradle.kts):**
 ```kotlin
-implementation("uz.osoncode.easygram:spring-boot-starter:0.0.2")
+implementation("uz.osoncode.easygram:spring-boot-starter:0.0.3")
 ```
 
 ## 3. Configure Your Bot Token
@@ -196,7 +196,7 @@ server:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-chatstate</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 ```
 (Already included in `spring-boot-starter`)

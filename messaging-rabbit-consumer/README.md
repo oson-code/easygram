@@ -1,4 +1,4 @@
-# rabbit-consumer
+# messaging-rabbit-consumer
 
 > RabbitMQ consumer transport for the Easygram framework.
 > Receives Telegram updates from a RabbitMQ queue and feeds them into the bot handler pipeline.

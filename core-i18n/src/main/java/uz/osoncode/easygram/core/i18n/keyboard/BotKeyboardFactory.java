@@ -25,8 +25,8 @@ import java.util.Objects;
  * <h2>Inline keyboard (fluent builder)</h2>
  * <pre>{@code
  * InlineKeyboardMarkup keyboard = keyboardFactory.inline(request)
- *     .row("btn.yes", "cb_yes",  "btn.no",  "cb_no")   // (textCode, callbackData) pairs
- *     .row("btn.cancel", "cb_cancel")
+ *     .row("btn.yes", "btn.no")       // button codes: text resolved from bundle, same code as callbackData
+ *     .row("btn.cancel")
  *     .build();
  *
  * return SendMessage.builder()
@@ -218,11 +218,13 @@ public class BotKeyboardFactory {
     /**
      * Fluent builder for {@link InlineKeyboardMarkup} with localised button labels.
      *
-     * <p>Each {@code row()} call accepts alternating {@code (textCode, callbackData)} pairs:</p>
+     * <p>Each {@code row()} call accepts button codes. Each code is used both as the
+     * message-bundle key for the button label and as the {@code callbackData} sent when
+     * the button is pressed:</p>
      * <pre>{@code
      * factory.inline(request)
-     *     .row("btn.yes", "cb_yes",  "btn.no", "cb_no")
-     *     .row("btn.cancel", "cb_cancel")
+     *     .row("btn.yes", "btn.no")
+     *     .row("btn.cancel")
      *     .build();
      * }</pre>
      */
@@ -240,25 +242,22 @@ public class BotKeyboardFactory {
         /**
          * Adds a row of inline buttons.
          *
-         * @param textAndCallbackPairs alternating {@code (messageCode, callbackData)} pairs;
-         *                             must have an even number of elements
+         * <p>Each string is a button code: the button label is resolved from the message bundle
+         * using that code, and the same code is used as the {@code callbackData} sent when the
+         * button is pressed.</p>
+         *
+         * @param buttonCodes one or more message-bundle keys; each is also used as callback data
          * @return this builder
-         * @throws IllegalArgumentException if the number of arguments is odd
          */
-        public InlineKeyboardBuilder row(String... textAndCallbackPairs) {
-            if (textAndCallbackPairs.length % 2 != 0) {
-                throw new IllegalArgumentException(
-                        "Arguments must be in (textCode, callbackData) pairs but got " +
-                        textAndCallbackPairs.length + " elements");
-            }
+        public InlineKeyboardBuilder row(String... buttonCodes) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();
-            for (int i = 0; i < textAndCallbackPairs.length; i += 2) {
+            for (String code : buttonCodes) {
                 String text = Objects.nonNull(locale)
-                        ? messageSource.getMessage(textAndCallbackPairs[i], locale)
-                        : messageSource.getMessage(textAndCallbackPairs[i], request);
+                        ? messageSource.getMessage(code, locale)
+                        : messageSource.getMessage(code, request);
                 buttons.add(InlineKeyboardButton.builder()
                         .text(text)
-                        .callbackData(textAndCallbackPairs[i + 1])
+                        .callbackData(code)
                         .build());
             }
             rows.add(new InlineKeyboardRow(buttons));

@@ -1,5 +1,6 @@
 package uz.osoncode.easygram.core.handler.invocation;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
@@ -55,7 +56,7 @@ public class DefaultBotHandlerInvocationChain implements BotHandlerInvocationCha
      * @param context the mutable invocation context; must not be {@code null}
      */
     @Override
-    public void proceed(BotHandlerInvocationContext context) {
+    public void proceed(BotHandlerInvocationContext context) throws InvocationTargetException, IllegalAccessException {
         if (startIndex < filters.size()) {
             BotHandlerInvocationFilter current = filters.get(startIndex);
             BotHandlerInvocationChain next = new DefaultBotHandlerInvocationChain(filters, startIndex + 1);

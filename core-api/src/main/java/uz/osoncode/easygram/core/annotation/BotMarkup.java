@@ -1,5 +1,7 @@
 package uz.osoncode.easygram.core.annotation;
+
 import uz.osoncode.easygram.core.bind.annotation.BotReplyMarkup;
+import uz.osoncode.easygram.core.chatstate.BotChatState;
 
 import java.lang.annotation.*;
 
@@ -34,6 +36,21 @@ import java.lang.annotation.*;
  * {@link org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard}
  * (e.g. {@code InlineKeyboardMarkup}, {@code ReplyKeyboardMarkup}).</p>
  *
+ * <h2>State-bound keyboards (combined with {@link uz.osoncode.easygram.core.chatstate.BotChatState})</h2>
+ * <p>Adding {@link uz.osoncode.easygram.core.chatstate.BotChatState @BotChatState("STATE")} to a
+ * {@code @BotMarkup} method registers the same factory as the <em>default keyboard</em> for that
+ * chat state. When a handler completes without an explicit keyboard or markup ID set, the
+ * framework automatically attaches the state-bound keyboard — either for the current state or
+ * for the state declared on {@code @BotForwardChatState}. The keyboard is still reachable by
+ * its named ID ({@link #value()}) regardless of the state binding.</p>
+ *
+ * <p><b>Constraint:</b> {@code @BotChatState} used here must declare at least one state name;
+ * an empty value array is silently ignored (no state binding is registered).</p>
+ *
+ * <p><b>Edit-mode constraint:</b> only {@code InlineKeyboardMarkup} is accepted by Telegram's
+ * edit-message API. When a handler returns with {@code editMessage = true}, a state-bound
+ * {@code ReplyKeyboardMarkup} registered here is silently skipped.</p>
+ *
  * <h2>Example</h2>
  * <pre>{@code
  * @BotConfiguration
@@ -56,10 +73,19 @@ import java.lang.annotation.*;
  *     public InlineKeyboardMarkup profileKb(User user, Chat chat) {
  *         return InlineKeyboardMarkup.builder()...build();
  *     }
+ *
+ *     // State-bound keyboard — auto-applied when entering "REGISTRATION"
+ *     @BotMarkup("registration_kb")
+ *     @BotChatState("REGISTRATION")
+ *     public ReplyKeyboardMarkup registrationKb() {
+ *         return ReplyKeyboardMarkup.builder()...build();
+ *     }
  * }
  * }</pre>
  *
  * @author Islom Mirsaburov
+ * @see uz.osoncode.easygram.core.chatstate.BotChatState
+ * @see uz.osoncode.easygram.core.markup.BotMarkupRegistry
  * @since 0.0.1
  */
 @Target(ElementType.METHOD)

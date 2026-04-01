@@ -39,7 +39,7 @@ public class BotCallbackQueryDataArgumentResolver implements BotArgumentResolver
      */
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return parameter.getType().equals(CallbackQuery.class)
+        return ParameterUtils.effectiveType(parameter).equals(CallbackQuery.class)
                 || parameter.isAnnotationPresent(BotCallbackQueryData.class);
     }
 

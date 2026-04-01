@@ -103,6 +103,21 @@ public interface MarkupAware {
     MarkupAware removeMarkup();
 
     /**
+     * Returns {@code true} if the handler should edit the original message (via
+     * {@code EditMessageText}) rather than send a new message, when the current request
+     * originates from a callback query.
+     *
+     * <p>Defaults to {@code false}. Implementations override this when an
+     * {@code editMessage} flag is set on the return value.</p>
+     *
+     * @return {@code true} to edit the originating callback-query message
+     * @since 0.0.2
+     */
+    default boolean isEditMessage() {
+        return false;
+    }
+
+    /**
      * Returns {@code true} if this reply instructs to remove the current markup.
      *
      * @return {@code true} if markup should be removed

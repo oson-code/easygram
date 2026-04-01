@@ -13,6 +13,7 @@ multi-step flows, and broker-forwarding (producer) patterns.
   - [longpolling-bot](#longpolling-bot)
   - [webhook-bot](#webhook-bot)
   - [chatstate-bot](#chatstate-bot)
+  - [i18n-registration-bot](#i18n-registration-bot)
   - [longpolling-as-producer](#longpolling-as-producer)
   - [webhook-as-producer](#webhook-as-producer)
   - [kafka-consumer-bot](#kafka-consumer-bot)
@@ -28,6 +29,7 @@ multi-step flows, and broker-forwarding (producer) patterns.
 | `longpolling-bot` | Long-polling | — | — | Minimal echo bot |
 | `webhook-bot` | Webhook | — | — | Echo bot over HTTPS webhook |
 | `chatstate-bot` | Long-polling | — | ✅ | Multi-step registration wizard |
+| `i18n-registration-bot` | Long-polling | — | ✅ | i18n wizard: `LocalizedReply`, `LocalizedTemplate`, `@BotTextPattern`, `@BotReplyButton`, observability |
 | `longpolling-as-producer` | Long-polling | Kafka / RabbitMQ | — | Forwards updates to a broker |
 | `webhook-as-producer` | Webhook | Kafka / RabbitMQ | — | Forwards updates to a broker |
 | `kafka-consumer-bot` | Kafka consumer | Kafka | — | Processes updates from a Kafka topic |
@@ -188,6 +190,77 @@ Bot:   🎉 Registration complete! City: Tashkent ...
 User:  /status
 Bot:   ℹ️ You have no active registration wizard.
 ```
+
+---
+
+### i18n-registration-bot
+
+**Module:** `samples/i18n-registration-bot`
+
+Internationalised multi-step registration wizard. Builds on the chat-state concepts from
+`chatstate-bot` and layers in every i18n feature: `LocalizedReply`, `LocalizedTemplate`,
+`@BotReplyButton` with message-key matching, `@BotTextPattern` for declarative input
+validation routing, and Spring Boot Actuator / Micrometer observability.
+
+**Registration flow:**
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> AWAITING_NAME : /register
+    AWAITING_NAME --> AWAITING_PHONE : name sent
+    AWAITING_PHONE --> AWAITING_CITY : valid phone / @BotContact
+    AWAITING_PHONE --> AWAITING_PHONE : invalid input (re-prompt)
+    AWAITING_CITY --> Idle : city sent (done ✅)
+    AWAITING_NAME --> Idle : cancel button
+    AWAITING_PHONE --> Idle : cancel button
+    AWAITING_CITY --> Idle : cancel button
+```
+
+**Key classes:**
+
+| Class | Purpose |
+|---|---|
+| `I18nRegistrationBotApplication` | Spring Boot entry point |
+| `RegistrationState` | Enum: `AWAITING_NAME`, `AWAITING_PHONE`, `AWAITING_CITY` |
+| `RegistrationController` | Wizard steps; uses `LocalizedReply` / `LocalizedTemplate` and `@BotTextPattern` for phone routing |
+| `GlobalController` | `/start`, `/status`, `/cancel`; demonstrates `LocalizedTemplate` with positional args and `Locale` injection |
+| `RegistrationMarkups` | `@BotMarkup`-annotated keyboards (cancel button, phone request) |
+
+**i18n patterns demonstrated:**
+
+1. **`LocalizedReply`** — every step prompt is a single translated message key
+2. **`LocalizedTemplate`** — registration summary mixes `${key}` lookups and `#{n}` positional args
+3. **`@BotReplyButton("btn.cancel")`** — one annotation matches "❌ Cancel", "❌ Bekor qilish", and "❌ Отмена" automatically
+4. **`@BotTextPattern`** — routes valid phone numbers (`^\+\d{7,15}$`) to one handler and invalid input to another, eliminating if/else validation
+5. **`Locale` injection** — injected directly as a method parameter via `BotLocaleArgumentResolver`
+6. **`@BotContact`** — accepts a Telegram contact share as an alternative to typing a number
+7. **Bean Validation** — `@NotBlank` / `@Size` on handler parameters; caught by a local `@BotExceptionHandler(ConstraintViolationException.class)` that returns localised error messages
+
+**Observability included** — the sample ships with a `docker-compose.yml` running Prometheus + Grafana. The pre-built Grafana dashboard visualises `telegram.bot.update` latency histograms and error rates.
+
+**Configuration snippet:**
+
+```yaml
+telegram:
+  bot:
+    token: "BOT_TOKEN"
+
+spring:
+  messages:
+    basename: messages/bot
+    encoding: UTF-8
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+```
+
+**Dependencies:** `spring-boot-starter` (includes `core-i18n`, `core-chatstate`, `core-observability` transitively)
+
+**Supported locales:** English (`en`), Uzbek (`uz`), Russian (`ru`)
 
 ---
 

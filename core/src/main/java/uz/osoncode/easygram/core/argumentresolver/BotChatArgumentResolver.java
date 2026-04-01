@@ -28,7 +28,7 @@ public class BotChatArgumentResolver implements BotArgumentResolver {
      */
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return parameter.getType().equals(Chat.class);
+        return ParameterUtils.effectiveType(parameter).equals(Chat.class);
     }
 
     /**

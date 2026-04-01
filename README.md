@@ -30,7 +30,7 @@
 - **Zero-config autoconfiguration** — a single property is all that's required to start
 - **Four transports** — long-polling (default), webhook, Kafka consumer, RabbitMQ consumer; switch with one property
 - **Annotation-driven routing** — `@BotCommand`, `@BotText`, `@BotCallbackQuery`, `@BotContact`, `@BotLocation`, `@BotDefaultHandler`, and more
-- **Smart parameter injection** — inject `Update`, `User`, `Chat`, `CallbackQuery`, `TelegramClient`, `BotRequest`, `BotResponse`, or annotated scalars
+- **Smart parameter injection** — inject `Update`, `User`, `Chat`, `CallbackQuery`, `TelegramClient`, `BotRequest`, `BotResponse`, or annotated scalars; wrap any type in `Optional<T>` for safe optional injection
 - **Composable filter pipeline** — `BotFilter` to intercept every update before handlers (auth, logging, rate-limiting, …)
 - **Chat state management** — `@BotChatState` + pluggable `BotChatStateService`; ships with a thread-safe in-memory default; annotation-driven transitions via `@BotForwardChatState` / `@BotClearChatState`
 - **Handler priority** — `@BotOrder` for fine-grained control when multiple handlers match
@@ -62,13 +62,14 @@ easygram/
 ├── longpolling/                # Long-polling transport autoconfiguration
 ├── webhook/                    # Webhook transport autoconfiguration (Spring MVC)
 │
-├── messaging/                  # SPI: BotUpdatePublisher interface + BotUpdatePublishingFilter
+├── messaging-api/              # SPI: BotUpdatePublisher interface + BotUpdatePublishingFilter
 ├── messaging-kafka/            # Kafka publisher (KafkaTemplate)
 ├── messaging-rabbit/           # RabbitMQ publisher (RabbitTemplate)
 ├── messaging-producer/         # Smart routing: publishes to kafka OR rabbit based on property
 │
-├── kafka-consumer/             # Kafka consumer transport (@KafkaListener → Bot)
-├── rabbit-consumer/            # RabbitMQ consumer transport (@RabbitListener → Bot)
+├── messaging-kafka-consumer/   # Kafka consumer transport (@KafkaListener → Bot)
+├── messaging-rabbit-consumer/  # RabbitMQ consumer transport (@RabbitListener → Bot)
+├── messaging-consumer/         # Aggregator: activates kafka OR rabbit consumer via one property
 │
 ├── spring-boot-starter/        # One-stop dependency: pulls transports + core + core-i18n
 └── samples/                    # Runnable example applications for each transport
@@ -92,10 +93,13 @@ graph TD
     MR --> MP
     MK --> KC[messaging-kafka-consumer]
     MR --> RC[messaging-rabbit-consumer]
+    KC --> MC[messaging-consumer]
+    RC --> MC
     LP --> SBS[spring-boot-starter]
     WH --> SBS
     KC --> SBS
     RC --> SBS
+    MC --> SBS
     CI --> SBS
 ```
 
@@ -121,14 +125,14 @@ Add the starter to your `pom.xml` — it includes all transports and the core en
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 ```
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("uz.osoncode.easygram:spring-boot-starter:0.0.1")
+implementation("uz.osoncode.easygram:spring-boot-starter:0.0.3")
 ```
 
 > For broker publisher/consumer dependencies, see the relevant [module READMEs](#-module-documentation).
@@ -158,7 +162,7 @@ Only **one** transport is active at a time. See the linked module README for ful
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 ```
 
@@ -295,6 +299,7 @@ See [core-i18n/README.md](core-i18n/README.md) for full usage.
 | Smart Producer (Kafka + RabbitMQ) | `messaging-producer` | [messaging-producer/README.md](messaging-producer/README.md) |
 | Kafka Consumer Transport | `messaging-kafka-consumer` | [messaging-kafka-consumer/README.md](messaging-kafka-consumer/README.md) |
 | RabbitMQ Consumer Transport | `messaging-rabbit-consumer` | [messaging-rabbit-consumer/README.md](messaging-rabbit-consumer/README.md) |
+| Consumer Aggregator (Kafka + RabbitMQ) | `messaging-consumer` | [messaging-consumer/README.md](messaging-consumer/README.md) |
 | Spring Boot Starter | `spring-boot-starter` | [spring-boot-starter/README.md](spring-boot-starter/README.md) |
 | Samples (runnable apps) | — | [samples/README.md](samples/README.md) |
 

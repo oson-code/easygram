@@ -33,21 +33,21 @@ BotUpdatePublishingFilter ← messaging-producer
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-kafka</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 
 <!-- RabbitMQ publishing -->
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-rabbit</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 
 <!-- Smart routing: Kafka OR RabbitMQ based on a single property -->
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-producer</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 ```
 

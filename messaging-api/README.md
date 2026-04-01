@@ -52,7 +52,7 @@ telegram:
       forward-only: false           # false = publish AND process locally (default)
                                     # true  = publish ONLY, skip bot handlers
       producer:
-        consumer-type: kafka        # kafka | rabbit
+        producer-type: kafka        # kafka | rabbit
 ```
 
 This is useful when running a dedicated forwarding instance (see the producer examples in [samples/README.md](../samples/README.md)) that should not handle updates itself.

@@ -15,7 +15,7 @@
 
 ## What It Does
 
-Wires the correct `BotUpdatePublisher` (Kafka or RabbitMQ) based on `telegram.bot.messaging.producer.consumer-type`. Optionally auto-creates broker resources (Kafka topic, RabbitMQ exchange/queue/binding) when `create-if-absent=true` (default). A `BotUpdatePublishingFilter` runs at `Integer.MIN_VALUE + 1000` (very early in the filter chain) to ensure every update is captured before any business logic.
+Wires the correct `BotUpdatePublisher` (Kafka or RabbitMQ) based on `telegram.bot.messaging.producer.producer-type`. Optionally auto-creates broker resources (Kafka topic, RabbitMQ exchange/queue/binding) when `create-if-absent=true` (default). A `BotUpdatePublishingFilter` runs at `Integer.MIN_VALUE + 1000` (very early in the filter chain) to ensure every update is captured before any business logic.
 
 ## Kafka Setup
 
@@ -38,7 +38,7 @@ telegram:
   bot:
     messaging:
       producer:
-        consumer-type: kafka
+        producer-type: kafka
       kafka:
         topic: telegram-updates
         create-if-absent: true
@@ -56,7 +56,7 @@ spring:
 
 | Property | Required | Default | Description |
 |---|---|---|---|
-| `telegram.bot.messaging.producer.consumer-type` | ✅ | — | Must be `kafka` |
+| `telegram.bot.messaging.producer.producer-type` | ✅ | — | Must be `kafka` |
 | `telegram.bot.messaging.kafka.topic` | ✅ | — | Topic to publish to |
 | `telegram.bot.messaging.kafka.create-if-absent` | ❌ | `true` | Auto-create the topic if absent |
 | `telegram.bot.messaging.kafka.partitions` | ❌ | `1` | Partitions for auto-created topic |
@@ -84,7 +84,7 @@ telegram:
   bot:
     messaging:
       producer:
-        consumer-type: rabbit
+        producer-type: rabbit
       rabbit:
         exchange: telegram-exchange
         routing-key: telegram.updates
@@ -104,7 +104,7 @@ spring:
 
 | Property | Required | Default | Description |
 |---|---|---|---|
-| `telegram.bot.messaging.producer.consumer-type` | ✅ | — | Must be `rabbit` |
+| `telegram.bot.messaging.producer.producer-type` | ✅ | — | Must be `rabbit` |
 | `telegram.bot.messaging.rabbit.exchange` | ✅ | — | Exchange to publish to |
 | `telegram.bot.messaging.rabbit.routing-key` | ✅ | `telegram.updates` | Routing key |
 | `telegram.bot.messaging.rabbit.queue` | ❌ | `telegram-updates` | Queue bound during auto-creation |

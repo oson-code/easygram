@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
-@Target({ElementType.PARAMETER, ElementType.METHOD})
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface BotTextDefault {
 }

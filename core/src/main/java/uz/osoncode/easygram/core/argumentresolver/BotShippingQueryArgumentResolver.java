@@ -18,7 +18,7 @@ public class BotShippingQueryArgumentResolver implements BotArgumentResolver {
 
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return parameter.getType().equals(ShippingQuery.class);
+        return ParameterUtils.effectiveType(parameter).equals(ShippingQuery.class);
     }
 
     @Override

@@ -2,6 +2,7 @@ package uz.osoncode.easygram.core.handler.invocation;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import uz.osoncode.easygram.core.bind.annotation.BotClearChatState;
 import uz.osoncode.easygram.core.bind.annotation.BotClearMarkup;
@@ -12,6 +13,7 @@ import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.markup.MarkupAware;
 import uz.osoncode.easygram.core.reply.PlainReply;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -43,7 +45,10 @@ import java.util.Optional;
  *         <li>Otherwise → look up the current state from {@link BotChatStateService}.</li>
  *       </ul>
  *       If a keyboard is registered for that state in {@link BotMarkupRegistry}, it is
- *       attached via {@code withKeyboard(keyboard)}.
+ *       attached via {@code withKeyboard(keyboard)} — <em>unless</em> the return value
+ *       has {@code isEditMessage() == true} and the resolved keyboard is not an
+ *       {@code InlineKeyboardMarkup}: Telegram's edit-message API only supports inline
+ *       keyboards, so a non-inline state-bound keyboard is skipped in that context.
  *   </li>
  * </ol>
  *
@@ -83,7 +88,7 @@ public class MarkupApplicationFilter implements BotHandlerInvocationFilter {
      * @param chain   the remaining filter chain
      */
     @Override
-    public void invoke(BotHandlerInvocationContext context, BotHandlerInvocationChain chain) {
+    public void invoke(BotHandlerInvocationContext context, BotHandlerInvocationChain chain) throws InvocationTargetException, IllegalAccessException {
         Object returnValue = context.getReturnValue();
 
         if (Objects.nonNull(returnValue)) {
@@ -99,7 +104,8 @@ public class MarkupApplicationFilter implements BotHandlerInvocationFilter {
                     context.setReturnValue(markupAware.withMarkup(replyMarkup.value()));
                 } else if (Objects.isNull(markupAware.getKeyboard()) && Objects.isNull(markupAware.getMarkupId())) {
                     ReplyKeyboard stateKeyboard = resolveStateKeyboard(context);
-                    if (Objects.nonNull(stateKeyboard)) {
+                    if (Objects.nonNull(stateKeyboard)
+                            && (!markupAware.isEditMessage() || stateKeyboard instanceof InlineKeyboardMarkup)) {
                         context.setReturnValue(markupAware.withKeyboard(stateKeyboard));
                     }
                 }

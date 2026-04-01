@@ -17,7 +17,7 @@ public class BotMetadataArgumentResolver implements BotArgumentResolver {
 
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return BotMetadata.class.isAssignableFrom(parameter.getType());
+        return BotMetadata.class.isAssignableFrom(ParameterUtils.effectiveType(parameter));
     }
 
     @Override

@@ -28,7 +28,7 @@ public class BotUpdateArgumentResolver implements BotArgumentResolver {
      */
     @Override
     public boolean supportsParameter(Parameter parameter) {
-        return parameter.getType().equals(Update.class);
+        return ParameterUtils.effectiveType(parameter).equals(Update.class);
     }
 
     /**

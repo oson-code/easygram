@@ -36,6 +36,7 @@ public class BotTextDefaultMetaDataResolver implements BotMetaDataDefaultResolve
      */
     @Override
     public boolean support(BotRequest botRequest, BotTextDefault annotation) {
-        return botRequest.getUpdate().hasMessage() && botRequest.getUpdate().getMessage().hasText();
+        return botRequest.getUpdate().hasMessage() && botRequest.getUpdate().getMessage().hasText()
+                && !botRequest.getUpdate().getMessage().getText().startsWith("/");
     }
 }
