@@ -17,7 +17,7 @@ import uz.osoncode.easygram.core.trigger.BotStartTrigger;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Concrete Telegram bot implementation that uses the webhook transport mechanism.
@@ -48,7 +48,6 @@ import java.util.concurrent.ExecutorService;
 public class WebhookBot extends Bot implements InitializingBean, DisposableBean {
 
     private final WebhookBotProperties webhookBotProperties;
-    private final ExecutorService executorService;
 
     /**
      * Constructs a new {@code WebhookBot} wired from fine-grained provider beans.
@@ -81,7 +80,6 @@ public class WebhookBot extends Bot implements InitializingBean, DisposableBean 
                 botExceptionHandlerRegistry
         );
         this.webhookBotProperties = webhookBotProperties;
-        this.executorService = executorServiceProvider.provide();
     }
 
     /**
@@ -126,6 +124,14 @@ public class WebhookBot extends Bot implements InitializingBean, DisposableBean 
             log.info("Telegram webhook unregistered");
         }
         executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(30, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
         log.info("Telegram webhook bot stopped");
     }
 }

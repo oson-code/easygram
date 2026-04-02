@@ -14,7 +14,7 @@ import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Telegram bot implementation that uses a RabbitMQ queue as its update transport.
@@ -40,8 +40,6 @@ import java.util.concurrent.ExecutorService;
  */
 @Slf4j
 public class RabbitConsumerBot extends Bot implements InitializingBean, DisposableBean {
-
-    private final ExecutorService executorService;
 
     /**
      * Constructs a new {@code RabbitConsumerBot} wired from fine-grained provider beans.
@@ -73,7 +71,6 @@ public class RabbitConsumerBot extends Bot implements InitializingBean, Disposab
                 telegramClientProvider.provide(botProperties.token()),
                 botExceptionHandlerRegistry
         );
-        this.executorService = executorServiceProvider.provide();
     }
 
     /**
@@ -92,6 +89,14 @@ public class RabbitConsumerBot extends Bot implements InitializingBean, Disposab
     @Override
     public void destroy() {
         executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(30, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
         log.info("Telegram RabbitMQ consumer bot stopped");
     }
 }
