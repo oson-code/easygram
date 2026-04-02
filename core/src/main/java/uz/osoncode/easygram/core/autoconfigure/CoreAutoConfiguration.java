@@ -10,10 +10,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.meta.TelegramUrl;
+
 import java.util.Objects;
+
 import uz.osoncode.easygram.core.argumentresolver.BotArgumentResolver;
 import uz.osoncode.easygram.core.argumentresolver.BotArgumentResolverFactory;
 import uz.osoncode.easygram.core.argumentresolver.BotCallbackQueryDataArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotMessageArgumentResolver;
 import uz.osoncode.easygram.core.markup.BotMarkupFactory;
 import uz.osoncode.easygram.core.markup.BotMarkupLoader;
 import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
@@ -297,6 +300,17 @@ public class CoreAutoConfiguration {
     @Bean
     public BotUpdateArgumentResolver botUpdateArgumentResolver() {
         return new BotUpdateArgumentResolver();
+    }
+
+
+    /**
+     * Registers the argument resolver that injects the Telegram {@code Message} into handler methods.
+     *
+     * @return a new {@link BotMessageArgumentResolver} instance
+     */
+    @Bean
+    public BotMessageArgumentResolver botMessageArgumentResolver() {
+        return new BotMessageArgumentResolver();
     }
 
     /**
