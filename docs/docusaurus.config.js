@@ -6,11 +6,7 @@ const config = {
   url: 'https://easygram.osoncode.uz',
   baseUrl: '/',
   onBrokenLinks: 'throw',
-  markdown: {
-    hooks: {
-      onBrokenMarkdownLinks: 'warn',
-    },
-  },
+  onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'oson-code',
   projectName: 'easygram',
@@ -76,7 +72,6 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: 'img/docusaurus-social-card.jpg',
       navbar: {
         title: 'Easygram',
         style: 'dark',
