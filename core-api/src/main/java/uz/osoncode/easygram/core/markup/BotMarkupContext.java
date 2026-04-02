@@ -57,7 +57,7 @@ public final class BotMarkupContext {
     /**
      * Creates a {@code BotMarkupContext} from the given parameter map.
      *
-     * @param params the parameters; must not be {@code null}
+     * @param params the parameters; may be {@code null} or empty (returns {@link #EMPTY})
      * @return a new immutable {@code BotMarkupContext}
      */
     public static BotMarkupContext of(Map<String, Object> params) {

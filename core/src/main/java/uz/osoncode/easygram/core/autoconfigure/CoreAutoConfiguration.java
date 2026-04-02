@@ -10,10 +10,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.meta.TelegramUrl;
+
 import java.util.Objects;
+
 import uz.osoncode.easygram.core.argumentresolver.BotArgumentResolver;
 import uz.osoncode.easygram.core.argumentresolver.BotArgumentResolverFactory;
 import uz.osoncode.easygram.core.argumentresolver.BotCallbackQueryDataArgumentResolver;
+import uz.osoncode.easygram.core.argumentresolver.BotMessageArgumentResolver;
 import uz.osoncode.easygram.core.markup.BotMarkupFactory;
 import uz.osoncode.easygram.core.markup.BotMarkupLoader;
 import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
@@ -23,9 +26,11 @@ import uz.osoncode.easygram.core.returntypehandler.BotPlainReplyReturnTypeHandle
 import uz.osoncode.easygram.core.returntypehandler.BotPlainTextTemplateReturnTypeHandler;
 
 import jakarta.validation.Validator;
+
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import uz.osoncode.easygram.core.argumentresolver.BotChatArgumentResolver;
 import uz.osoncode.easygram.core.argumentresolver.BotCommandArgumentResolver;
 import uz.osoncode.easygram.core.argumentresolver.BotCommandQueryParamBotArgumentResolver;
@@ -72,8 +77,12 @@ import uz.osoncode.easygram.core.handler.BotHandlerLoader;
 import uz.osoncode.easygram.core.handler.BotHandlerRegistry;
 import uz.osoncode.easygram.core.handler.BotMethodHandlerFactory;
 import uz.osoncode.easygram.core.handler.DefaultBotMethodHandlerFactory;
+import uz.osoncode.easygram.core.argumentresolver.BotDynamicCallbackDataArgumentResolver;
+import uz.osoncode.easygram.core.dynamiccallback.BotDynamicCallbackQueryService;
+import uz.osoncode.easygram.core.dynamiccallback.InMemoryBotDynamicCallbackQueryService;
 import uz.osoncode.easygram.core.handler.callbackquery.metadataresolver.BotCallbackQueryMetaDataResolver;
 import uz.osoncode.easygram.core.handler.callbackquery.metadataresolver.BotDefaultCallbackQueryMetaDataResolver;
+import uz.osoncode.easygram.core.handler.callbackquery.metadataresolver.BotDynamicCallbackQueryMetaDataResolver;
 import uz.osoncode.easygram.core.handler.defaulthandler.metadataresolver.BotDefaultHandlerMetaDataResolver;
 import uz.osoncode.easygram.core.handler.invocation.BotHandlerInvocationFilter;
 import uz.osoncode.easygram.core.handler.invocation.ChatStateUpdateFilter;
@@ -188,6 +197,17 @@ public class CoreAutoConfiguration {
     }
 
     /**
+     * Registers the argument resolver that injects {@link uz.osoncode.easygram.core.dynamiccallback.BotDynamicCallbackData}
+     * into handler method parameters.
+     *
+     * @return a new {@link BotDynamicCallbackDataArgumentResolver} instance
+     */
+    @Bean
+    public BotDynamicCallbackDataArgumentResolver botDynamicCallbackDataArgumentResolver() {
+        return new BotDynamicCallbackDataArgumentResolver();
+    }
+
+    /**
      * Registers the argument resolver that extracts the {@code Chat} object from the bot request.
      *
      * @return a new {@link BotChatArgumentResolver} instance
@@ -297,6 +317,17 @@ public class CoreAutoConfiguration {
     @Bean
     public BotUpdateArgumentResolver botUpdateArgumentResolver() {
         return new BotUpdateArgumentResolver();
+    }
+
+
+    /**
+     * Registers the argument resolver that injects the Telegram {@code Message} into handler methods.
+     *
+     * @return a new {@link BotMessageArgumentResolver} instance
+     */
+    @Bean
+    public BotMessageArgumentResolver botMessageArgumentResolver() {
+        return new BotMessageArgumentResolver();
     }
 
     /**
@@ -559,6 +590,31 @@ public class CoreAutoConfiguration {
     @Bean
     public BotDefaultCallbackQueryMetaDataResolver botDefaultCallbackQueryMetaDataResolver() {
         return new BotDefaultCallbackQueryMetaDataResolver();
+    }
+
+    /**
+     * Registers the default in-memory implementation of {@link BotDynamicCallbackQueryService}.
+     * Replace this bean with a custom implementation (e.g., Redis-backed) to change persistence behaviour.
+     *
+     * @return a new {@link InMemoryBotDynamicCallbackQueryService} instance
+     */
+    @Bean
+    @ConditionalOnMissingBean(BotDynamicCallbackQueryService.class)
+    public InMemoryBotDynamicCallbackQueryService inMemoryBotDynamicCallbackQueryService() {
+        return new InMemoryBotDynamicCallbackQueryService();
+    }
+
+    /**
+     * Registers the metadata resolver that maps {@code @BotDynamicCallbackQuery} annotations
+     * to routing metadata by consulting {@link BotDynamicCallbackQueryService}.
+     *
+     * @param dynamicCallbackQueryService the service used to resolve payloads by callback key
+     * @return a new {@link BotDynamicCallbackQueryMetaDataResolver} instance
+     */
+    @Bean
+    public BotDynamicCallbackQueryMetaDataResolver botDynamicCallbackQueryMetaDataResolver(
+            BotDynamicCallbackQueryService dynamicCallbackQueryService) {
+        return new BotDynamicCallbackQueryMetaDataResolver(dynamicCallbackQueryService);
     }
 
     /**
@@ -1071,11 +1127,11 @@ public class CoreAutoConfiguration {
      * annotated with {@link uz.osoncode.easygram.core.chatstate.BotChatState} are only
      * selected when the current chat is in the required state.</p>
      *
-     * @param applicationContext           the Spring application context used to discover exception handler beans
-     * @param botArgumentResolverFactory   factory for resolving exception handler method parameters
-     * @param botExceptionHandlerRegistry  registry where discovered exception handlers are stored
-     * @param botReturnTypeHandlerFactory  factory for resolving exception handler method return types
-     * @param chatStateService             optional chat-state service; empty when the module is absent
+     * @param applicationContext          the Spring application context used to discover exception handler beans
+     * @param botArgumentResolverFactory  factory for resolving exception handler method parameters
+     * @param botExceptionHandlerRegistry registry where discovered exception handlers are stored
+     * @param botReturnTypeHandlerFactory factory for resolving exception handler method return types
+     * @param chatStateService            optional chat-state service; empty when the module is absent
      * @return a new {@link BotMethodExceptionHandlerLoader} instance
      */
     @Bean
@@ -1191,9 +1247,9 @@ public class CoreAutoConfiguration {
      * <p>Override this bean to supply a fully custom {@link org.telegram.telegrambots.meta.generics.TelegramClient}
      * (e.g. a test stub or a client backed by a different HTTP library).</p>
      *
-     * @param objectMapperProvider  provider for the Jackson {@link ObjectMapper}
-     * @param okHttpClientProvider  provider for the underlying {@link OkHttpClient}
-     * @param telegramUrlProvider   provider for the Telegram API base URL
+     * @param objectMapperProvider provider for the Jackson {@link ObjectMapper}
+     * @param okHttpClientProvider provider for the underlying {@link OkHttpClient}
+     * @param telegramUrlProvider  provider for the Telegram API base URL
      * @return a {@link BotTelegramClientProvider} that constructs an {@link OkHttpTelegramClient}
      */
     @Bean

@@ -1,7 +1,6 @@
 package uz.osoncode.easygram.messaging.rabbit.consumer;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -39,10 +38,13 @@ public class RabbitBotUpdateListener {
      * @param message the raw AMQP message from RabbitMQ
      */
     @RabbitListener(queues = "${telegram.bot.rabbit-consumer.queue}", containerFactory = "botRabbitListenerContainerFactory")
-    @SneakyThrows
     public void onMessage(Message message) {
         log.debug("Received RabbitMQ message: messageId={}", message.getMessageProperties().getMessageId());
-        Update update = objectMapperProvider.provide().readValue(message.getBody(), Update.class);
-        rabbitConsumerBot.handleUpdate(update);
+        try {
+            Update update = objectMapperProvider.provide().readValue(message.getBody(), Update.class);
+            rabbitConsumerBot.handleUpdate(update);
+        } catch (Exception e) {
+            log.error("Failed to process RabbitMQ message: messageId={}", message.getMessageProperties().getMessageId(), e);
+        }
     }
 }

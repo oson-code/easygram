@@ -8,7 +8,7 @@
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-rabbit</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.4</version>
 </dependency>
 <dependency>
     <groupId>org.springframework.boot</groupId>

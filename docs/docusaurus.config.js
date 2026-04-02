@@ -6,11 +6,7 @@ const config = {
   url: 'https://easygram.osoncode.uz',
   baseUrl: '/',
   onBrokenLinks: 'throw',
-  markdown: {
-    hooks: {
-      onBrokenMarkdownLinks: 'warn',
-    },
-  },
+  onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'oson-code',
   projectName: 'easygram',
@@ -37,8 +33,12 @@ const config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '0.0.3',
+              label: '0.0.4',
               path: '/',
+            },
+            '0.0.3': {
+              label: '0.0.3',
+              path: '/0.0.3',
             },
             '0.0.2': {
               label: '0.0.2',
@@ -72,7 +72,6 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: 'img/docusaurus-social-card.jpg',
       navbar: {
         title: 'Easygram',
         style: 'dark',

@@ -1,5 +1,6 @@
 package uz.osoncode.easygram.core.returntypehandler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import uz.osoncode.easygram.core.bind.annotation.BotClearMarkup;
 import uz.osoncode.easygram.core.bind.annotation.BotReplyMarkup;
@@ -28,6 +29,7 @@ import java.util.Optional;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 public class BotStringReturnHandler implements BotReturnTypeHandler {
 
     private final Optional<BotMarkupRegistry> markupRegistry;
@@ -59,6 +61,11 @@ public class BotStringReturnHandler implements BotReturnTypeHandler {
     @Override
     public void handleReturnType(BotRequest botRequest, BotResponse botResponse, Object returnValue) {
         if (Objects.isNull(returnValue)) return;
+        if (Objects.isNull(botRequest.getChat())) {
+            log.warn("Cannot send String reply — no chat context in request for update: {}",
+                    botRequest.getUpdate().getUpdateId());
+            return;
+        }
         botResponse.addBotApiMethod(
                 SendMessage.builder()
                         .chatId(botRequest.getChat().getId())

@@ -1,8 +1,6 @@
 package uz.osoncode.easygram.messaging;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import uz.osoncode.easygram.core.filter.BotFilter;
@@ -38,7 +36,6 @@ public class BotUpdatePublishingFilter implements BotFilter {
 
     private final BotUpdatePublisher botUpdatePublisher;
     private final BotPublishingProperties botPublishingProperties;
-    private final ObjectMapper objectMapper;
 
     /**
      * Publishes the incoming update and optionally stops the filter chain.
@@ -48,7 +45,6 @@ public class BotUpdatePublishingFilter implements BotFilter {
      * @param chain    the remaining filter chain
      */
     @Override
-    @SneakyThrows
     public void doFilter(BotRequest request, BotResponse response, BotFilterChain chain) {
         Update update = request.getUpdate();
         try {

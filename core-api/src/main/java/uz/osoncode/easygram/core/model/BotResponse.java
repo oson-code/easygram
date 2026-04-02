@@ -26,10 +26,22 @@ import java.util.Objects;
 public class BotResponse {
 
     /** The ordered collection of Telegram API methods queued for execution. */
-    private Collection<BotApiMethod<?>> botApiMethods = new LinkedList<>();
+    private final Collection<BotApiMethod<?>> botApiMethods = new LinkedList<>();
+
+    /**
+     * Returns an unmodifiable view of the queued {@link BotApiMethod} instances.
+     *
+     * <p>To add methods, use {@link #addBotApiMethod(BotApiMethod)} or
+     * {@link #addBotApiMethods(Collection)} instead of modifying the returned collection.</p>
+     *
+     * @return an unmodifiable view of the API method queue; never {@code null}
+     */
+    public Collection<BotApiMethod<?>> getBotApiMethods() {
+        return Collections.unmodifiableCollection(botApiMethods);
+    }
 
     /** Response-scoped attribute store for passing metadata between processing components. */
-    private Map<String, Object> attributes = new LinkedHashMap<>();
+    private final Map<String, Object> attributes = new LinkedHashMap<>();
 
     /**
      * Appends a single {@link BotApiMethod} to the response queue.

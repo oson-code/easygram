@@ -17,6 +17,7 @@ import uz.osoncode.easygram.core.i18n.resolver.BotLocaleArgumentResolver;
 import uz.osoncode.easygram.core.i18n.resolver.UserLanguageCodeLocaleResolver;
 import uz.osoncode.easygram.core.i18n.returntypehandler.BotLocalizedReplyReturnTypeHandler;
 import uz.osoncode.easygram.core.i18n.returntypehandler.BotLocalizedTemplateReturnTypeHandler;
+import uz.osoncode.easygram.core.dynamiccallback.BotDynamicCallbackQueryService;
 import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandler;
 
@@ -66,6 +67,7 @@ public class BotI18nAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(BotLocaleArgumentResolver.class)
     public BotLocaleArgumentResolver botLocaleArgumentResolver(BotLocaleResolver localeResolver) {
         return new BotLocaleArgumentResolver(localeResolver);
     }
@@ -78,8 +80,9 @@ public class BotI18nAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(BotKeyboardFactory.class)
-    public BotKeyboardFactory botKeyboardFactory(BotMessageSource botMessageSource) {
-        return new BotKeyboardFactory(botMessageSource);
+    public BotKeyboardFactory botKeyboardFactory(BotMessageSource botMessageSource,
+                                                 Optional<BotDynamicCallbackQueryService> dynamicService) {
+        return new BotKeyboardFactory(botMessageSource, dynamicService.orElse(null));
     }
 
     /**
@@ -102,7 +105,9 @@ public class BotI18nAutoConfiguration {
     @ConditionalOnMissingBean(BotReplyButtonMatcher.class)
     public BotReplyButtonMatcher botReplyButtonMatcher(BotMessageSource botMessageSource) {
         return (values, request) -> {
+            if (!request.getUpdate().hasMessage()) return false;
             String incomingText = request.getUpdate().getMessage().getText();
+            if (incomingText == null) return false;
             for (String key : values) {
                 String resolved = botMessageSource.getMessage(key, request);
                 if (incomingText.equals(resolved)) {
@@ -134,7 +139,9 @@ public class BotI18nAutoConfiguration {
     @ConditionalOnMissingBean(BotInlineQueryMatcher.class)
     public BotInlineQueryMatcher botInlineQueryMatcher(BotMessageSource botMessageSource) {
         return (values, request) -> {
+            if (!request.getUpdate().hasInlineQuery()) return false;
             String queryText = request.getUpdate().getInlineQuery().getQuery();
+            if (queryText == null) return false;
             for (String key : values) {
                 String resolved = botMessageSource.getMessage(key, request);
                 if (queryText.equals(resolved)) {

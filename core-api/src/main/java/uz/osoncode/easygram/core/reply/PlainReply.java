@@ -178,6 +178,7 @@ public final class PlainReply implements MarkupAware {
      * @return a new {@code PlainReply} instance
      */
     public static PlainReply of(String text) {
+        java.util.Objects.requireNonNull(text, "text must not be null");
         return new PlainReply(text, null, null, null, false, false);
     }
 

@@ -42,6 +42,7 @@ public class BotCallbackQueryMetaDataResolver implements BotMetaDataSpecResolver
     public boolean support(BotRequest botRequest, BotCallbackQuery annotation) {
         if (!botRequest.getUpdate().hasCallbackQuery()) return false;
         String messageData = botRequest.getUpdate().getCallbackQuery().getData();
+        if (messageData == null) return false;
         for (String text : annotation.value()) {
             if (messageData.equals(text)) return true;
         }

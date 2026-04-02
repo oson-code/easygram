@@ -74,9 +74,11 @@ public class WebhookController {
         try {
             Update update = objectMapperProvider.provide().readValue(body, Update.class);
             webhookBot.handleUpdate(update);
-        } catch (Exception e) {
-            log.error("Failed to deserialize or process webhook update", e);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            log.error("Failed to deserialize webhook update", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (Exception e) {
+            log.error("Failed to process webhook update", e);
         }
 
         return ResponseEntity.ok().build();

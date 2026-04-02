@@ -44,6 +44,7 @@ module.exports = {
         'advanced/chat-state-backends',
         'advanced/broker-publishing',
         'advanced/observability',
+        'advanced/dynamic-callback-query',
       ],
     },
     {
@@ -71,6 +72,8 @@ module.exports = {
       label: 'Migration',
       items: [
         'migration/0.0.1-to-0.0.2',
+        'migration/0.0.2-to-0.0.3',
+        'migration/0.0.3-to-0.0.4',
       ],
     },
   ],

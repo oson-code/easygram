@@ -124,7 +124,13 @@ public abstract class Bot {
      */
     public final void handleUpdates(List<Update> updates) {
         for (Update update : updates) {
-            executorService.submit(() -> this.handleUpdate(update));
+            executorService.submit(() -> {
+                try {
+                    this.handleUpdate(update);
+                } catch (Exception e) {
+                    log.error("Unhandled exception processing update id={}", update.getUpdateId(), e);
+                }
+            });
         }
     }
 

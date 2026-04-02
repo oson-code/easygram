@@ -199,6 +199,7 @@ public final class PlainTextTemplate implements MarkupAware {
      * @return a new {@code PlainTextTemplate} instance
      */
     public static PlainTextTemplate of(String template, Object... args) {
+        java.util.Objects.requireNonNull(template, "template must not be null");
         return new PlainTextTemplate(template, args, null, null, null, false, false);
     }
 
@@ -253,7 +254,7 @@ public final class PlainTextTemplate implements MarkupAware {
     }
 
     public Object[] getArgs() {
-        return args;
+        return args != null ? args.clone() : null;
     }
 
     @Override

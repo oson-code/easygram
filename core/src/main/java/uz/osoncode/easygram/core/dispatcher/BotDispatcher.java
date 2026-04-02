@@ -57,15 +57,15 @@ public final class BotDispatcher {
         return botHandlerRegistry.getStateHandlers().stream()
                 .filter(h -> h.supports(botRequest))
                 .peek(h -> log.debug("Matched state handler: {}", h.info()))
-                .findAny()
+                .findFirst()
                 .orElseGet(() -> botHandlerRegistry.getBotHandlers().stream()
                         .filter(h -> h.supports(botRequest))
                         .peek(h -> log.debug("Matched specific handler: {}", h.info()))
-                        .findAny()
+                        .findFirst()
                         .orElseGet(() -> botHandlerRegistry.getDefaultHandlers().stream()
                                 .filter(h -> h.supports(botRequest))
                                 .peek(h -> log.debug("Matched default handler: {}", h.info()))
-                                .findAny()
+                                .findFirst()
                                 .orElseThrow(() -> new IllegalStateException(
                                         "No handler found for update: " + botRequest.getUpdate()))));
     }

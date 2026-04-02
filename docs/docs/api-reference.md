@@ -12,14 +12,18 @@ Complete reference for all easygram annotations, interfaces, model classes, and 
 ## Table of Contents
 
 - [Structural Annotations](#structural-annotations) — `@BotController`, `@BotControllerAdvice`, `@BotConfiguration`, `@BotMarkup`, `@BotOrder`
-- [Handler Routing Annotations](#handler-routing-annotations) — `@BotCommand`, `@BotText`, `@BotTextPattern`, `@BotCallbackQuery`, `@BotContact`, `@BotLocation`, `@BotReplyButton`, `@BotEditedMessage`, `@BotInlineQuery`, `@BotMyChatMember`, `@BotDefaultHandler`, `@BotExceptionHandler`, … (+14 more update types)
+- [Handler Routing Annotations](#handler-routing-annotations) — `@BotCommand`, `@BotText`, `@BotTextPattern`, `@BotCallbackQuery`, `@BotDynamicCallbackQuery`, `@BotContact`, `@BotLocation`, `@BotReplyButton`, `@BotEditedMessage`, `@BotInlineQuery`, `@BotMyChatMember`, `@BotChatMemberUpdate`, `@BotDefaultHandler`, `@BotExceptionHandler`, … (+14 more update types)
 - [Parameter Annotations](#parameter-annotations) — `@BotCommandValue`, `@BotTextValue`, `@BotCallbackQueryData`, `@BotCommandQueryParam`, `@BotInlineQueryValue`, `@BotChosenInlineResultId`, `@BotShippingPayload`, `@BotPreCheckoutPayload`
 - [Response Annotations](#response-annotations) — `@BotReplyMarkup`, `@BotClearMarkup`
 - [Chat State Annotations](#chat-state-annotations) — `@BotChatState`, `@BotForwardChatState`, `@BotClearChatState`
 - [Return Types](#return-types)
-- [Model Classes](#model-classes) — `BotRequest`, `BotResponse`, `BotMetadata`, `BotMarkupContext`
-- [Extension Interfaces](#extension-interfaces) — `BotFilter`, `BotArgumentResolver`, `BotReturnTypeHandler`, `BotHandlerInvocationFilter`, `BotChatStateService`, `BotUpdatePublisher`, `BotHandlerConditionContributor`, `BotStartTrigger`
+- [Model Classes](#model-classes) — `BotRequest`, `BotResponse`, `BotMetadata`, `BotMarkupContext`, `BotDynamicCallbackData`
+- [Dynamic Callbacks](#dynamic-callbacks) — `@BotDynamicCallbackQuery`, `BotDynamicCallbackData`, `BotDynamicCallbackQueryService`
+- [Extension Interfaces](#extension-interfaces) — `BotFilter`, `BotArgumentResolver`, `BotReturnTypeHandler`, `BotHandlerInvocationFilter`, `BotChatStateService`, `BotUpdatePublisher`, `BotHandlerConditionContributor`, `BotStartTrigger`, `BotHandler`, `BotHandlerCondition`, `BotInlineQueryMatcher`, `BotReplyButtonMatcher`, `BotMarkupRegistry`, `MarkupAware`
+- [Provider Interfaces](#provider-interfaces) — `BotTelegramClientProvider`, `BotOkHttpClientProvider`, `BotObjectMapperProvider`, `BotExecutorServiceProvider`, `BotTelegramUrlProvider`
+- [Advanced SPI](#advanced-spi) — `BotMetaDataResolver`, `BotMetaDataDefaultResolver`, `BotMetaDataSpecResolver`, `BotHandlerInvocationContext`, `BotHandlerException`
 - [i18n Services](#i18n-services-core-i18n) — `BotLocaleResolver`, `BotMessageSource`, `BotKeyboardFactory`
+- [Observability](#observability-core-observability) — `BotHealthIndicator`, `BotInfoContributor`, `BotObservabilityFilter`
 - [Filter Order Constants](#filter-order-constants)
 - [Invocation Filter Order Constants](#invocation-filter-order-constants)
 - [Configuration Properties](#configuration-properties)
@@ -343,7 +347,56 @@ public String onUnknownCallback(@BotCallbackQueryData String data) {
 
 ---
 
-### @BotContact
+### @BotDynamicCallbackQuery
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+**Since:** `0.0.4`
+
+Routes inline keyboard callback queries by a **type** stored server-side via `BotDynamicCallbackQueryService`. Unlike `@BotCallbackQuery`, which matches the raw Telegram callback data string, this annotation routes by a type discriminator resolved from the stored `BotDynamicCallbackData` payload. This pattern is ideal when callback payloads exceed Telegram's 64-byte limit or when rich structured data is needed.
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `value` | `String[]` | `{}` | Type strings to match against `BotDynamicCallbackData.getType()`. Empty = any unmatched dynamic callback |
+
+**Extra injectable parameters:** `BotDynamicCallbackData` (the resolved payload).
+
+```java
+// When building the keyboard:
+String key = UUID.randomUUID().toString();
+dynamicCallbackQueryService.store(key, BotDynamicCallbackData.builder()
+    .type("product_buy")
+    .put("id", productId)
+    .put("currency", "USD")
+    .build());
+InlineKeyboardButton button = InlineKeyboardButton.builder()
+    .text("Buy")
+    .callbackData(key)
+    .build();
+
+// Or use BotKeyboardFactory which generates the key automatically:
+InlineKeyboardButton btn = keyboardFactory.dynamicInlineButton(
+    "btn.buy",
+    BotDynamicCallbackData.builder().type("product_buy").put("id", productId).build(),
+    request);
+
+// When the callback fires:
+@BotDynamicCallbackQuery("product_buy")
+public String onBuy(BotDynamicCallbackData data) {
+    Long id = (Long) data.getData().get("id");
+    return "You selected product #" + id;
+}
+
+// Match multiple types:
+@BotDynamicCallbackQuery({"product_buy", "product_view"})
+public String onProduct(BotDynamicCallbackData data) {
+    return "Action: " + data.getType() + " on product #" + data.getData().get("id");
+}
+```
+
+---
+
+
 
 **Target:** `METHOD`
 
@@ -641,17 +694,17 @@ public void onBotMemberChange(ChatMemberUpdated update, Chat chat) {
 
 ---
 
-### @BotChatMember
+### @BotChatMemberUpdate
 
 **Package:** `uz.osoncode.easygram.core.bind.annotation`
 **Target:** `METHOD`
 
-Routes updates about **another user's** membership status in a chat managed by the bot. Requires the bot to have admin rights and the `chat_member` update type to be subscribed.
+Routes updates about **another user's** membership status in a chat managed by the bot. Requires the bot to have admin rights and the `chat_member` update type to be subscribed. Named `BotChatMemberUpdate` to avoid a naming clash with the Telegram API's `ChatMember` class.
 
 **Injectable parameters:** `ChatMemberUpdated`, `User` (the user who made the change), `Chat`, `Update`, `BotRequest`, `BotResponse`, `TelegramClient`.
 
 ```java
-@BotChatMember
+@BotChatMemberUpdate
 public void onUserMemberChange(ChatMemberUpdated event, Chat chat) {
     User affected = event.getNewChatMember().getUser();
     ChatMember newRole = event.getNewChatMember();
@@ -1087,11 +1140,13 @@ PlainReply.of("Buy?").withMarkup("product_kb",   // attach keyboard with params
     Map.of("productId", "42"))
 PlainReply.of("Pick:").withKeyboard(myKeyboard)  // attach ReplyKeyboard directly
 PlainReply.of("Done.").removeMarkup()            // send ReplyKeyboardRemove
+PlainReply.of("Updated!").withEditMessage()      // edit originating callback-query message (since 0.0.2)
 
 // Builder
 PlainReply.builder()
     .text("Choose:")
     .markupId("main_menu")
+    .editMessage(true)          // edit instead of send (since 0.0.2)
     .build()
 ```
 
@@ -1119,12 +1174,14 @@ Key is resolved via `BotMessageSource` using the request locale.
 LocalizedReply.of("welcome.message", user.getFirstName())
 LocalizedReply.of("choose.option").withMarkup("main_menu")
 LocalizedReply.of("confirm.prompt").withMarkup("confirm_kb", Map.of("id", itemId))
+LocalizedReply.of("updated.text").withEditMessage()  // edit callback-query message (since 0.0.2)
 
 // Builder
 LocalizedReply.builder()
     .key("welcome.message")
     .args(user.getFirstName())
     .markupId("main_menu")
+    .editMessage(true)   // since 0.0.2
     .build()
 ```
 
@@ -1135,13 +1192,100 @@ Supports mixed `${messageKey}` bundle lookups and `#{index}` positional arg subs
 ```java
 LocalizedTemplate.of("${welcome.title}\n\nHello, #{0}!", user.getFirstName())
 LocalizedTemplate.of("${stats.header}\n\nMessages: #{0}", count).withMarkup("stats_menu")
+LocalizedTemplate.of("${updated}").withEditMessage()  // edit callback-query message (since 0.0.2)
 
 // Builder
 LocalizedTemplate.builder()
     .template("${stats.header}\n\nMessages: #{0}\nCommands: #{1}")
     .args(messages, commands)
     .markupId("stats_menu")
+    .editMessage(true)   // since 0.0.2
     .build()
+```
+
+---
+
+## Dynamic Callbacks
+
+*(Since 0.0.4)* The dynamic callback system lets you store rich structured data server-side and route inline keyboard callbacks by a **type** discriminator, bypassing Telegram's 64-byte `callbackData` limit.
+
+---
+
+### BotDynamicCallbackData
+
+**Package:** `uz.osoncode.easygram.core.dynamiccallback`
+
+Immutable record that stores a type discriminator and an arbitrary key-value data map. Instances are stored via `BotDynamicCallbackQueryService` and retrieved by the framework when a matching callback query arrives.
+
+```java
+// Build a payload
+BotDynamicCallbackData payload = BotDynamicCallbackData.builder()
+    .type("product_buy")
+    .put("id", 42L)
+    .put("currency", "USD")
+    .build();
+
+// Access in a handler
+@BotDynamicCallbackQuery("product_buy")
+public String onBuy(BotDynamicCallbackData data) {
+    String type = data.getType();            // "product_buy"
+    Long id = (Long) data.getData().get("id"); // 42
+    return "Buying product #" + id;
+}
+```
+
+**API:**
+
+```java
+String getType()               // type discriminator; never null
+Map<String,Object> getData()   // unmodifiable data map; never null
+
+// Record accessors
+String type()
+Map<String,Object> data()
+
+static final String ATTRIBUTE_KEY = "DYNAMIC_CALLBACK_DATA"  // BotRequest attribute key
+
+static Builder builder()
+```
+
+**Builder methods:**
+
+```java
+Builder type(String type)                    // required — type discriminator
+Builder data(Map<String,Object> data)        // replace entire data map
+Builder put(String key, Object value)        // add a single entry
+BotDynamicCallbackData build()
+```
+
+---
+
+### BotDynamicCallbackQueryService
+
+**Package:** `uz.osoncode.easygram.core.dynamiccallback`
+
+SPI for storing and retrieving `BotDynamicCallbackData` payloads. The default in-memory implementation is auto-configured. Replace with a `@Bean` backed by Redis, JDBC, etc. for persistence across restarts.
+
+```java
+public interface BotDynamicCallbackQueryService {
+
+    /** Looks up the payload stored under callbackData (the UUID key). Returns null if not found. */
+    BotDynamicCallbackData resolve(String callbackData);
+
+    /** Stores payload under callbackData, replacing any previous mapping. */
+    void store(String callbackData, BotDynamicCallbackData payload);
+
+    /** Removes the payload for callbackData. No-op if not found. */
+    void remove(String callbackData);
+}
+```
+
+```java
+// Custom Redis-backed implementation
+@Bean
+public BotDynamicCallbackQueryService redisDynamicCallbackService(StringRedisTemplate redis) {
+    return new RedisBotDynamicCallbackQueryService(redis);
+}
 ```
 
 ---
@@ -1462,17 +1606,25 @@ See [Chat State Backends](advanced/chat-state-backends) for examples.
 
 ### BotUpdatePublisher
 
-**Package:** `uz.osoncode.easygram.messaging-api`
+**Package:** `uz.osoncode.easygram.messaging`
 
-SPI for publishing raw Telegram updates to a message broker. Implement and register as a `@Bean` to replace or augment the built-in Kafka/RabbitMQ publishers.
+SPI for publishing raw Telegram updates to a message broker. Implement and register as a `@Bean` to integrate with any broker. Ready-made implementations are provided by `messaging-kafka` and `messaging-rabbit`.
 
 ```java
 public interface BotUpdatePublisher {
-    void publish(BotRequest request) throws Exception;
+    void publish(Update update);
 }
 ```
 
-See [Broker Publishing](advanced/broker-publishing) for examples.
+```java
+@Component
+public class MyCustomPublisher implements BotUpdatePublisher {
+    @Override
+    public void publish(Update update) {
+        // send to your broker
+    }
+}
+```
 
 ---
 
@@ -1530,7 +1682,171 @@ public class RegisterCommandsTrigger implements BotStartTrigger {
 
 ---
 
-## i18n Services *(core-i18n)*
+### BotHandler
+
+**Package:** `uz.osoncode.easygram.core.handler`
+
+Low-level update processing strategy. The framework auto-discovers and uses `@BotController` methods via built-in `BotHandler` implementations. Only implement this interface directly for advanced custom routing that cannot be expressed with handler annotations.
+
+```java
+public interface BotHandler extends Comparable<BotHandler> {
+
+    /** Lower value = evaluated first. Default: Integer.MAX_VALUE. */
+    default int getOrder() { return Integer.MAX_VALUE; }
+
+    /** Return true if this handler can process the given request. */
+    boolean supports(BotRequest botRequest);
+
+    /** Process the update and populate the response. */
+    void handle(BotRequest botRequest, BotResponse botResponse)
+            throws InvocationTargetException, IllegalAccessException;
+
+    /** Human-readable description for logging. */
+    String info();
+}
+```
+
+---
+
+### BotHandlerCondition
+
+**Package:** `uz.osoncode.easygram.core.handler`
+
+Functional predicate that decides whether a handler should process a given request. The framework provides two built-in conditions: `BotMetaDataCondition` (annotation matching) and `BotChatStateCondition` (state guard). Custom conditions are contributed via `BotHandlerConditionContributor`.
+
+```java
+@FunctionalInterface
+public interface BotHandlerCondition {
+    boolean matches(BotRequest botRequest);
+}
+```
+
+```java
+// Ad-hoc usage — requires admin
+BotHandlerCondition adminOnly =
+    request -> adminService.isAdmin(request.getUser().getId());
+```
+
+---
+
+### BotInlineQueryMatcher
+
+**Package:** `uz.osoncode.easygram.core.handler.inlinequery`
+
+Strategy for matching `@BotInlineQuery` annotation values against an incoming inline-query update. The default implementation does exact-text comparison. With `core-i18n` on the classpath, a locale-aware implementation is registered that treats values as message-bundle keys.
+
+```java
+@FunctionalInterface
+public interface BotInlineQueryMatcher {
+
+    /**
+     * Returns true if the inline query matches at least one annotation value.
+     * An empty values array means "match all" — this method is not called in that case.
+     */
+    boolean matches(String[] values, BotRequest request);
+}
+```
+
+```java
+// Custom case-insensitive matcher
+@Bean
+public BotInlineQueryMatcher caseInsensitiveMatcher() {
+    return (values, request) -> {
+        String query = request.getUpdate().getInlineQuery().getQuery();
+        return Arrays.stream(values).anyMatch(v -> query.equalsIgnoreCase(v));
+    };
+}
+```
+
+---
+
+### BotReplyButtonMatcher
+
+**Package:** `uz.osoncode.easygram.core.handler.message.replybutton`
+
+Strategy for matching `@BotReplyButton` annotation values against an incoming message text. The default implementation does exact-text comparison. With `core-i18n`, values are resolved as message-bundle keys per user locale.
+
+```java
+@FunctionalInterface
+public interface BotReplyButtonMatcher {
+
+    /**
+     * Returns true if the incoming message text matches one of the annotation values.
+     */
+    boolean matches(String[] values, BotRequest request);
+}
+```
+
+```java
+@Bean
+public BotReplyButtonMatcher trimmedMatcher() {
+    return (values, request) -> {
+        String text = request.getUpdate().getMessage().getText().trim();
+        return Arrays.asList(values).contains(text);
+    };
+}
+```
+
+---
+
+### BotMarkupRegistry
+
+**Package:** `uz.osoncode.easygram.core.markup`
+
+Registry that maps markup IDs (and chat-state names) to keyboard factory functions. Populated at startup by scanning `@BotMarkup` methods. The default implementation is `InMemoryBotMarkupRegistry`. Override with a custom `@Bean` for distributed or database-backed registries.
+
+```java
+public interface BotMarkupRegistry {
+
+    /** Register a factory under an ID. */
+    void register(String id, Function<BotRequest, ReplyKeyboard> factory);
+
+    /** Resolve the keyboard for id using the given request context (may be null for static markups). */
+    ReplyKeyboard resolve(String id, BotRequest request);
+
+    /** Returns true if an ID is registered. */
+    boolean contains(String id);
+
+    /** Register as the default keyboard for a chat state (called by BotMarkupLoader). */
+    default void registerForState(String state, Function<BotRequest, ReplyKeyboard> factory) {}
+
+    /** Resolve the keyboard registered as default for the given chat state. */
+    default ReplyKeyboard resolveByState(String state, BotRequest request) { return null; }
+}
+```
+
+---
+
+### MarkupAware
+
+**Package:** `uz.osoncode.easygram.core.markup`
+
+Marker interface implemented by all reply types that support carrying markup: `PlainReply`, `PlainTextTemplate`, `LocalizedReply`, and `LocalizedTemplate`. Enables the framework to apply markup to any return type uniformly.
+
+**Markup resolution precedence:**
+1. `isRemoveMarkup()` — sends `ReplyKeyboardRemove`; overrides everything (triggered by `@BotClearMarkup`)
+2. `getKeyboard()` non-null — attached directly, no registry lookup
+3. `getMarkupId()` non-null — registry lookup, optionally with `getMarkupParams()` forwarded via `BotMarkupContext`
+4. `@BotReplyMarkup` annotation — fallback; only applied when neither keyboard nor markup ID is set
+
+```java
+public interface MarkupAware {
+    String getMarkupId();
+    Map<String, Object> getMarkupParams();
+    ReplyKeyboard getKeyboard();
+    boolean isRemoveMarkup();
+    boolean isEditMessage();          // true = edit callback-query message (since 0.0.2)
+
+    MarkupAware withMarkup(String markupId);
+    MarkupAware withMarkup(String markupId, Map<String, Object> params);
+    MarkupAware withKeyboard(ReplyKeyboard keyboard);
+    MarkupAware removeMarkup();
+}
+```
+
+---
+
+
 
 All i18n services live in `uz.osoncode.easygram.core.i18n` and are auto-configured by `BotI18nAutoConfiguration` when `core-i18n` is on the classpath. All are `@ConditionalOnMissingBean` — override any with your own `@Bean`.
 
@@ -1629,6 +1945,30 @@ builder
 ```java
 InlineKeyboardButton btn = factory.inlineButton("btn.details", "cb_details", request);
 KeyboardButton btn = factory.replyButton("btn.share_contact", request);
+
+// Dynamic inline buttons — stores payload via BotDynamicCallbackQueryService (since 0.0.4)
+InlineKeyboardButton dynBtn = factory.dynamicInlineButton(
+    "btn.buy",
+    BotDynamicCallbackData.builder().type("product_buy").put("id", productId).build(),
+    request);
+
+// Or with explicit Locale
+InlineKeyboardButton dynBtn = factory.dynamicInlineButton(
+    "btn.buy",
+    BotDynamicCallbackData.builder().type("product_buy").put("id", productId).build(),
+    locale);
+```
+
+#### InlineKeyboardBuilder — dynamic rows
+
+```java
+// Dynamic row — stores payloads, generates UUID keys automatically (since 0.0.4)
+keyboardFactory.inline(request)
+    .dynamicRow(
+        "btn.buy",   BotDynamicCallbackData.builder().type("buy").put("id", 1L).build(),
+        "btn.view",  BotDynamicCallbackData.builder().type("view").put("id", 1L).build()
+    )
+    .build();
 ```
 
 **Example — localized markup factory:**
@@ -1656,6 +1996,255 @@ public class LocalizedMarkups {
     }
 }
 ```
+
+---
+
+## Provider Interfaces
+
+All provider interfaces are in `uz.osoncode.easygram.core.provider` and are `@FunctionalInterface`. Register a Spring `@Bean` of any provider type to replace the default implementation.
+
+---
+
+### BotTelegramClientProvider
+
+Supplies the `TelegramClient` used to send API replies. Override to use a custom HTTP client, proxy, or test stub.
+
+```java
+@FunctionalInterface
+public interface BotTelegramClientProvider {
+    /** Create or return a TelegramClient for the given bot token. */
+    TelegramClient provide(String botToken);
+}
+```
+
+```java
+@Bean
+public BotTelegramClientProvider botTelegramClientProvider() {
+    return botToken -> new OkHttpTelegramClient(
+            customObjectMapper(),
+            customHttpClient(),
+            botToken,
+            TelegramUrl.DEFAULT_URL);
+}
+```
+
+---
+
+### BotOkHttpClientProvider
+
+Supplies the `OkHttpClient` for all outbound Telegram API calls. Override to configure timeouts, interceptors, TLS, or a proxy.
+
+```java
+@FunctionalInterface
+public interface BotOkHttpClientProvider {
+    OkHttpClient provide();
+}
+```
+
+```java
+@Bean
+public BotOkHttpClientProvider botOkHttpClientProvider() {
+    OkHttpClient client = new OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .addInterceptor(new LoggingInterceptor())
+            .build();
+    return () -> client;
+}
+```
+
+---
+
+### BotObjectMapperProvider
+
+Supplies the Jackson `ObjectMapper` for Telegram API payload serialisation. Override to register custom modules or configure naming strategy.
+
+```java
+@FunctionalInterface
+public interface BotObjectMapperProvider {
+    ObjectMapper provide();
+}
+```
+
+```java
+@Bean
+public BotObjectMapperProvider botObjectMapperProvider() {
+    ObjectMapper mapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    return () -> mapper;
+}
+```
+
+---
+
+### BotExecutorServiceProvider
+
+Supplies the `ExecutorService` for processing incoming updates. Override to control thread-pool size, naming, or rejection policy.
+
+```java
+@FunctionalInterface
+public interface BotExecutorServiceProvider {
+    ExecutorService provide();
+}
+```
+
+```java
+@Bean
+public BotExecutorServiceProvider botExecutorServiceProvider() {
+    ExecutorService executor = Executors.newFixedThreadPool(4,
+            new ThreadFactoryBuilder().setNameFormat("bot-worker-%d").build());
+    return () -> executor;
+}
+```
+
+> **Important:** always return the same `ExecutorService` instance on every call — the framework calls `provide()` once at startup and shuts it down when the context closes.
+
+---
+
+### BotTelegramUrlProvider
+
+Supplies the Telegram API base URL. Override to point the bot at a local Bot API server.
+
+```java
+@FunctionalInterface
+public interface BotTelegramUrlProvider {
+    TelegramUrl provide();
+}
+```
+
+```java
+@Bean
+public BotTelegramUrlProvider botTelegramUrlProvider() {
+    return () -> new TelegramUrl("https://my-local-bot-api.example.com/");
+}
+```
+
+When no custom bean is present, defaults to `TelegramUrl.DEFAULT_URL`.
+
+---
+
+## Advanced SPI
+
+These types are used internally or by advanced framework extensions.
+
+---
+
+### BotMetaDataResolver
+
+**Package:** `uz.osoncode.easygram.core.handler.metadataresolver`
+
+Generic strategy for matching a specific handler annotation against an incoming `BotRequest`. Each implementation binds to one annotation type `T` and encodes the matching logic.
+
+```java
+public interface BotMetaDataResolver<T extends Annotation> {
+    /** Returns the annotation type this resolver handles. */
+    Class<T> getAnnotationType();
+
+    /** Returns true if this annotation's handler should handle the given request. */
+    boolean support(BotRequest botRequest, T annotation);
+}
+```
+
+Two sub-interfaces partition resolvers into two registries:
+
+| Interface | Purpose |
+|---|---|
+| `BotMetaDataSpecResolver<T>` | Specific/non-default resolvers — used with explicit match criteria (e.g. `@BotCommand("/start")`) |
+| `BotMetaDataDefaultResolver<T>` | Default/fallback resolvers — consulted only when no specific resolver matches (e.g. `@BotDefaultCommand`) |
+
+Implement and register as a `@Bean` to support custom routing annotations.
+
+---
+
+### BotHandlerInvocationContext
+
+**Package:** `uz.osoncode.easygram.core.handler.invocation`
+
+Mutable context passed through the `BotHandlerInvocationFilter` chain for a single handler method execution.
+
+```java
+BotRequest getRequest()    // the current bot request
+BotResponse getResponse()  // the mutable response
+Method getMethod()         // the handler method being invoked
+Object getBean()           // the controller bean owning the method
+Object getReturnValue()    // value produced by the method (null before MethodInvocationFilter sets it)
+void setReturnValue(Object value)  // allows filters to transform the return value
+```
+
+---
+
+### BotHandlerException
+
+**Package:** `uz.osoncode.easygram.core.exception`
+
+Unchecked exception thrown when a bot handler method cannot be invoked via reflection. Wraps the underlying cause so it propagates through the dispatch chain without checked exception declarations.
+
+```java
+public class BotHandlerException extends RuntimeException {
+    public BotHandlerException(String message, Throwable cause) { ... }
+}
+```
+
+---
+
+### BotConfigurer
+
+**Package:** `uz.osoncode.easygram.core.bot`
+
+Immutable record that carries shared infrastructure objects available to framework components at startup. Inject this record to inspect the active transport type or access the shared `ObjectMapper`.
+
+```java
+public record BotConfigurer(
+    ObjectMapper objectMapper,   // shared Jackson ObjectMapper
+    BotTransportType transportType  // active transport (LONG_POLLING, WEBHOOK, etc.)
+) {}
+```
+
+```java
+@Component
+@RequiredArgsConstructor
+public class MyComponent {
+    private final BotConfigurer botConfigurer;
+
+    public void init() {
+        if (botConfigurer.transportType() == BotTransportType.LONG_POLLING) {
+            // long-polling specific setup
+        }
+    }
+}
+```
+
+---
+
+### BotTransportType
+
+**Package:** `uz.osoncode.easygram.core.bot`
+
+Enumerates the supported update-delivery transports.
+
+| Constant | Description |
+|---|---|
+| `LONG_POLLING` | Bot repeatedly calls `getUpdates` |
+| `WEBHOOK` | Telegram pushes updates to an HTTPS endpoint |
+| `KAFKA_CONSUMER` | Updates arrive via a Kafka topic |
+| `RABBIT_CONSUMER` | Updates arrive via a RabbitMQ queue |
+
+---
+
+
+
+## Observability *(core-observability)*
+
+Auto-configured when `core-observability` is on the classpath via `BotActuatorAutoConfiguration` and `ObservabilityAutoConfiguration`.
+
+| Component | Description |
+|---|---|
+| `BotHealthIndicator` | Spring Boot actuator health check — reports `UP`/`DOWN` based on bot connectivity |
+| `BotInfoContributor` | Actuator `/info` endpoint — exposes bot username, id, and active transport type |
+| `BotObservabilityFilter` | `BotFilter` at `BotFilterOrder.OBSERVATION` — wraps every update in a Micrometer observation span; emits `telegram.bot.update` metric |
+
+All three beans are `@ConditionalOnMissingBean` — replace any with a custom `@Bean`.
 
 ---
 
