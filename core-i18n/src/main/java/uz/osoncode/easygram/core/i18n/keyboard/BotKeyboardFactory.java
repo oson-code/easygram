@@ -7,6 +7,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import uz.osoncode.easygram.core.dynamiccallback.BotDynamicCallbackData;
+import uz.osoncode.easygram.core.dynamiccallback.BotDynamicCallbackQueryService;
 import uz.osoncode.easygram.core.i18n.BotMessageSource;
 import uz.osoncode.easygram.core.model.BotRequest;
 
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Factory for building localised Telegram keyboard markup objects.
@@ -64,10 +67,28 @@ import java.util.Objects;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
-@RequiredArgsConstructor
 public class BotKeyboardFactory {
 
     private final BotMessageSource messageSource;
+
+    /**
+     * Optional service for storing dynamic callback payloads. When present, enables
+     * {@link #dynamicInlineButton} and {@link InlineKeyboardBuilder#dynamicRow}.
+     */
+    private final BotDynamicCallbackQueryService dynamicCallbackQueryService;
+
+    /**
+     * Constructs a factory with full dynamic-callback support.
+     *
+     * @param messageSource              the message source for resolving button labels; must not be {@code null}
+     * @param dynamicCallbackQueryService the service for storing dynamic payloads; may be {@code null}
+     *                                    if dynamic button methods are not used
+     */
+    public BotKeyboardFactory(BotMessageSource messageSource,
+                              BotDynamicCallbackQueryService dynamicCallbackQueryService) {
+        this.messageSource = messageSource;
+        this.dynamicCallbackQueryService = dynamicCallbackQueryService;
+    }
 
     // -------------------------------------------------------------------------
     // Inline keyboard — direct helpers
@@ -101,6 +122,64 @@ public class BotKeyboardFactory {
         return InlineKeyboardButton.builder()
                 .text(messageSource.getMessage(textCode, locale))
                 .callbackData(callbackData)
+                .build();
+    }
+
+    // -------------------------------------------------------------------------
+    // Inline keyboard — dynamic callback helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Creates a single {@link InlineKeyboardButton} whose callback data is a generated UUID key
+     * mapped to the supplied {@link BotDynamicCallbackData} payload via
+     * {@link BotDynamicCallbackQueryService}.
+     *
+     * <p>A UUID key is generated, the payload is stored via the service, and the key is used
+     * as the button's {@code callbackData}. When the user presses the button, the framework
+     * resolves the key back to the payload and routes to the matching
+     * {@link uz.osoncode.easygram.core.bind.annotation.BotDynamicCallbackQuery} handler.</p>
+     *
+     * @param textCode message key for the button label
+     * @param payload  the dynamic callback payload to store; must not be {@code null}
+     * @param request  current bot request (used to determine locale)
+     * @return a fully-built {@link InlineKeyboardButton}
+     * @throws IllegalStateException if no {@link BotDynamicCallbackQueryService} is configured
+     * @since 0.0.4
+     */
+    public InlineKeyboardButton dynamicInlineButton(String textCode, BotDynamicCallbackData payload,
+                                                    BotRequest request) {
+        return buildDynamicButton(textCode, payload, messageSource.getMessage(textCode, request));
+    }
+
+    /**
+     * Creates a single {@link InlineKeyboardButton} whose callback data is a generated UUID key
+     * mapped to the supplied {@link BotDynamicCallbackData} payload via
+     * {@link BotDynamicCallbackQueryService}.
+     *
+     * @param textCode message key for the button label
+     * @param payload  the dynamic callback payload to store; must not be {@code null}
+     * @param locale   target locale for the button label
+     * @return a fully-built {@link InlineKeyboardButton}
+     * @throws IllegalStateException if no {@link BotDynamicCallbackQueryService} is configured
+     * @since 0.0.4
+     */
+    public InlineKeyboardButton dynamicInlineButton(String textCode, BotDynamicCallbackData payload,
+                                                    Locale locale) {
+        return buildDynamicButton(textCode, payload, messageSource.getMessage(textCode, locale));
+    }
+
+    private InlineKeyboardButton buildDynamicButton(String textCode, BotDynamicCallbackData payload,
+                                                    String resolvedText) {
+        if (dynamicCallbackQueryService == null) {
+            throw new IllegalStateException(
+                    "BotDynamicCallbackQueryService is not configured. "
+                    + "Ensure a BotDynamicCallbackQueryService bean is present to use dynamicInlineButton().");
+        }
+        String key = UUID.randomUUID().toString();
+        dynamicCallbackQueryService.store(key, payload);
+        return InlineKeyboardButton.builder()
+                .text(resolvedText)
+                .callbackData(key)
                 .build();
     }
 
@@ -276,6 +355,47 @@ public class BotKeyboardFactory {
         }
 
         /**
+         * Adds a row of dynamic-callback buttons. Each entry is a pair of a message-bundle
+         * key (for the label) and a {@link BotDynamicCallbackData} payload. A UUID key is
+         * generated per button, the payload is stored via
+         * {@link BotDynamicCallbackQueryService}, and the UUID is used as {@code callbackData}.
+         *
+         * @param textCode first button's message-bundle key
+         * @param payload  first button's dynamic payload
+         * @return this builder
+         * @throws IllegalStateException if no {@link BotDynamicCallbackQueryService} is configured
+         * @since 0.0.4
+         */
+        public InlineKeyboardBuilder dynamicRow(String textCode, BotDynamicCallbackData payload) {
+            rows.add(new InlineKeyboardRow(List.of(
+                    Objects.nonNull(locale)
+                            ? dynamicInlineButton(textCode, payload, locale)
+                            : dynamicInlineButton(textCode, payload, request)
+            )));
+            return this;
+        }
+
+        /**
+         * Adds a row of multiple dynamic-callback buttons. Each entry must be a
+         * {@link DynamicButtonEntry} created via {@link BotKeyboardFactory#entry}.
+         *
+         * @param entries button definitions; each wraps a text code and a {@link BotDynamicCallbackData}
+         * @return this builder
+         * @throws IllegalStateException if no {@link BotDynamicCallbackQueryService} is configured
+         * @since 0.0.4
+         */
+        public InlineKeyboardBuilder dynamicRow(DynamicButtonEntry... entries) {
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
+            for (DynamicButtonEntry e : entries) {
+                buttons.add(Objects.nonNull(locale)
+                        ? dynamicInlineButton(e.textCode, e.payload, locale)
+                        : dynamicInlineButton(e.textCode, e.payload, request));
+            }
+            rows.add(new InlineKeyboardRow(buttons));
+            return this;
+        }
+
+        /**
          * Builds the {@link InlineKeyboardMarkup}.
          *
          * @return the constructed markup
@@ -382,5 +502,38 @@ public class BotKeyboardFactory {
                     .oneTimeKeyboard(oneTimeKeyboard)
                     .build();
         }
+    }
+
+    // =========================================================================
+    // Dynamic button entry helper
+    // =========================================================================
+
+    /**
+     * Immutable pair of a message-bundle key and a {@link BotDynamicCallbackData} payload,
+     * used with {@link InlineKeyboardBuilder#dynamicRow(DynamicButtonEntry...)}.
+     *
+     * @since 0.0.4
+     */
+    public static final class DynamicButtonEntry {
+        final String textCode;
+        final BotDynamicCallbackData payload;
+
+        private DynamicButtonEntry(String textCode, BotDynamicCallbackData payload) {
+            this.textCode = textCode;
+            this.payload = payload;
+        }
+    }
+
+    /**
+     * Creates a {@link DynamicButtonEntry} for use with
+     * {@link InlineKeyboardBuilder#dynamicRow(DynamicButtonEntry...)}.
+     *
+     * @param textCode message-bundle key for the button label
+     * @param payload  the dynamic callback payload
+     * @return a new entry
+     * @since 0.0.4
+     */
+    public static DynamicButtonEntry entry(String textCode, BotDynamicCallbackData payload) {
+        return new DynamicButtonEntry(textCode, payload);
     }
 }

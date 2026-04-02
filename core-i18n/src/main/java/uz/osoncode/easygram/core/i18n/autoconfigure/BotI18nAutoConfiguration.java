@@ -17,6 +17,7 @@ import uz.osoncode.easygram.core.i18n.resolver.BotLocaleArgumentResolver;
 import uz.osoncode.easygram.core.i18n.resolver.UserLanguageCodeLocaleResolver;
 import uz.osoncode.easygram.core.i18n.returntypehandler.BotLocalizedReplyReturnTypeHandler;
 import uz.osoncode.easygram.core.i18n.returntypehandler.BotLocalizedTemplateReturnTypeHandler;
+import uz.osoncode.easygram.core.dynamiccallback.BotDynamicCallbackQueryService;
 import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandler;
 
@@ -78,8 +79,9 @@ public class BotI18nAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(BotKeyboardFactory.class)
-    public BotKeyboardFactory botKeyboardFactory(BotMessageSource botMessageSource) {
-        return new BotKeyboardFactory(botMessageSource);
+    public BotKeyboardFactory botKeyboardFactory(BotMessageSource botMessageSource,
+                                                 Optional<BotDynamicCallbackQueryService> dynamicService) {
+        return new BotKeyboardFactory(botMessageSource, dynamicService.orElse(null));
     }
 
     /**
