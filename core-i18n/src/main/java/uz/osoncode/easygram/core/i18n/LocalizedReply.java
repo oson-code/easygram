@@ -4,6 +4,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import uz.osoncode.easygram.core.markup.MarkupAware;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Immutable value object representing a localised reply where the content is a simple
@@ -163,6 +164,7 @@ public final class LocalizedReply implements MarkupAware {
          * @return a new {@code LocalizedReply} instance
          */
         public LocalizedReply build() {
+            Objects.requireNonNull(key, "key must not be null");
             return new LocalizedReply(key, args, markupId, markupParams, keyboard, removeMarkup, editMessage);
         }
     }

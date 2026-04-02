@@ -67,6 +67,7 @@ public class BotI18nAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(BotLocaleArgumentResolver.class)
     public BotLocaleArgumentResolver botLocaleArgumentResolver(BotLocaleResolver localeResolver) {
         return new BotLocaleArgumentResolver(localeResolver);
     }
@@ -104,7 +105,9 @@ public class BotI18nAutoConfiguration {
     @ConditionalOnMissingBean(BotReplyButtonMatcher.class)
     public BotReplyButtonMatcher botReplyButtonMatcher(BotMessageSource botMessageSource) {
         return (values, request) -> {
+            if (!request.getUpdate().hasMessage()) return false;
             String incomingText = request.getUpdate().getMessage().getText();
+            if (incomingText == null) return false;
             for (String key : values) {
                 String resolved = botMessageSource.getMessage(key, request);
                 if (incomingText.equals(resolved)) {
@@ -136,7 +139,9 @@ public class BotI18nAutoConfiguration {
     @ConditionalOnMissingBean(BotInlineQueryMatcher.class)
     public BotInlineQueryMatcher botInlineQueryMatcher(BotMessageSource botMessageSource) {
         return (values, request) -> {
+            if (!request.getUpdate().hasInlineQuery()) return false;
             String queryText = request.getUpdate().getInlineQuery().getQuery();
+            if (queryText == null) return false;
             for (String key : values) {
                 String resolved = botMessageSource.getMessage(key, request);
                 if (queryText.equals(resolved)) {

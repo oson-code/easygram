@@ -87,7 +87,7 @@ public class BotLocalizedTemplateReturnTypeHandler implements BotReturnTypeHandl
 
     private String resolveKeys(String template, BotRequest request) {
         Matcher keyMatcher = KEY_PATTERN.matcher(template);
-        StringBuffer keyResult = new StringBuffer();
+        StringBuilder keyResult = new StringBuilder();
         while (keyMatcher.find()) {
             String key = keyMatcher.group(1);
             String value = botMessageSource.getMessage(key, request);
@@ -99,7 +99,7 @@ public class BotLocalizedTemplateReturnTypeHandler implements BotReturnTypeHandl
 
     private String resolveArgs(String text, Object[] args) {
         Matcher argMatcher = ARG_PATTERN.matcher(text);
-        StringBuffer argResult = new StringBuffer();
+        StringBuilder argResult = new StringBuilder();
         while (argMatcher.find()) {
             int index = Integer.parseInt(argMatcher.group(1));
             String value = (Objects.nonNull(args) && index < args.length)
