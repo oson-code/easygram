@@ -58,7 +58,8 @@ public interface BotHandler extends Comparable<BotHandler> {
 
     /**
      * Returns a human-readable description of this handler for logging and debugging purposes.
-     * @return
+     *
+     * @return a descriptive string identifying this handler; never {@code null}
      */
     String info();
 }

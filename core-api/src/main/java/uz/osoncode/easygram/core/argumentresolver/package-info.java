@@ -33,12 +33,13 @@
  * public class CurrentUserResolver implements BotArgumentResolver {
  *
  *     @Override
- *     public boolean supportsParameter(MethodParameter parameter) {
- *         return CurrentUser.class.isAssignableFrom(parameter.getParameterType());
+ *     public boolean supportsParameter(Parameter parameter) {
+ *         return CurrentUser.class.isAssignableFrom(
+ *             ParameterUtils.effectiveType(parameter));
  *     }
  *
  *     @Override
- *     public Object resolveArgument(MethodParameter parameter, BotRequest request) {
+ *     public Object resolveArgument(Parameter parameter, BotRequest request, BotResponse response) {
  *         return userRepository.findByTelegramId(request.getUser().getId());
  *     }
  * }

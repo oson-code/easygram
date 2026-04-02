@@ -56,6 +56,10 @@ public record BotDynamicCallbackData(
     /**
      * Returns the type discriminator for this payload.
      *
+     * <p>These JavaBean-style accessors supplement the record accessors ({@link #type()},
+     * {@link #data()}) to ensure compatibility with frameworks like Jackson that expect
+     * {@code getXxx()} methods for property discovery.</p>
+     *
      * @return the type string; never {@code null}
      */
     public String getType() {
