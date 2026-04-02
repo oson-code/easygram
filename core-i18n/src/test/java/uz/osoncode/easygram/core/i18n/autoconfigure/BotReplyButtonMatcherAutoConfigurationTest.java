@@ -129,6 +129,7 @@ class BotReplyButtonMatcherAutoConfigurationTest {
         when(message.getText()).thenReturn(text);
 
         Update update = mock(Update.class);
+        when(update.hasMessage()).thenReturn(true);
         when(update.getMessage()).thenReturn(message);
 
         User telegramUser = mock(User.class);
