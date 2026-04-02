@@ -163,7 +163,7 @@ public String onDone() {
 
 ---
 
-## 3. State-Bound Keyboards — `@BotChatState` on `@BotMarkup`
+## 3. State-Bound Keyboards — `@BotChatState` on `@BotMarkup` {#state-bound-keyboards}
 
 A `@BotMarkup` method can be annotated with `@BotChatState` to declare it as the **default keyboard for that chat state**. When a handler method returns without any explicit markup directive, the framework automatically resolves the keyboard bound to the handler's **effective next state** — no `@BotReplyMarkup` needed on the handler side.
 
