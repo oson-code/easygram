@@ -28,7 +28,7 @@
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-api</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.4</version>
 </dependency>
 ```
 

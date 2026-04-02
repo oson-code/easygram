@@ -25,14 +25,14 @@ This starter pulls in the core engine, all transport modules, and i18n support w
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.4</version>
 </dependency>
 ```
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("uz.osoncode.easygram:spring-boot-starter:0.0.2")
+implementation("uz.osoncode.easygram:spring-boot-starter:0.0.4")
 ```
 
 ---
@@ -171,7 +171,7 @@ Use individual modules for a **minimal dependency tree**:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>longpolling</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.4</version>
 </dependency>
 ```
 

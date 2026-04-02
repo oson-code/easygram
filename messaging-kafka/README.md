@@ -8,7 +8,7 @@
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-kafka</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.4</version>
 </dependency>
 <dependency>
     <groupId>org.springframework.kafka</groupId>

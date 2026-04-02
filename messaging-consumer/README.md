@@ -81,7 +81,7 @@ messaging-consumer
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-consumer</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.4</version>
 </dependency>
 ```
 
@@ -99,7 +99,7 @@ messaging-consumer
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-consumer</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.4</version>
 </dependency>
 ```
 
