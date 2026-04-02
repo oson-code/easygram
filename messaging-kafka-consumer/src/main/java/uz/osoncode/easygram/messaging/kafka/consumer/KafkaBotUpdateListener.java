@@ -1,7 +1,6 @@
 package uz.osoncode.easygram.messaging.kafka.consumer;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -36,10 +35,13 @@ public class KafkaBotUpdateListener {
      * @param message the raw JSON string payload from Kafka
      */
     @KafkaListener(topics = "${telegram.bot.kafka-consumer.topic}", containerFactory = "botKafkaListenerContainerFactory")
-    @SneakyThrows
     public void onMessage(String message) {
         log.debug("Received Kafka message: {}", message);
-        Update update = objectMapperProvider.provide().readValue(message, Update.class);
-        kafkaConsumerBot.handleUpdate(update);
+        try {
+            Update update = objectMapperProvider.provide().readValue(message, Update.class);
+            kafkaConsumerBot.handleUpdate(update);
+        } catch (Exception e) {
+            log.error("Failed to process Kafka message: {}", message, e);
+        }
     }
 }
