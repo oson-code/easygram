@@ -51,6 +51,7 @@ public interface BotChatStateService {
      * @param state  the enum constant whose name is persisted; must not be {@code null}
      */
     default void setState(Long chatId, Enum<?> state) {
+        java.util.Objects.requireNonNull(state, "state must not be null");
         setState(chatId, state.name());
     }
 

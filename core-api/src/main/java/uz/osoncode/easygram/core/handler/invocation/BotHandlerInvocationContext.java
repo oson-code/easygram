@@ -4,6 +4,7 @@ import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 /**
  * Mutable context object passed through the {@link BotHandlerInvocationFilter} chain
@@ -58,10 +59,10 @@ public class BotHandlerInvocationContext {
      */
     public BotHandlerInvocationContext(BotRequest request, BotResponse response,
                                        Method method, Object bean) {
-        this.request = request;
-        this.response = response;
-        this.method = method;
-        this.bean = bean;
+        this.request = Objects.requireNonNull(request, "request must not be null");
+        this.response = Objects.requireNonNull(response, "response must not be null");
+        this.method = Objects.requireNonNull(method, "method must not be null");
+        this.bean = Objects.requireNonNull(bean, "bean must not be null");
     }
 
     /**
