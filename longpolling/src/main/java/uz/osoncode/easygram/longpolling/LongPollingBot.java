@@ -23,8 +23,8 @@ import uz.osoncode.easygram.longpolling.provider.BotGetUpdatesGeneratorProvider;
 import uz.osoncode.easygram.longpolling.provider.BotScheduledExecutorServiceProvider;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -58,13 +58,12 @@ public class LongPollingBot extends Bot implements InitializingBean, DisposableB
     private final BotBackOffProvider backOffProvider;
     private final Function<Integer, GetUpdates> getUpdatesGenerator;
     private final BotProperties botProperties;
-    private final ExecutorService executorService;
     private final ScheduledExecutorService scheduledExecutorService;
 
     private BotSession botSession;
 
     /**
-     * Constructs a new {@code LongPolingBot} wiring all dependencies from fine-grained providers.
+     * Constructs a new {@code LongPollingBot} wiring all dependencies from fine-grained providers.
      *
      * @param botProperties                      common bot properties holding the token
      * @param triggers                           startup triggers executed once after authentication
@@ -109,7 +108,6 @@ public class LongPollingBot extends Bot implements InitializingBean, DisposableB
         this.telegramUrlProvider = telegramUrlProvider;
         this.backOffProvider = backOffProvider;
         this.getUpdatesGenerator = getUpdatesGeneratorProvider.provide();
-        this.executorService = executorServiceProvider.provide();
         this.scheduledExecutorService = scheduledExecutorServiceProvider.provide();
     }
 
@@ -146,9 +144,23 @@ public class LongPollingBot extends Bot implements InitializingBean, DisposableB
      */
     @Override
     public void destroy() {
-        log.info("Telegram long polling bot stopped");
-        botSession.stop();
+        if (botSession != null) {
+            botSession.stop();
+        }
         executorService.shutdown();
         scheduledExecutorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(30, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+            if (!scheduledExecutorService.awaitTermination(30, TimeUnit.SECONDS)) {
+                scheduledExecutorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            scheduledExecutorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        log.info("Telegram long polling bot stopped");
     }
 }
