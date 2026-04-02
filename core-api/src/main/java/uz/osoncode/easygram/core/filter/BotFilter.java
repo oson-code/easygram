@@ -58,6 +58,6 @@ public interface BotFilter extends Comparable<BotFilter> {
      * @return {@code true} if the filter should execute, {@code false} to skip it
      */
     default boolean shouldFilter(BotRequest botRequest, BotResponse botResponse) {
-        return Boolean.TRUE;
+        return true;
     }
 }

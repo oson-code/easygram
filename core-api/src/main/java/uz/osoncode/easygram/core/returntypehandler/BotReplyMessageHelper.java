@@ -90,7 +90,8 @@ public final class BotReplyMessageHelper {
             Map<String, Object> markupParams) {
 
         SendMessage.SendMessageBuilder<?, ?> builder = SendMessage.builder()
-                .chatId(botRequest.getChat().getId())
+                .chatId(Objects.requireNonNull(botRequest.getChat(),
+                        "Cannot send reply: no chat associated with this update").getId())
                 .text(text);
 
         if (removeMarkup) {
