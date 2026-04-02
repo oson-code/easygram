@@ -46,7 +46,10 @@ public class BotCommandMetaDataResolver implements BotMetaDataSpecResolver<BotCo
         if (botRequest.getUpdate().hasMessage()
                 && botRequest.getUpdate().getMessage().hasText()
                 && botRequest.getUpdate().getMessage().getText().startsWith("/")) {
-            String messageText = botRequest.getUpdate().getMessage().getText().split(" ")[0].substring(1);
+            String commandPart = botRequest.getUpdate().getMessage().getText().split(" ")[0].substring(1);
+            // Strip @BotUsername suffix for group chat compatibility
+            int atIndex = commandPart.indexOf('@');
+            String messageText = atIndex >= 0 ? commandPart.substring(0, atIndex) : commandPart;
             for (String text : annotation.value()) {
                 text = text.startsWith("/") ? text.substring(1) : text;
                 if (messageText.equals(text)) return true;
