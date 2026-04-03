@@ -6,12 +6,11 @@
     <parent>
         <groupId>uz.osoncode.easygram</groupId>
         <artifactId>parent</artifactId>
-        <version>0.0.4</version>
+        <version>0.0.5</version>
     </parent>
     <artifactId>spring-boot-starter</artifactId>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Spring Boot Starter for Easygram</description>
-    <packaging>pom</packaging>
 
     <dependencies>
         <dependency>
@@ -26,12 +25,7 @@
         </dependency>
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>messaging-kafka-consumer</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>messaging-rabbit-consumer</artifactId>
+            <artifactId>messaging-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

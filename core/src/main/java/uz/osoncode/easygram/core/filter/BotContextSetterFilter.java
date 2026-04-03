@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.filter;
 
-
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
@@ -21,13 +22,15 @@ import java.util.Objects;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 public class BotContextSetterFilter implements BotFilter {
 
     /**
      * Returns the order of this filter.
      *
-     * <p>Uses {@link BotFilterOrder#CONTEXT_SETTER} so this filter always runs before any
-     * application-defined filter, ensuring the request context is fully populated.
+     * <p>Uses {@link BotFilterOrder#CONTEXT_SETTER} so this filter always runs just after
+     * {@link BotMdcFilter}, ensuring the request context is fully populated and MDC
+     * update-id is already set.
      *
      * @return {@link BotFilterOrder#CONTEXT_SETTER}.
      */
@@ -130,6 +133,21 @@ public class BotContextSetterFilter implements BotFilter {
         } else if (update.hasPaidMediaPurchased()) {
             // PaidMediaPurchased has no Chat object in the Telegram API
             botRequest.setUser(update.getPaidMediaPurchased().getUser());
+        }
+
+        if (log.isDebugEnabled()) {
+            Long chatId = Objects.nonNull(botRequest.getChat()) ? botRequest.getChat().getId() : null;
+            Long userId = Objects.nonNull(botRequest.getUser()) ? botRequest.getUser().getId() : null;
+            log.debug("Update context resolved: updateId={} chatId={} userId={}",
+                    update.getUpdateId(), chatId, userId);
+        }
+
+        // Enrich MDC immediately so all downstream filters and handlers see user/chat keys.
+        if (Objects.nonNull(botRequest.getUser())) {
+            MDC.put(BotMdcFilter.MDC_USER_ID, String.valueOf(botRequest.getUser().getId()));
+        }
+        if (Objects.nonNull(botRequest.getChat())) {
+            MDC.put(BotMdcFilter.MDC_CHAT_ID, String.valueOf(botRequest.getChat().getId()));
         }
 
         filterChain.doFilter(botRequest, botResponse);

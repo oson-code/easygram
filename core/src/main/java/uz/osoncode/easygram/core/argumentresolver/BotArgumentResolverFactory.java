@@ -1,5 +1,6 @@
 package uz.osoncode.easygram.core.argumentresolver;
 
+import lombok.extern.slf4j.Slf4j;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 
@@ -20,6 +21,7 @@ import java.util.Optional;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 public class BotArgumentResolverFactory {
 
     /** Ordered list of argument resolvers consulted during parameter resolution. */
@@ -51,12 +53,25 @@ public class BotArgumentResolverFactory {
         List<Object> objects = new ArrayList<>(parameters.length);
         for (Parameter parameter : parameters) {
             boolean optional = ParameterUtils.isOptional(parameter);
-            Object resolved = botArgumentResolvers
+            BotArgumentResolver matched = botArgumentResolvers
                     .stream()
                     .filter(argumentResolver -> argumentResolver.supportsParameter(parameter))
                     .findFirst()
-                    .map(argumentResolver -> argumentResolver.resolveArgument(parameter, botRequest, botResponse))
                     .orElse(null);
+
+            if (matched == null) {
+                log.warn("No argument resolver found for parameter '{}' of type '{}' — injecting null",
+                        parameter.getName(), parameter.getType().getSimpleName());
+                objects.add(optional ? Optional.empty() : null);
+                continue;
+            }
+
+            log.trace("Resolving parameter '{}' type='{}' using resolver '{}'",
+                    parameter.getName(), parameter.getType().getSimpleName(),
+                    matched.getClass().getSimpleName());
+
+            Object resolved = matched.resolveArgument(parameter, botRequest, botResponse);
+            log.trace("Resolved parameter '{}' = {}", parameter.getName(), resolved);
             objects.add(optional ? Optional.ofNullable(resolved) : resolved);
         }
         return objects.toArray();

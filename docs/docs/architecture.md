@@ -94,22 +94,19 @@ Depends on: `core-api`
 ### Transports
 - **longpolling** — Polling updates from Telegram API (default)
 - **webhook** — Receiving updates via HTTPS webhooks (Spring MVC)
-- **messaging-kafka-consumer** — Consuming updates from Kafka
-- **messaging-rabbit-consumer** — Consuming updates from RabbitMQ
+- Kafka consumer transport — included in `messaging-api`
+- RabbitMQ consumer transport — included in `messaging-api`
 
-### Brokers
-- **messaging-api** — `BotUpdatePublisher` SPI
-- **messaging-kafka** — Kafka publisher using `KafkaTemplate`
-- **messaging-rabbit** — RabbitMQ publisher using `RabbitTemplate`
-- **messaging-producer** — Smart routing (publish to Kafka OR RabbitMQ based on property)
+### Brokers / Messaging
+- **messaging-api** — Unified broker module: `BotUpdatePublisher` SPI, Kafka publisher (`KafkaTemplate`), RabbitMQ publisher (`RabbitTemplate`), smart routing, and both consumer transports. All broker functionality consolidated since 0.0.5.
 
 ### spring-boot-starter
 **One-stop dependency.**
 
 Pulls in:
 - `core`, `core-chatstate`, `core-i18n`, `core-observability`
-- All transports (`longpolling`, `webhook`, `messaging-kafka-consumer`, `messaging-rabbit-consumer`)
-- All brokers
+- All transports (`longpolling`, `webhook`)
+- `messaging-api` (Kafka + RabbitMQ publishing and consuming)
 
 ### samples
 **Runnable Spring Boot applications** demonstrating each transport and pattern.
@@ -130,10 +127,11 @@ public interface BotFilter {
 ```
 
 Built-in filters (in order):
-1. **BotContextSetterFilter** — Resolve `User` and `Chat` from update
-2. **BotUpdatePublishingFilter** — Publish update to broker (if enabled)
-3. **BotDispatcher** — Route to handler
-4. **BotApiMethodsSenderFilter** — Execute queued API calls
+1. **BotMdcFilter** *(order `Integer.MIN_VALUE`)* — Set MDC keys: `bot.update.id`, `bot.transport`, `bot.user.id`, `bot.chat.id`
+2. **BotContextSetterFilter** *(order `MIN_VALUE+1`)* — Resolve `User` and `Chat` from update
+3. **BotObservabilityFilter** *(order `MIN_VALUE+2`)* — Wrap update in Micrometer `Observation`
+4. **BotApiMethodsSenderFilter** *(order `MIN_VALUE+3`)* — Execute queued API calls
+5. **BotUpdatePublishingFilter** — Publish update to broker (if enabled)
 
 Custom filters can be inserted at any priority level.
 

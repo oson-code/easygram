@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.handler;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import uz.osoncode.easygram.core.handler.invocation.BotHandlerInvocationContext;
 import uz.osoncode.easygram.core.handler.invocation.BotHandlerInvocationFilter;
 import uz.osoncode.easygram.core.handler.invocation.DefaultBotHandlerInvocationChain;
@@ -46,6 +47,7 @@ import java.util.function.Predicate;
  * @see BotHandlerLoader
  * @since 0.0.1
  */
+@Slf4j
 public class BotMethodHandler implements BotHandler {
 
     /**
@@ -158,6 +160,7 @@ public class BotMethodHandler implements BotHandler {
      */
     @Override
     public void handle(BotRequest botRequest, BotResponse botResponse) throws InvocationTargetException, IllegalAccessException {
+        log.trace("Dispatching to handler: {}.{}()", bean.getClass().getSimpleName(), method.getName());
         BotHandlerInvocationContext context = new BotHandlerInvocationContext(botRequest, botResponse, method, bean);
         new DefaultBotHandlerInvocationChain(invocationFilters).proceed(context);
     }

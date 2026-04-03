@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.handler;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
 import uz.osoncode.easygram.core.annotation.BotOrder;
 import uz.osoncode.easygram.core.chatstate.BotChatState;
@@ -45,6 +46,7 @@ import java.util.function.Predicate;
  * @see BotHandlerConditionContributor
  * @see BotHandlerInvocationFilter
  */
+@Slf4j
 @RequiredArgsConstructor
 public class DefaultBotMethodHandlerFactory implements BotMethodHandlerFactory {
 
@@ -96,6 +98,10 @@ public class DefaultBotMethodHandlerFactory implements BotMethodHandlerFactory {
         }
 
         Predicate<BotRequest> supportsPredicate = req -> conditions.stream().allMatch(c -> c.matches(req));
+
+        log.debug("Built handler: {}.{}() conditions={} order={} stateRestricted={}",
+                bean.getClass().getSimpleName(), method.getName(),
+                conditions.size(), order, hasChatStateRestriction);
 
         return new BotMethodHandler(method, bean, supportsPredicate, invocationFilters, order, hasChatStateRestriction);
     }

@@ -53,6 +53,7 @@ public class BotMarkupLoader implements ApplicationRunner {
         Map<String, Object> configBeans =
                 applicationContext.getBeansWithAnnotation(BotConfiguration.class);
 
+        int totalMarkups = 0;
         for (Object bean : configBeans.values()) {
             Class<?> targetClass = AopUtils.getTargetClass(bean);
             for (Method method : targetClass.getDeclaredMethods()) {
@@ -62,6 +63,9 @@ public class BotMarkupLoader implements ApplicationRunner {
                 }
                 var factory = botMarkupFactory.create(bean, method);
                 markupRegistry.register(annotation.value(), factory);
+                log.debug("Registered markup: name='{}' method={}.{}",
+                        annotation.value(), targetClass.getSimpleName(), method.getName());
+                totalMarkups++;
 
                 BotChatState chatState = AnnotationUtils.findAnnotation(method, BotChatState.class);
                 if (Objects.nonNull(chatState)) {
@@ -73,11 +77,14 @@ public class BotMarkupLoader implements ApplicationRunner {
                     } else {
                         for (String state : chatState.value()) {
                             markupRegistry.registerForState(state, factory);
+                            log.debug("Registered state-bound markup: name='{}' state='{}'",
+                                    annotation.value(), state);
                         }
                     }
                 }
             }
         }
+        log.info("Markup registry loaded: {} markup(s) registered", totalMarkups);
     }
 }
 

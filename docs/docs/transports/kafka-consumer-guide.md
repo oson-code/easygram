@@ -9,16 +9,16 @@ Consume Telegram updates from a Kafka topic instead of polling or webhook.
 
 ## Add Dependencies
 
-`messaging-kafka-consumer` is included in `spring-boot-starter`, but `spring-kafka`
-is **not** pulled in transitively (it is marked optional to avoid unwanted broker connections
-when you are using a different transport). You must add it explicitly:
+`messaging-api` (included in `spring-boot-starter`) contains the Kafka consumer transport,
+but `spring-kafka` is **not** pulled in transitively (it is marked optional to avoid unwanted
+broker connections when you are using a different transport). You must add it explicitly:
 
 ```xml
-<!-- spring-boot-starter already includes messaging-kafka-consumer -->
+<!-- spring-boot-starter already includes messaging-api (Kafka consumer transport) -->
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.5</version>
 </dependency>
 
 <!-- Required: provides KafkaTemplate + ConsumerFactory for KAFKA_CONSUMER transport -->
@@ -28,13 +28,13 @@ when you are using a different transport). You must add it explicitly:
 </dependency>
 ```
 
-If you are NOT using `spring-boot-starter`, add `messaging-kafka-consumer` directly:
+If you are NOT using `spring-boot-starter`, add `messaging-api` directly:
 
 ```xml
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
-    <artifactId>messaging-kafka-consumer</artifactId>
-    <version>0.0.3</version>
+    <artifactId>messaging-api</artifactId>
+    <version>0.0.5</version>
 </dependency>
 <dependency>
     <groupId>org.springframework.kafka</groupId>
@@ -145,13 +145,13 @@ services:
 
 ## Publishing Updates to Kafka
 
-Use messaging-kafka module to publish:
+Use `messaging-api` to publish (already included in `spring-boot-starter`):
 
 ```xml
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
-    <artifactId>messaging-kafka</artifactId>
-    <version>0.0.3</version>
+    <artifactId>messaging-api</artifactId>
+    <version>0.0.5</version>
 </dependency>
 ```
 

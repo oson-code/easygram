@@ -74,6 +74,7 @@ module.exports = {
         'migration/0.0.1-to-0.0.2',
         'migration/0.0.2-to-0.0.3',
         'migration/0.0.3-to-0.0.4',
+        'migration/0.0.4-to-0.0.5',
       ],
     },
   ],

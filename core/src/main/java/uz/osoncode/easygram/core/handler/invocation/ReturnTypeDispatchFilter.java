@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.handler.invocation;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import uz.osoncode.easygram.core.markup.MarkupAware;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandler;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandlerFactory;
@@ -29,6 +30,7 @@ import java.lang.reflect.InvocationTargetException;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 @RequiredArgsConstructor
 public class ReturnTypeDispatchFilter implements BotHandlerInvocationFilter {
 
@@ -60,6 +62,10 @@ public class ReturnTypeDispatchFilter implements BotHandlerInvocationFilter {
         } else {
             handler = botReturnTypeHandlerFactory.getReturnTypeHandler(context.getMethod());
         }
+
+        log.trace("Dispatching return value type='{}' to handler '{}'",
+                returnValue == null ? "null" : returnValue.getClass().getSimpleName(),
+                handler.getClass().getSimpleName());
 
         handler.handleReturnType(context.getRequest(), context.getResponse(), returnValue, context.getMethod());
         chain.proceed(context);

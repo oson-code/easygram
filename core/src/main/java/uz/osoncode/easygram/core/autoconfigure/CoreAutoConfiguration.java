@@ -66,12 +66,13 @@ import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.exceptionhandler.BotMethodExceptionHandlerLoader;
 import uz.osoncode.easygram.core.filter.BotApiMethodsSenderFilter;
+import uz.osoncode.easygram.core.filter.BotMdcFilter;
+import uz.osoncode.easygram.core.filter.BotContextSetterFilter;
 import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
 import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
 import uz.osoncode.easygram.core.provider.BotOkHttpClientProvider;
 import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
 import uz.osoncode.easygram.core.provider.BotTelegramUrlProvider;
-import uz.osoncode.easygram.core.filter.BotContextSetterFilter;
 import uz.osoncode.easygram.core.handler.BotHandlerConditionContributor;
 import uz.osoncode.easygram.core.handler.BotHandlerLoader;
 import uz.osoncode.easygram.core.handler.BotHandlerRegistry;
@@ -955,6 +956,22 @@ public class CoreAutoConfiguration {
             List<BotMetaDataSpecResolver<? extends Annotation>> specResolvers,
             List<BotMetaDataDefaultResolver<? extends Annotation>> defaultResolvers) {
         return new BotMetaDataResolverFactory(specResolvers, defaultResolvers);
+    }
+
+    /**
+     * Registers the MDC correlation filter that sets {@code bot.update.id},
+     * {@code bot.transport}, {@code bot.user.id}, and {@code bot.chat.id} keys in the
+     * Mapped Diagnostic Context for every incoming update, enabling correlated log output
+     * across the entire processing pipeline.
+     *
+     * @param botConfigurer provides the active transport type for the {@code bot.transport} key
+     * @return a new {@link BotMdcFilter} instance
+     * @since 0.0.4
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public BotMdcFilter botMdcFilter(BotConfigurer botConfigurer) {
+        return new BotMdcFilter(botConfigurer);
     }
 
     /**

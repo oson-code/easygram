@@ -33,12 +33,12 @@
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-chatstate</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 
 > **Note:** `core-chatstate` is pulled in transitively by `longpolling`, `webhook`,
-> `messaging-kafka-consumer`, `messaging-rabbit-consumer`, and `spring-boot-starter`. You only need this
+> `messaging-api`, and `spring-boot-starter`. You only need this
 > explicit dependency when building a custom transport module.
 
 ---

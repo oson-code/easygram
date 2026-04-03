@@ -14,11 +14,12 @@ architectures where multiple downstream services consume the same Telegram updat
 ```
 Telegram
   ↓ transport (long-polling or webhook)
-BotContextSetterFilter
+BotMdcFilter           ← sets MDC: bot.update.id, bot.transport
+BotContextSetterFilter ← extracts Chat + User
   ↓
-BotUpdatePublishingFilter ← messaging-producer
-   KafkaBotUpdatePublisher (messaging-kafka)
-   RabbitBotUpdatePublisher (messaging-rabbit)
+BotUpdatePublishingFilter ← messaging-api (producer auto-config)
+   KafkaBotUpdatePublisher  (messaging-api, requires spring-kafka)
+   RabbitBotUpdatePublisher (messaging-api, requires spring-amqp)
   ↓
   forward-only: true → STOP (local handlers skipped)
   forward-only: false → continue to BotDispatcher
@@ -26,28 +27,26 @@ BotUpdatePublishingFilter ← messaging-producer
 
 ## Dependencies
 
-`spring-boot-starter` includes all messaging modules. For targeted setups:
+`spring-boot-starter` includes `messaging-api` automatically. For targeted setups:
 
 ```xml
-<!-- Kafka publishing -->
+<!-- All broker functionality: Kafka + RabbitMQ publishing and consuming -->
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
-    <artifactId>messaging-kafka</artifactId>
-    <version>0.0.3</version>
+    <artifactId>messaging-api</artifactId>
+    <version>0.0.5</version>
 </dependency>
 
-<!-- RabbitMQ publishing -->
+<!-- Required for Kafka: spring-kafka is optional in messaging-api -->
 <dependency>
-    <groupId>uz.osoncode.easygram</groupId>
-    <artifactId>messaging-rabbit</artifactId>
-    <version>0.0.3</version>
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
 </dependency>
 
-<!-- Smart routing: Kafka OR RabbitMQ based on a single property -->
+<!-- Required for RabbitMQ: spring-amqp is optional in messaging-api -->
 <dependency>
-    <groupId>uz.osoncode.easygram</groupId>
-    <artifactId>messaging-producer</artifactId>
-    <version>0.0.3</version>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
 </dependency>
 ```
 

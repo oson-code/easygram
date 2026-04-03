@@ -50,13 +50,7 @@ easygram/
 ├── core-observability/     # Micrometer metrics and actuator endpoint
 ├── longpolling/            # Long-polling transport
 ├── webhook/                # Webhook transport
-├── messaging-api/          # Messaging abstraction (BotUpdatePublisher)
-├── messaging-producer/     # Producer type selection auto-config
-├── messaging-consumer/     # Consumer type selection auto-config
-├── messaging-kafka/        # Kafka publisher implementation
-├── messaging-kafka-consumer/  # Kafka consumer transport
-├── messaging-rabbit/       # RabbitMQ publisher implementation
-├── messaging-rabbit-consumer/ # RabbitMQ consumer transport
+├── messaging-api/          # Unified broker module: publisher SPI + Kafka + RabbitMQ (producers & consumers)
 ├── spring-boot-starter/    # Aggregator starter (includes all transports)
 └── samples/                # Example bots
 ```

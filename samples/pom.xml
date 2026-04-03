@@ -5,7 +5,7 @@
 
     <groupId>uz.osoncode.easygram.samples</groupId>
     <artifactId>samples-parent</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
     <packaging>pom</packaging>
     <name>easygram :: samples</name>
     <description>Runnable sample applications for every easygram transport module</description>
@@ -25,7 +25,7 @@
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <library.version>0.0.4</library.version>
+        <library.version>0.0.5</library.version>
         <spring-boot.version>3.5.4</spring-boot.version>
     </properties>
 </project>

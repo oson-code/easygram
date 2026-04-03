@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.handler.invocation;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -64,6 +65,7 @@ import java.util.Optional;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 @RequiredArgsConstructor
 public class MarkupApplicationFilter implements BotHandlerInvocationFilter {
 
@@ -97,26 +99,35 @@ public class MarkupApplicationFilter implements BotHandlerInvocationFilter {
 
             if (returnValue instanceof MarkupAware markupAware) {
                 if (Objects.nonNull(clearMarkup)) {
+                    log.debug("Clearing markup for method '{}'", context.getMethod().getName());
                     context.setReturnValue(markupAware.removeMarkup());
                 } else if (Objects.nonNull(replyMarkup)
                         && Objects.isNull(markupAware.getKeyboard())
                         && Objects.isNull(markupAware.getMarkupId())) {
+                    log.debug("Applying @BotReplyMarkup '{}' to method '{}'",
+                            replyMarkup.value(), context.getMethod().getName());
                     context.setReturnValue(markupAware.withMarkup(replyMarkup.value()));
                 } else if (Objects.isNull(markupAware.getKeyboard()) && Objects.isNull(markupAware.getMarkupId())) {
                     ReplyKeyboard stateKeyboard = resolveStateKeyboard(context);
                     if (Objects.nonNull(stateKeyboard)
                             && (!markupAware.isEditMessage() || stateKeyboard instanceof InlineKeyboardMarkup)) {
+                        log.debug("Applying state-bound keyboard to method '{}'", context.getMethod().getName());
                         context.setReturnValue(markupAware.withKeyboard(stateKeyboard));
                     }
                 }
             } else if (returnValue instanceof String text) {
                 if (Objects.nonNull(clearMarkup)) {
+                    log.debug("Clearing markup (String return) for method '{}'", context.getMethod().getName());
                     context.setReturnValue(PlainReply.of(text).removeMarkup());
                 } else if (Objects.nonNull(replyMarkup)) {
+                    log.debug("Applying @BotReplyMarkup '{}' to String return of method '{}'",
+                            replyMarkup.value(), context.getMethod().getName());
                     context.setReturnValue(PlainReply.of(text).withMarkup(replyMarkup.value()));
                 } else {
                     ReplyKeyboard stateKeyboard = resolveStateKeyboard(context);
                     if (Objects.nonNull(stateKeyboard)) {
+                        log.debug("Applying state-bound keyboard to String return of method '{}'",
+                                context.getMethod().getName());
                         context.setReturnValue(PlainReply.of(text).withKeyboard(stateKeyboard));
                     }
                 }

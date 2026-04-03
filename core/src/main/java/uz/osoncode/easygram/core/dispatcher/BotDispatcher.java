@@ -66,7 +66,11 @@ public final class BotDispatcher {
                                 .filter(h -> h.supports(botRequest))
                                 .peek(h -> log.debug("Matched default handler: {}", h.info()))
                                 .findFirst()
-                                .orElseThrow(() -> new IllegalStateException(
-                                        "No handler found for update: " + botRequest.getUpdate()))));
+                                .orElseThrow(() -> {
+                                    log.warn("No handler matched for updateId={} update={}",
+                                            botRequest.getUpdate().getUpdateId(), botRequest.getUpdate());
+                                    return new IllegalStateException(
+                                            "No handler found for update: " + botRequest.getUpdate());
+                                })));
     }
 }

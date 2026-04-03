@@ -25,14 +25,14 @@ This starter pulls in the core engine, all transport modules, and i18n support w
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("uz.osoncode.easygram:spring-boot-starter:0.0.4")
+implementation("uz.osoncode.easygram:spring-boot-starter:0.0.5")
 ```
 
 ---
@@ -44,24 +44,23 @@ The starter pulls in every module transitively — you get all of these with the
 | Module | Artifact ID | What it provides |
 |---|---|---|
 | Core API | `core-api` | Annotations, interfaces, model classes |
-| Core Engine | `core` | Dispatching, filter pipeline, argument/return-type handling |
+| Core Engine | `core` | Dispatching, filter pipeline, MDC tracing, argument/return-type handling |
 | Chat State | `core-chatstate` | `InMemoryBotChatStateService` |
 | i18n | `core-i18n` | `BotMessageSource`, `BotKeyboardFactory`, `Locale` injection |
+| Observability | `core-observability` | Micrometer metrics, health indicator, info endpoint |
 | Long-Polling | `longpolling` | `getUpdates` polling transport (default) |
 | Webhook | `webhook` | Spring MVC endpoint transport |
-| Kafka Consumer | `messaging-kafka-consumer` | `@KafkaListener` consumer transport |
-| RabbitMQ Consumer | `messaging-rabbit-consumer` | `@RabbitListener` consumer transport |
-| Messaging Consumer | `messaging-consumer` | Aggregator for Kafka/Rabbit consumer selection |
+| Messaging | `messaging-api` | Kafka + RabbitMQ publisher and consumer transports |
 
-**Runtime dependencies brought in transitively:**
+**Optional runtime dependencies** (brought in by `messaging-api` but marked `optional` — add only what you use):
 
-| Library | Brought in by | Notes |
+| Library | Required when | Notes |
 |---|---|---|
-| `spring-boot-starter-web` | `webhook` | Required for the webhook MVC endpoint |
-| `spring-kafka` | `messaging-kafka-consumer` | Kafka client + Spring Kafka |
-| `spring-boot-starter-amqp` | `messaging-rabbit-consumer` | RabbitMQ client + Spring AMQP |
+| `spring-boot-starter-web` | `webhook` transport | Required for the webhook MVC endpoint |
+| `spring-kafka` | `KAFKA_CONSUMER` transport or Kafka publisher | Kafka client + Spring Kafka |
+| `spring-boot-starter-amqp` | `RABBIT_CONSUMER` transport or RabbitMQ publisher | RabbitMQ client + Spring AMQP |
 
-> If your bot only uses long-polling and you want a lean classpath (no Spring MVC, no Kafka, no AMQP), use individual modules instead — see [Starter vs. Individual Modules](#starter-vs-individual-modules).
+> For a lean classpath (e.g., long-polling only — no Spring MVC, no Kafka, no AMQP), depend on the specific transport module directly — see [Starter vs. Individual Modules](#starter-vs-individual-modules).
 
 ---
 
@@ -171,7 +170,7 @@ Use individual modules for a **minimal dependency tree**:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>longpolling</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 
@@ -182,8 +181,8 @@ The starter is convenient but brings `spring-boot-starter-web`, `spring-kafka`, 
 | Development / quick start | `spring-boot-starter` (this module) |
 | Long-polling only | `longpolling` |
 | Webhook only | `webhook` |
-| Kafka consumer only | `messaging-kafka-consumer` |
-| RabbitMQ consumer only | `messaging-rabbit-consumer` |
+| Kafka consumer only | `messaging-api` + `spring-kafka` |
+| RabbitMQ consumer only | `messaging-api` + `spring-boot-starter-amqp` |
 | Custom extension module | `core-api` only |
 
 ---
@@ -199,8 +198,7 @@ The starter is convenient but brings `spring-boot-starter-web`, `spring-kafka`, 
 | Chat State | [core-chatstate/README.md](../core-chatstate/README.md) |
 | i18n | [core-i18n/README.md](../core-i18n/README.md) |
 | Observability | [core-observability/README.md](../core-observability/README.md) |
-| Kafka Consumer | [messaging-kafka-consumer/README.md](../messaging-kafka-consumer/README.md) |
-| RabbitMQ Consumer | [messaging-rabbit-consumer/README.md](../messaging-rabbit-consumer/README.md) |
+| Messaging (Kafka + RabbitMQ) | [messaging-api/README.md](../messaging-api/README.md) |
 | Samples | [samples/README.md](../samples/README.md) |
 
 ---

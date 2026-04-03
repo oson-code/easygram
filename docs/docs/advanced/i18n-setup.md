@@ -19,7 +19,7 @@ keyboards, and automatic `Locale` injection into handler methods — all built o
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-i18n</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 
