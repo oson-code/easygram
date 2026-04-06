@@ -1,20 +1,19 @@
 package uz.osoncode.easygram.messaging.producer;
 
 /**
- * Supported messaging-producer backend types.
+ * Identifies the message-broker backend used when this bot publishes updates.
  *
- * <p>Used as the value of {@code easygram.messaging.producer.producer-type} to select
- * which {@code BotUpdatePublisher} implementation is registered by
- * {@code MessagingProducerAutoConfiguration}.</p>
+ * <p>Set via {@code easygram.messaging.producer.type}. Only evaluated when
+ * {@code easygram.messaging.type=PRODUCER}.</p>
  *
  * @author Islom Mirsaburov
- * @since 0.0.1
+ * @since 0.0.5
  */
 public enum ProducerType {
 
-    /** Apache Kafka publisher. */
+    /** Publish Telegram updates to Apache Kafka. */
     KAFKA,
 
-    /** RabbitMQ publisher. */
+    /** Publish Telegram updates to RabbitMQ. */
     RABBIT
 }

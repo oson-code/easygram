@@ -15,15 +15,16 @@ import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import uz.osoncode.easygram.core.bot.BotConfigurer;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
-import uz.osoncode.easygram.messaging.kafka.KafkaBotPublisherProperties;
+import uz.osoncode.easygram.messaging.kafka.BotKafkaProperties;
 import uz.osoncode.easygram.messaging.kafka.KafkaBotUpdatePublisher;
 import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
 
 /**
  * Spring Boot auto-configuration for the Kafka {@code BotUpdatePublisher} implementation.
  *
- * <p>Activated only when {@link KafkaTemplate} is present on the classpath.
- * Enables {@link KafkaBotPublisherProperties} binding and registers:</p>
+ * <p>Activated when {@link KafkaTemplate} is present on the classpath,
+ * {@code easygram.messaging.type=PRODUCER}, and {@code easygram.messaging.producer.type=KAFKA}.
+ * Enables {@link BotKafkaProperties} binding and registers:</p>
  * <ul>
  *   <li>{@link KafkaBotUpdatePublisher} — forwards every update to the configured topic.</li>
  *   <li>{@code NewTopic} — auto-creates the topic if {@code create-if-absent=true} (default)
@@ -36,12 +37,9 @@ import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
  */
 @AutoConfiguration
 @ConditionalOnClass(KafkaTemplate.class)
-@EnableConfigurationProperties(KafkaBotPublisherProperties.class)
-@ConditionalOnProperty(
-        prefix = "easygram.messaging.producer",
-        name = "producer-type",
-        havingValue = "kafka"
-)
+@EnableConfigurationProperties(BotKafkaProperties.class)
+@ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "PRODUCER")
+@ConditionalOnProperty(prefix = "easygram.messaging.producer", name = "type", havingValue = "KAFKA")
 public class KafkaMessagingAutoConfiguration {
 
     /**
@@ -60,18 +58,18 @@ public class KafkaMessagingAutoConfiguration {
     /**
      * Registers the Kafka-backed {@link KafkaBotUpdatePublisher} bean.
      *
-     * @param templateProvider           the provider for the Kafka template
-     * @param kafkaBotPublisherProperties properties holding the target topic name
-     * @param botConfigurer              shared bot configurer that provides the {@code ObjectMapper}
+     * @param templateProvider  the provider for the Kafka template
+     * @param kafkaProperties   properties holding the target topic name
+     * @param botConfigurer     shared bot configurer that provides the {@code ObjectMapper}
      * @return a configured {@link KafkaBotUpdatePublisher} instance
      */
     @Bean
     @ConditionalOnMissingBean(BotUpdatePublisher.class)
     public KafkaBotUpdatePublisher kafkaBotUpdatePublisher(
             BotKafkaTemplateProvider templateProvider,
-            KafkaBotPublisherProperties kafkaBotPublisherProperties,
+            BotKafkaProperties kafkaProperties,
             BotConfigurer botConfigurer) {
-        return new KafkaBotUpdatePublisher(templateProvider, kafkaBotPublisherProperties, botConfigurer.objectMapper());
+        return new KafkaBotUpdatePublisher(templateProvider, kafkaProperties, botConfigurer.objectMapper());
     }
 
     /**
@@ -80,7 +78,7 @@ public class KafkaMessagingAutoConfiguration {
      *
      * <p>Skipped when {@code easygram.messaging.kafka.create-if-absent=false}.</p>
      *
-     * @param props the Kafka publisher properties
+     * @param props the Kafka properties
      * @return a {@code NewTopic} descriptor for the configured topic
      */
     @Bean
@@ -90,7 +88,7 @@ public class KafkaMessagingAutoConfiguration {
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
-    public org.apache.kafka.clients.admin.NewTopic kafkaPublisherTopic(KafkaBotPublisherProperties props) {
+    public org.apache.kafka.clients.admin.NewTopic kafkaPublisherTopic(BotKafkaProperties props) {
         return TopicBuilder.name(props.topic())
                 .partitions(props.partitions())
                 .replicas(props.replicationFactor())

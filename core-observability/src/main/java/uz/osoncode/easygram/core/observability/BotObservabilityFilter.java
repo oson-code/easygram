@@ -25,7 +25,7 @@ import java.util.Objects;
  * <p><b>Low-cardinality tags</b> (included in both metrics and spans):</p>
  * <ul>
  *   <li>{@code update.type} — e.g. {@code message}, {@code callback_query}, {@code inline_query}.</li>
- *   <li>{@code transport.type} — e.g. {@code LONG_POLLING}, {@code WEBHOOK}, {@code KAFKA_CONSUMER}.</li>
+ *   <li>{@code transport.type} — e.g. {@code LONG_POLLING}, {@code WEBHOOK}.</li>
  * </ul>
  * <p><b>High-cardinality tags</b> (included in spans/traces only, not in metric labels):</p>
  * <ul>

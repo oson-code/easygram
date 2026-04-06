@@ -19,15 +19,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import uz.osoncode.easygram.core.bot.BotConfigurer;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
-import uz.osoncode.easygram.messaging.rabbit.RabbitBotPublisherProperties;
+import uz.osoncode.easygram.messaging.rabbit.BotRabbitProperties;
 import uz.osoncode.easygram.messaging.rabbit.RabbitBotUpdatePublisher;
 import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitTemplateProvider;
 
 /**
  * Spring Boot auto-configuration for the RabbitMQ {@code BotUpdatePublisher} implementation.
  *
- * <p>Activated only when {@link RabbitTemplate} is present on the classpath.
- * Enables {@link RabbitBotPublisherProperties} binding and registers:</p>
+ * <p>Activated when {@link RabbitTemplate} is present on the classpath,
+ * {@code easygram.messaging.type=PRODUCER}, and {@code easygram.messaging.producer.type=RABBIT}.
+ * Enables {@link BotRabbitProperties} binding and registers:</p>
  * <ul>
  *   <li>{@link RabbitBotUpdatePublisher} — forwards every update to the configured exchange.</li>
  *   <li>A {@link TopicExchange}, {@link Queue}, and {@link Binding} — auto-created by
@@ -40,12 +41,9 @@ import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitTemplateProvider;
  */
 @AutoConfiguration
 @ConditionalOnClass(RabbitTemplate.class)
-@EnableConfigurationProperties(RabbitBotPublisherProperties.class)
-@ConditionalOnProperty(
-        prefix = "easygram.messaging.producer",
-        name = "producer-type",
-        havingValue = "rabbit"
-)
+@EnableConfigurationProperties(BotRabbitProperties.class)
+@ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "PRODUCER")
+@ConditionalOnProperty(prefix = "easygram.messaging.producer", name = "type", havingValue = "RABBIT")
 public class RabbitMessagingAutoConfiguration {
 
     /**
@@ -64,18 +62,18 @@ public class RabbitMessagingAutoConfiguration {
     /**
      * Registers the RabbitMQ-backed {@link RabbitBotUpdatePublisher} bean.
      *
-     * @param templateProvider             the provider for the RabbitMQ template
-     * @param rabbitBotPublisherProperties properties holding the target exchange and routing key
-     * @param botConfigurer                shared bot configurer that provides the {@code ObjectMapper}
+     * @param templateProvider  the provider for the RabbitMQ template
+     * @param rabbitProperties  properties holding the target exchange and routing key
+     * @param botConfigurer     shared bot configurer that provides the {@code ObjectMapper}
      * @return a configured {@link RabbitBotUpdatePublisher} instance
      */
     @Bean
     @ConditionalOnMissingBean(BotUpdatePublisher.class)
     public RabbitBotUpdatePublisher rabbitBotUpdatePublisher(
             BotRabbitTemplateProvider templateProvider,
-            RabbitBotPublisherProperties rabbitBotPublisherProperties,
+            BotRabbitProperties rabbitProperties,
             BotConfigurer botConfigurer) {
-        return new RabbitBotUpdatePublisher(templateProvider, rabbitBotPublisherProperties, botConfigurer.objectMapper());
+        return new RabbitBotUpdatePublisher(templateProvider, rabbitProperties, botConfigurer.objectMapper());
     }
 
     /**
@@ -83,7 +81,7 @@ public class RabbitMessagingAutoConfiguration {
      *
      * <p>Skipped when {@code easygram.messaging.rabbit.create-if-absent=false}.</p>
      *
-     * @param props the RabbitMQ publisher properties
+     * @param props the RabbitMQ properties
      * @return a durable {@link TopicExchange} named after {@code props.exchange()}
      */
     @Bean
@@ -93,7 +91,7 @@ public class RabbitMessagingAutoConfiguration {
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
-    public TopicExchange rabbitPublisherExchange(RabbitBotPublisherProperties props) {
+    public TopicExchange rabbitPublisherExchange(BotRabbitProperties props) {
         return new TopicExchange(props.exchange(), true, false);
     }
 
@@ -102,7 +100,7 @@ public class RabbitMessagingAutoConfiguration {
      *
      * <p>Skipped when {@code easygram.messaging.rabbit.create-if-absent=false}.</p>
      *
-     * @param props the RabbitMQ publisher properties
+     * @param props the RabbitMQ properties
      * @return a durable {@link Queue} named after {@code props.queue()}
      */
     @Bean
@@ -112,7 +110,7 @@ public class RabbitMessagingAutoConfiguration {
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
-    public Queue rabbitPublisherQueue(RabbitBotPublisherProperties props) {
+    public Queue rabbitPublisherQueue(BotRabbitProperties props) {
         return QueueBuilder.durable(props.queue()).build();
     }
 
@@ -124,7 +122,7 @@ public class RabbitMessagingAutoConfiguration {
      *
      * @param rabbitPublisherQueue    the queue declared by {@link #rabbitPublisherQueue}
      * @param rabbitPublisherExchange the exchange declared by {@link #rabbitPublisherExchange}
-     * @param props                   the RabbitMQ publisher properties
+     * @param props                   the RabbitMQ properties
      * @return a {@link Binding} connecting the queue to the exchange with {@code props.routingKey()}
      */
     @Bean
@@ -137,7 +135,7 @@ public class RabbitMessagingAutoConfiguration {
     public Binding rabbitPublisherBinding(
             Queue rabbitPublisherQueue,
             TopicExchange rabbitPublisherExchange,
-            RabbitBotPublisherProperties props) {
+            BotRabbitProperties props) {
         return BindingBuilder.bind(rabbitPublisherQueue).to(rabbitPublisherExchange).with(props.routingKey());
     }
 

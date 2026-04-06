@@ -42,7 +42,7 @@ import java.util.List;
  * @since 0.0.1
  */
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "easygram", name = "transport", havingValue = "WEBHOOK")
+@ConditionalOnProperty(prefix = "easygram.update", name = "transport", havingValue = "WEBHOOK")
 @EnableConfigurationProperties(WebhookBotProperties.class)
 public class WebhookAutoConfiguration {
 

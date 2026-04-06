@@ -38,11 +38,19 @@ import java.util.List;
  * <p>The {@link LongPollingBot} bean is guarded by {@link ConditionalOnMissingBean} so
  * applications can supply a customised subclass if needed.</p>
  *
+ * <p>This auto-configuration activates when:</p>
+ * <ul>
+ *   <li>{@code easygram.update.transport} is {@code LONG_POLLING} or absent (default), AND</li>
+ *   <li>{@code easygram.messaging.type} is NOT {@code CONSUMER} — the second condition prevents
+ *       long-polling from starting when the bot receives updates from a broker instead.</li>
+ * </ul>
+ *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "easygram", name = "transport", havingValue = "LONG_POLLING", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "easygram.update", name = "transport", havingValue = "LONG_POLLING", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "PRODUCER", matchIfMissing = true)
 @Import(LongPollingBotConfig.class)
 public class LongPollingAutoConfiguration {
 

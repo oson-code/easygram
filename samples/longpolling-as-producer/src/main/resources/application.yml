@@ -1,34 +1,37 @@
 easygram:
-  # Required: your Telegram Bot API token from @BotFather
-  token: "BOT_TOKEN"
+  # Required: your Telegram Bot API token from @BotFather.
+  # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
+  token: "${BOT_TOKEN}"
 
-  # Transport is LONG_POLLING by default
-  # transport: LONG_POLLING
+  # update.transport defaults to LONG_POLLING — no need to set it explicitly.
 
   messaging:
+    # Declare this bot as a PRODUCER: it receives updates from Telegram and publishes them.
+    type: PRODUCER
+
     # true  → forward ONLY to broker; local @BotController handlers are skipped
-    # false → forward to broker AND run local handlers
+    # false → forward to broker AND run local handlers (default)
     forward-only: true
 
     producer:
-      # producer-type: rabbit
-      producer-type: kafka
+      # Choose which broker to publish to: KAFKA | RABBIT
+      type: KAFKA
 
-    # ── Kafka settings (active when producer-type=kafka) ───────────────────
+    # ── Kafka settings (active when producer.type=KAFKA) ────────────────────
     kafka:
       topic: easygram-updates
-      create-if-absent: true   # auto-create topic on startup
+      create-if-absent: true   # auto-create topic on startup (default: true)
       partitions: 1
       replication-factor: 1
 
-    # ── RabbitMQ settings (active when producer-type=rabbit) ───────────────
-    rabbit:
-      exchange: easygram-exchange
-      routing-key: easygram.updates
-      queue: easygram-updates
-      create-if-absent: true   # auto-create exchange, queue and binding on startup
+    # ── RabbitMQ settings (active when producer.type=RABBIT) ────────────────
+    # rabbit:
+    #   exchange: easygram-exchange
+    #   routing-key: easygram.updates
+    #   queue: easygram-updates
+    #   create-if-absent: true
 
-# ── Spring Kafka (required when producer-type=kafka) ─────────────────────────
+# ── Spring Kafka (required when producer.type=KAFKA) ─────────────────────────
 spring:
   application:
     name: longpolling-as-producer
@@ -41,7 +44,7 @@ spring:
       acks: all
       retries: 3
 
-  # ── Spring RabbitMQ (required when producer-type=rabbit) ─────────────────
+  # ── Spring RabbitMQ (required when producer.type=RABBIT) ─────────────────
   rabbitmq:
     host: 10.0.0.2
     port: 5675

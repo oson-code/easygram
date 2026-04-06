@@ -61,6 +61,7 @@ import uz.osoncode.easygram.core.argumentresolver.BotShippingPayloadArgumentReso
 import uz.osoncode.easygram.core.argumentresolver.BotPreCheckoutPayloadArgumentResolver;
 import uz.osoncode.easygram.core.bot.BotConfigurer;
 import uz.osoncode.easygram.core.bot.BotProperties;
+import uz.osoncode.easygram.core.bot.BotUpdateProperties;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
@@ -162,7 +163,7 @@ import java.util.concurrent.Executors;
  * @since 0.0.1
  */
 @AutoConfiguration
-@EnableConfigurationProperties(BotProperties.class)
+@EnableConfigurationProperties({BotProperties.class, BotUpdateProperties.class})
 public class CoreAutoConfiguration {
 
     /**
@@ -1171,16 +1172,16 @@ public class CoreAutoConfiguration {
      * <p>Consumers can override by declaring their own {@code BotConfigurer} bean.</p>
      *
      * @param botObjectMapperProvider provider for the shared {@link ObjectMapper}
-     * @param botProperties           common bot properties containing the transport type
+     * @param botUpdateProperties     bot update configuration containing the transport type
      * @return a {@link BotConfigurer} instance
      */
     @Bean
     @ConditionalOnMissingBean
     public BotConfigurer botConfigurer(
             BotObjectMapperProvider botObjectMapperProvider,
-            BotProperties botProperties
+            BotUpdateProperties botUpdateProperties
     ) {
-        return new BotConfigurer(botObjectMapperProvider.provide(), botProperties.transport());
+        return new BotConfigurer(botObjectMapperProvider.provide(), botUpdateProperties.transport());
     }
 
     /**

@@ -21,17 +21,18 @@ import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
 import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
 import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
+import uz.osoncode.easygram.messaging.kafka.BotKafkaProperties;
 import uz.osoncode.easygram.messaging.kafka.consumer.KafkaBotUpdateListener;
 import uz.osoncode.easygram.messaging.kafka.consumer.KafkaConsumerBot;
-import uz.osoncode.easygram.messaging.kafka.consumer.KafkaConsumerBotProperties;
 
 import java.util.List;
 
 /**
  * Spring Boot auto-configuration for the Kafka consumer transport module.
  *
- * <p>Activated only when {@link KafkaListener} is present on the classpath.
- * Enables {@link KafkaConsumerBotProperties} binding (prefix {@code easygram.kafka-consumer})
+ * <p>Activated when {@link KafkaListener} is present on the classpath,
+ * {@code easygram.messaging.type=CONSUMER}, and {@code easygram.messaging.consumer.type=KAFKA}.
+ * Enables {@link BotKafkaProperties} binding (prefix {@code easygram.messaging.kafka})
  * and registers the following beans:</p>
  * <ul>
  *   <li>{@link KafkaConsumerBot} — the bot instance that authenticates with Telegram and processes updates.</li>
@@ -46,8 +47,9 @@ import java.util.List;
  */
 @AutoConfiguration
 @ConditionalOnClass(KafkaListener.class)
-@ConditionalOnProperty(prefix = "easygram", name = "transport", havingValue = "KAFKA_CONSUMER")
-@EnableConfigurationProperties(KafkaConsumerBotProperties.class)
+@ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "CONSUMER")
+@ConditionalOnProperty(prefix = "easygram.messaging.consumer", name = "type", havingValue = "KAFKA")
+@EnableConfigurationProperties(BotKafkaProperties.class)
 public class KafkaConsumerAutoConfiguration {
 
     /**
@@ -108,7 +110,7 @@ public class KafkaConsumerAutoConfiguration {
      * Registers the {@link KafkaConsumerBot} that processes updates received from Kafka.
      *
      * @param botProperties               common bot properties containing the token
-     * @param properties                  properties holding the topic
+     * @param kafkaProperties             properties holding the topic name
      * @param triggers                    startup triggers executed after authentication
      * @param filters                     filters applied to every incoming update
      * @param botDispatcher               dispatcher that routes updates to handlers
@@ -121,14 +123,14 @@ public class KafkaConsumerAutoConfiguration {
     @ConditionalOnMissingBean
     public KafkaConsumerBot kafkaConsumerBot(
             BotProperties botProperties,
-            KafkaConsumerBotProperties properties,
+            BotKafkaProperties kafkaProperties,
             List<BotStartTrigger> triggers,
             List<BotFilter> filters,
             BotDispatcher botDispatcher,
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
             BotTelegramClientProvider telegramClientProvider,
             BotExecutorServiceProvider executorServiceProvider) {
-        return new KafkaConsumerBot(botProperties, properties, triggers, filters, botDispatcher,
+        return new KafkaConsumerBot(botProperties, kafkaProperties, triggers, filters, botDispatcher,
                 botExceptionHandlerRegistry, telegramClientProvider, executorServiceProvider);
     }
 
@@ -152,19 +154,19 @@ public class KafkaConsumerAutoConfiguration {
      * Registers a {@code NewTopic} bean so that Kafka creates the consumer
      * topic on startup if it does not already exist.
      *
-     * <p>Skipped when {@code easygram.kafka-consumer.create-if-absent=false}.</p>
+     * <p>Skipped when {@code easygram.messaging.kafka.create-if-absent=false}.</p>
      *
-     * @param props the Kafka consumer properties
+     * @param props the Kafka properties
      * @return a {@code NewTopic} descriptor for the consumer topic
      */
     @Bean
     @ConditionalOnMissingBean(name = "kafkaConsumerTopic")
     @ConditionalOnProperty(
-            prefix = "easygram.kafka-consumer",
+            prefix = "easygram.messaging.kafka",
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
-    public org.apache.kafka.clients.admin.NewTopic kafkaConsumerTopic(KafkaConsumerBotProperties props) {
+    public org.apache.kafka.clients.admin.NewTopic kafkaConsumerTopic(BotKafkaProperties props) {
         return TopicBuilder.name(props.topic())
                 .partitions(props.partitions())
                 .replicas(props.replicationFactor())

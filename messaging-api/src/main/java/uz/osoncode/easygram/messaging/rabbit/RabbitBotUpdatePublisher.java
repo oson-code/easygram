@@ -16,22 +16,9 @@ import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitTemplateProvider;
  * to a RabbitMQ exchange as JSON messages.
  *
  * <p>The update is serialized with the provided {@link ObjectMapper} and sent to the exchange
- * configured by {@link RabbitBotPublisherProperties#exchange()} using the routing key from
- * {@link RabbitBotPublisherProperties#routingKey()}. The AMQP message content-type is set to
+ * configured by {@link BotRabbitProperties#exchange()} using the routing key from
+ * {@link BotRabbitProperties#routingKey()}. The AMQP message content-type is set to
  * {@code application/json}.</p>
- *
- * <p>Example {@code application.yml}:</p>
- * <pre>{@code
- * easygram:
- *   messaging:
- *     rabbit:
- *       exchange: easygram-exchange
- *       routing-key: easygram.updates
- * spring:
- *   rabbitmq:
- *     host: localhost
- *     port: 5672
- * }</pre>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
@@ -40,11 +27,11 @@ import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitTemplateProvider;
 public class RabbitBotUpdatePublisher implements BotUpdatePublisher {
 
     private final RabbitTemplate rabbitTemplate;
-    private final RabbitBotPublisherProperties properties;
+    private final BotRabbitProperties properties;
     private final ObjectMapper objectMapper;
 
     public RabbitBotUpdatePublisher(BotRabbitTemplateProvider templateProvider,
-                                    RabbitBotPublisherProperties properties,
+                                    BotRabbitProperties properties,
                                     ObjectMapper objectMapper) {
         this.rabbitTemplate = templateProvider.provide();
         this.properties = properties;

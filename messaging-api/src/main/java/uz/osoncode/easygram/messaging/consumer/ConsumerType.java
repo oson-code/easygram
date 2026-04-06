@@ -1,23 +1,19 @@
 package uz.osoncode.easygram.messaging.consumer;
 
 /**
- * Enumerates the supported broker types for the {@code messaging-consumer} module.
+ * Identifies the message-broker backend used when this bot consumes updates.
  *
- * <p>Set via {@code easygram.messaging.consumer.consumer-type} to select which
- * broker consumer is activated:</p>
- * <ul>
- *   <li>{@link #KAFKA} — activates the Kafka consumer transport.</li>
- *   <li>{@link #RABBIT} — activates the RabbitMQ consumer transport.</li>
- * </ul>
+ * <p>Set via {@code easygram.messaging.consumer.type}. Only evaluated when
+ * {@code easygram.messaging.type=CONSUMER}.</p>
  *
  * @author Islom Mirsaburov
- * @since 0.0.1
+ * @since 0.0.5
  */
 public enum ConsumerType {
 
-    /** Activate the Kafka consumer transport. */
+    /** Consume Telegram updates from Apache Kafka. */
     KAFKA,
 
-    /** Activate the RabbitMQ consumer transport. */
+    /** Consume Telegram updates from RabbitMQ. */
     RABBIT
 }

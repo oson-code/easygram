@@ -10,7 +10,7 @@ import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
  * Spring Kafka message listener that consumes Telegram {@link Update} JSON payloads
  * from a configured Kafka topic and forwards them into the bot processing pipeline.
  *
- * <p>The topic is resolved from the {@code easygram.kafka-consumer.topic} property at
+ * <p>The topic is resolved from the {@code easygram.messaging.kafka.topic} property at
  * startup. Each received message is deserialized into an {@link Update} using
  * {@link BotObjectMapperProvider} and forwarded to
  * {@link KafkaConsumerBot#handleUpdate(Update)}.</p>
@@ -34,7 +34,7 @@ public class KafkaBotUpdateListener {
      *
      * @param message the raw JSON string payload from Kafka
      */
-    @KafkaListener(topics = "${easygram.kafka-consumer.topic}", containerFactory = "botKafkaListenerContainerFactory")
+    @KafkaListener(topics = "${easygram.messaging.kafka.topic}", containerFactory = "botKafkaListenerContainerFactory")
     public void onMessage(String message) {
         log.debug("Received Kafka message: {}", message);
         try {

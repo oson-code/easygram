@@ -26,17 +26,19 @@ import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
 import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
 import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
+import uz.osoncode.easygram.messaging.rabbit.BotRabbitProperties;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitBotUpdateListener;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitConsumerBot;
-import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitConsumerBotProperties;
 
 import java.util.List;
 
 /**
  * Spring Boot auto-configuration for the RabbitMQ consumer transport module.
  *
- * <p>Activated only when {@link RabbitListener} is present on the classpath.
- * Enables {@link RabbitConsumerBotProperties} binding and registers:</p>
+ * <p>Activated when {@link RabbitListener} is present on the classpath,
+ * {@code easygram.messaging.type=CONSUMER}, and {@code easygram.messaging.consumer.type=RABBIT}.
+ * Enables {@link BotRabbitProperties} binding (prefix {@code easygram.messaging.rabbit})
+ * and registers:</p>
  * <ul>
  *   <li>{@link RabbitConsumerBot} — the bot that authenticates with Telegram and processes updates.</li>
  *   <li>{@link RabbitBotUpdateListener} — the AMQP listener that feeds deserialized updates into the bot.</li>
@@ -49,8 +51,9 @@ import java.util.List;
  */
 @AutoConfiguration
 @ConditionalOnClass(RabbitListener.class)
-@ConditionalOnProperty(prefix = "easygram", name = "transport", havingValue = "RABBIT_CONSUMER")
-@EnableConfigurationProperties(RabbitConsumerBotProperties.class)
+@ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "CONSUMER")
+@ConditionalOnProperty(prefix = "easygram.messaging.consumer", name = "type", havingValue = "RABBIT")
+@EnableConfigurationProperties(BotRabbitProperties.class)
 public class RabbitConsumerAutoConfiguration {
 
     /**
@@ -111,7 +114,7 @@ public class RabbitConsumerAutoConfiguration {
      * Registers the {@link RabbitConsumerBot} wired from fine-grained provider beans.
      *
      * @param botProperties               common bot properties containing the token
-     * @param properties                  properties holding the queue and broker settings
+     * @param rabbitProperties            properties holding the queue and broker settings
      * @param triggers                    startup triggers executed once after authentication
      * @param filters                     filters applied to every incoming update
      * @param botDispatcher               dispatcher that routes updates to handler methods
@@ -124,14 +127,14 @@ public class RabbitConsumerAutoConfiguration {
     @ConditionalOnMissingBean
     public RabbitConsumerBot rabbitConsumerBot(
             BotProperties botProperties,
-            RabbitConsumerBotProperties properties,
+            BotRabbitProperties rabbitProperties,
             List<BotStartTrigger> triggers,
             List<BotFilter> filters,
             BotDispatcher botDispatcher,
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
             BotTelegramClientProvider telegramClientProvider,
             BotExecutorServiceProvider executorServiceProvider) {
-        return new RabbitConsumerBot(botProperties, properties, triggers, filters, botDispatcher,
+        return new RabbitConsumerBot(botProperties, rabbitProperties, triggers, filters, botDispatcher,
                 botExceptionHandlerRegistry, telegramClientProvider, executorServiceProvider);
     }
 
@@ -153,62 +156,62 @@ public class RabbitConsumerAutoConfiguration {
     /**
      * Declares the topic exchange so that {@link RabbitAdmin} creates it if absent.
      *
-     * <p>Skipped when {@code easygram.rabbit-consumer.create-if-absent=false}.</p>
+     * <p>Skipped when {@code easygram.messaging.rabbit.create-if-absent=false}.</p>
      *
-     * @param props the RabbitMQ consumer properties containing the exchange name
+     * @param props the RabbitMQ properties containing the exchange name
      * @return a durable {@link TopicExchange}
      */
     @Bean
     @ConditionalOnMissingBean(name = "rabbitConsumerExchange")
     @ConditionalOnProperty(
-            prefix = "easygram.rabbit-consumer",
+            prefix = "easygram.messaging.rabbit",
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
-    public TopicExchange rabbitConsumerExchange(RabbitConsumerBotProperties props) {
+    public TopicExchange rabbitConsumerExchange(BotRabbitProperties props) {
         return new TopicExchange(props.exchange(), true, false);
     }
 
     /**
      * Declares the durable queue so that {@link RabbitAdmin} creates it if absent.
      *
-     * <p>Skipped when {@code easygram.rabbit-consumer.create-if-absent=false}.</p>
+     * <p>Skipped when {@code easygram.messaging.rabbit.create-if-absent=false}.</p>
      *
-     * @param props the RabbitMQ consumer properties containing the queue name
+     * @param props the RabbitMQ properties containing the queue name
      * @return a durable {@link Queue}
      */
     @Bean
     @ConditionalOnMissingBean(name = "rabbitConsumerQueue")
     @ConditionalOnProperty(
-            prefix = "easygram.rabbit-consumer",
+            prefix = "easygram.messaging.rabbit",
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
-    public Queue rabbitConsumerQueue(RabbitConsumerBotProperties props) {
+    public Queue rabbitConsumerQueue(BotRabbitProperties props) {
         return QueueBuilder.durable(props.queue()).build();
     }
 
     /**
      * Declares the binding between exchange and queue so that {@link RabbitAdmin} creates it if absent.
      *
-     * <p>Skipped when {@code easygram.rabbit-consumer.create-if-absent=false}.</p>
+     * <p>Skipped when {@code easygram.messaging.rabbit.create-if-absent=false}.</p>
      *
      * @param rabbitConsumerQueue    the queue to bind
      * @param rabbitConsumerExchange the exchange to bind to
-     * @param props                  the RabbitMQ consumer properties containing the routing key
+     * @param props                  the RabbitMQ properties containing the routing key
      * @return a {@link Binding} connecting the queue to the exchange
      */
     @Bean
     @ConditionalOnMissingBean(name = "rabbitConsumerBinding")
     @ConditionalOnProperty(
-            prefix = "easygram.rabbit-consumer",
+            prefix = "easygram.messaging.rabbit",
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
     public Binding rabbitConsumerBinding(
             Queue rabbitConsumerQueue,
             TopicExchange rabbitConsumerExchange,
-            RabbitConsumerBotProperties props) {
+            BotRabbitProperties props) {
         return BindingBuilder.bind(rabbitConsumerQueue).to(rabbitConsumerExchange).with(props.routingKey());
     }
 }

@@ -1,7 +1,5 @@
 uz.osoncode.easygram.messaging.autoconfigure.MessagingAutoConfiguration
 uz.osoncode.easygram.messaging.kafka.autoconfigure.KafkaMessagingAutoConfiguration
 uz.osoncode.easygram.messaging.rabbit.autoconfigure.RabbitMessagingAutoConfiguration
-uz.osoncode.easygram.messaging.producer.autoconfigure.MessagingProducerAutoConfiguration
-uz.osoncode.easygram.messaging.consumer.autoconfigure.MessagingConsumerAutoConfiguration
 uz.osoncode.easygram.messaging.kafka.consumer.autoconfigure.KafkaConsumerAutoConfiguration
 uz.osoncode.easygram.messaging.rabbit.consumer.autoconfigure.RabbitConsumerAutoConfiguration

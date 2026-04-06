@@ -1,19 +1,22 @@
 easygram:
-  # Required: your Telegram Bot API token from @BotFather
-  token: "BOT_TOKEN"
+  # Required: your Telegram Bot API token from @BotFather.
+  # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
+  token: "${BOT_TOKEN}"
 
-  transport: RABBIT_CONSUMER
-
-  rabbit-consumer:
-    # RabbitMQ queue to consume Telegram updates from
-    queue: easygram-updates
-
-    # Exchange and routing key used when auto-creating the binding
-    exchange: easygram-exchange
-    routing-key: easygram.updates
-
-    # Auto-create the exchange, queue and binding on startup (default: true)
-    create-if-absent: true
+  messaging:
+    # Declare this bot as a CONSUMER: it receives updates from RabbitMQ, not from Telegram directly.
+    type: CONSUMER
+    consumer:
+      # Broker type to consume from: KAFKA | RABBIT
+      type: RABBIT
+    rabbit:
+      # RabbitMQ queue to consume Telegram updates from
+      queue: easygram-updates
+      # Exchange and routing key used when auto-creating the binding
+      exchange: easygram-exchange
+      routing-key: easygram.updates
+      # Auto-create the exchange, queue and binding on startup (default: true)
+      create-if-absent: true
 
 spring:
   application:

@@ -12,6 +12,7 @@ import uz.osoncode.easygram.core.filter.BotFilter;
 import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
 import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
+import uz.osoncode.easygram.messaging.rabbit.BotRabbitProperties;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +46,7 @@ public class RabbitConsumerBot extends Bot implements InitializingBean, Disposab
      * Constructs a new {@code RabbitConsumerBot} wired from fine-grained provider beans.
      *
      * @param botProperties               common bot properties containing the token
-     * @param properties                  properties holding the queue and broker settings
+     * @param rabbitProperties            properties holding the queue and broker settings
      * @param triggers                    startup triggers executed once after authentication
      * @param filters                     filters applied to every incoming update
      * @param botDispatcher               dispatcher that routes updates to handler methods
@@ -55,7 +56,7 @@ public class RabbitConsumerBot extends Bot implements InitializingBean, Disposab
      */
     public RabbitConsumerBot(
             BotProperties botProperties,
-            RabbitConsumerBotProperties properties,
+            BotRabbitProperties rabbitProperties,
             List<BotStartTrigger> triggers,
             List<BotFilter> filters,
             BotDispatcher botDispatcher,

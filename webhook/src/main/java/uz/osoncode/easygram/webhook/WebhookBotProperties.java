@@ -8,7 +8,7 @@ import org.springframework.validation.annotation.Validated;
 /**
  * Configuration properties for the Telegram webhook bot transport.
  *
- * <p>Properties are bound from the {@code easygram.webhook} prefix in the application
+ * <p>Properties are bound from the {@code easygram.update.webhook} prefix in the application
  * configuration (e.g. {@code application.yml} or {@code application.properties}).
  * Bean Validation is applied at startup via {@link Validated}, so the application will fail
  * to start if any required property is missing or blank.</p>
@@ -16,13 +16,14 @@ import org.springframework.validation.annotation.Validated;
  * <p>Example {@code application.yml} snippet:</p>
  * <pre>{@code
  * easygram:
- *   webhook:
- *     url: "https://example.com/webhook"
- *     path: "/webhook"
- *     secret-token: "my-secret"
- *     max-connections: 40
- *     drop-pending-updates: false
- *     unregister-on-shutdown: false
+ *   update:
+ *     webhook:
+ *       url: "https://example.com/webhook"
+ *       path: "/webhook"
+ *       secret-token: "my-secret"
+ *       max-connections: 40
+ *       drop-pending-updates: false
+ *       unregister-on-shutdown: false
  * }</pre>
  *
  * @param url                   the public HTTPS URL Telegram will send updates to; must not be blank
@@ -39,11 +40,11 @@ import org.springframework.validation.annotation.Validated;
  * @since 0.0.1
  */
 @Validated
-@ConfigurationProperties("easygram.webhook")
+@ConfigurationProperties("easygram.update.webhook")
 public record WebhookBotProperties(
 
         /** The public HTTPS URL to which Telegram delivers webhook updates. */
-        @NotBlank(message = "easygram.webhook.url must not be blank")
+        @NotBlank(message = "easygram.update.webhook.url must not be blank")
         String url,
 
         /** Local server path that accepts incoming webhook POST requests. */
