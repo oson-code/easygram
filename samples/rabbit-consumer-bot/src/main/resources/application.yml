@@ -24,7 +24,7 @@ spring:
 
   rabbitmq:
     # Run: docker compose up -d  (see docker-compose.yml)
-    host: localhost
+    host: 10.0.0.2
     port: 5672
     username: rabbit
     password: rabbit

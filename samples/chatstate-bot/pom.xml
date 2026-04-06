@@ -32,11 +32,6 @@
             <version>${library.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>core-i18n</artifactId>
-            <version>${library.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
