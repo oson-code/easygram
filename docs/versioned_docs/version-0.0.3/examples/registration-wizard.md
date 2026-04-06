@@ -40,9 +40,8 @@ Cancel via `/cancel` or Cancel button is available at every step.
 ```
 
 ```yaml
-telegram:
-  bot:
-    token: "${BOT_TOKEN}"
+easygram:
+  token: "${BOT_TOKEN}"
 spring:
   application:
     name: chatstate-bot

@@ -52,17 +52,16 @@ public BotBackOffProvider botBackOffProvider() {
 ## Minimal Configuration
 
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}              # required
-    transport: LONG_POLLING          # optional — this is the default
+easygram:
+  token: ${BOT_TOKEN}              # required
+  transport: LONG_POLLING          # optional — this is the default
 ```
 
 ## All Properties
 
 | Property | Required | Default | Description |
 |---|---|---|---|
-| `telegram.bot.token` | ✅ | — | Bot token from @BotFather (shared across transports) |
+| `easygram.token` | ✅ | — | Bot token from @BotFather (shared across transports) |
 
 ## Customizing Infrastructure
 

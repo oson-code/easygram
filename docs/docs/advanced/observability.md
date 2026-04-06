@@ -46,7 +46,7 @@ management:
     distribution:
       # Enable histogram buckets so Grafana can compute histogram_quantile()
       percentiles-histogram:
-        telegram.bot.update: true
+        easygram.update: true
 ```
 
 ---
@@ -107,7 +107,7 @@ tracing bridge is on the classpath, traced.
 
 | Micrometer name | Prometheus series |
 |---|---|
-| `telegram.bot.update` | `telegram_bot_update_seconds_count` |
+| `easygram.update` | `telegram_bot_update_seconds_count` |
 | | `telegram_bot_update_seconds_sum` |
 | | `telegram_bot_update_seconds_max` |
 | | `telegram_bot_update_seconds_bucket` (when histogram enabled) |
@@ -238,7 +238,7 @@ management:
       endpoint: http://localhost:9411/api/v2/spans
 ```
 
-Every update processed through the filter chain gets a `telegram.bot.update` span automatically.
+Every update processed through the filter chain gets a `easygram.update` span automatically.
 
 ---
 
@@ -285,13 +285,13 @@ headers through the broker when a Micrometer Tracing bridge is configured.
 
 ```
 [producer service]
-  telegram.bot.update  (BotObservabilityFilter)
+  easygram.update  (BotObservabilityFilter)
     spring.kafka.producer  (KafkaTemplate — observationEnabled=true)
            ↓ W3C traceparent in Kafka record
 
 [consumer service]
   spring.kafka.consumer  (listener container — observationEnabled=true)
-    telegram.bot.update  (BotObservabilityFilter — child span)
+    easygram.update  (BotObservabilityFilter — child span)
 ```
 
 The same pattern applies for RabbitMQ (`spring.rabbit.producer` / `spring.rabbit.listener`).
@@ -404,7 +404,7 @@ logging:
 | Health endpoint | Automatic via `BotHealthIndicator` (UP/UNKNOWN) |
 | Info endpoint | Automatic via `BotInfoContributor` |
 | Prometheus metrics | Add `micrometer-registry-prometheus` |
-| P95/P99 latency | Add `percentiles-histogram.telegram.bot.update: true` |
+| P95/P99 latency | Add `percentiles-histogram.easygram.update: true` |
 | Grafana dashboard | Copy from `samples/i18n-registration-bot/grafana/` |
 | Distributed tracing | Add `micrometer-tracing-bridge-brave` + Zipkin |
 | Pub/sub trace propagation | Automatic when `ObservationRegistry` bean is present |

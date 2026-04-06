@@ -18,7 +18,7 @@ Telegram
   ↓ long-polling
 BotContextSetterFilter
   ↓
-BotUpdatePublishingFilter → Kafka topic "telegram-updates"
+BotUpdatePublishingFilter → Kafka topic "easygram-updates"
   ↓ (forward-only: true)
   STOP — local @BotController handlers never run
 ```
@@ -45,24 +45,23 @@ BotUpdatePublishingFilter → Kafka topic "telegram-updates"
 ### application.yml
 
 ```yaml
-telegram:
-  bot:
-    token: "${BOT_TOKEN}"
-    # transport: LONG_POLLING is the default
+easygram:
+  token: "${BOT_TOKEN}"
+  # transport: LONG_POLLING is the default
 
-    messaging:
-      # true  → forward ONLY to broker; local @BotController handlers are skipped
-      # false → forward to broker AND run local handlers
-      forward-only: true
+  messaging:
+    # true  → forward ONLY to broker; local @BotController handlers are skipped
+    # false → forward to broker AND run local handlers
+    forward-only: true
 
-      producer:
-        producer-type: kafka
+    producer:
+      producer-type: kafka
 
-      kafka:
-        topic: telegram-updates
-        create-if-absent: true  # Auto-create topic on startup
-        partitions: 1
-        replication-factor: 1
+    kafka:
+      topic: easygram-updates
+      create-if-absent: true  # Auto-create topic on startup
+      partitions: 1
+      replication-factor: 1
 
 spring:
   application:
@@ -166,14 +165,13 @@ in a separate application:
 
 ```yaml
 # consumer/application.yml
-telegram:
-  bot:
-    token: "${BOT_TOKEN}"
-    transport: KAFKA_CONSUMER
-    messaging:
-      kafka:
-        topic:    telegram-updates
-        group-id: my-bot-consumer-group
+easygram:
+  token: "${BOT_TOKEN}"
+  transport: KAFKA_CONSUMER
+  messaging:
+    kafka:
+      topic:    easygram-updates
+      group-id: my-bot-consumer-group
 
 spring:
   kafka:
@@ -192,16 +190,15 @@ See the [Kafka Consumer Guide](../transports/kafka-consumer-guide) for full conf
 Switch to RabbitMQ by changing two properties:
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      producer:
-        producer-type: rabbit    # was: kafka
-      rabbit:
-        exchange:     telegram-exchange
-        routing-key:  telegram.updates
-        queue:        telegram-updates
-        create-if-absent: true
+easygram:
+  messaging:
+    producer:
+      producer-type: rabbit    # was: kafka
+    rabbit:
+      exchange:     easygram-exchange
+      routing-key:  easygram.updates
+      queue:        easygram-updates
+      create-if-absent: true
 
 spring:
   rabbitmq:

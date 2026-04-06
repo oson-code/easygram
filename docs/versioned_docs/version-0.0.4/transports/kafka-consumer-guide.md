@@ -53,15 +53,14 @@ If you are NOT using `spring-boot-starter`, add `messaging-kafka-consumer` direc
 
 **application.yml:**
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    transport: KAFKA_CONSUMER
-    kafka-consumer:
-      topic: telegram-updates
-      create-if-absent: true
-      partitions: 1
-      replication-factor: 1
+easygram:
+  token: ${BOT_TOKEN}
+  transport: KAFKA_CONSUMER
+  kafka-consumer:
+    topic: easygram-updates
+    create-if-absent: true
+    partitions: 1
+    replication-factor: 1
 
 spring:
   kafka:
@@ -74,10 +73,10 @@ spring:
 
 | Property | Required | Default | Description |
 |---|---|---|---|
-| `telegram.bot.kafka-consumer.topic` | Yes | — | Kafka topic to consume from |
-| `telegram.bot.kafka-consumer.create-if-absent` | No | `true` | Auto-create topic if not present |
-| `telegram.bot.kafka-consumer.partitions` | No | `1` | Partitions for auto-created topic |
-| `telegram.bot.kafka-consumer.replication-factor` | No | `1` | Replication factor for auto-created topic |
+| `easygram.kafka-consumer.topic` | Yes | — | Kafka topic to consume from |
+| `easygram.kafka-consumer.create-if-absent` | No | `true` | Auto-create topic if not present |
+| `easygram.kafka-consumer.partitions` | No | `1` | Partitions for auto-created topic |
+| `easygram.kafka-consumer.replication-factor` | No | `1` | Replication factor for auto-created topic |
 | `spring.kafka.bootstrap-servers` | Yes | — | Kafka broker address(es) |
 | `spring.kafka.consumer.group-id` | Yes | — | Consumer group ID |
 
@@ -103,7 +102,7 @@ Updates must be published as JSON in Kafka topic:
 ```
 Telegram API
     ↓
-[Kafka Topic: telegram-updates]
+[Kafka Topic: easygram-updates]
     ↓
 [Bot Instance 1] [Bot Instance 2] [Bot Instance 3]
     (all consuming same topic)
@@ -138,7 +137,7 @@ services:
     environment:
       TELEGRAM_BOT_TRANSPORT: KAFKA_CONSUMER
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      TELEGRAM_BOT_KAFKA_CONSUMER_TOPIC: telegram-updates
+      TELEGRAM_BOT_KAFKA_CONSUMER_TOPIC: easygram-updates
     depends_on:
       - kafka
 ```
@@ -157,14 +156,13 @@ Use messaging-kafka module to publish:
 
 **application.yml:**
 ```yaml
-telegram:
-  bot:
-    messaging:
-      forward-only: true
-      producer:
-        producer-type: kafka
-    kafka-consumer:
-      topic: telegram-updates
+easygram:
+  messaging:
+    forward-only: true
+    producer:
+      producer-type: kafka
+  kafka-consumer:
+    topic: easygram-updates
 
 spring:
   kafka:

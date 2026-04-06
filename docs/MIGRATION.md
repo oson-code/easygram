@@ -2,6 +2,24 @@
 
 ## 0.0.4 → 0.0.5
 
+### Property namespace rename (`telegram.bot` → `easygram`)
+
+All configuration properties have been renamed. Find and replace in your configuration files:
+
+```
+telegram.bot.token          → easygram.token
+telegram.bot.transport      → easygram.transport
+telegram.bot.webhook.*      → easygram.webhook.*
+telegram.bot.i18n.*         → easygram.i18n.*
+telegram.bot.messaging.*    → easygram.messaging.*
+telegram.bot.kafka-consumer.* → easygram.kafka-consumer.*
+telegram.bot.rabbit-consumer.* → easygram.rabbit-consumer.*
+```
+
+Default values also renamed: `telegram-updates` → `easygram-updates`, `telegram-exchange` → `easygram-exchange`, `telegram.updates` → `easygram.updates`.
+
+Observability metric/span renamed: `telegram.bot.update` → `easygram.update`.
+
 ### Messaging module consolidation
 
 Six fragmented messaging modules have been merged into the single `messaging-api` module.

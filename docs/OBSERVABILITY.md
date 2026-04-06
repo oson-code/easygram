@@ -77,9 +77,9 @@ Micrometer for every processed update. The following metrics are emitted:
 
 | Metric | Type | Tags | Description |
 |--------|------|------|-------------|
-| `telegram.bot.update.processed` | Counter | `transport`, `update_type` | Total updates processed |
-| `telegram.bot.update.errors` | Counter | `transport`, `exception` | Total processing errors |
-| `telegram.bot.update.duration` | Timer | `transport`, `update_type` | Processing time per update |
+| `easygram.update.processed` | Counter | `transport`, `update_type` | Total updates processed |
+| `easygram.update.errors` | Counter | `transport`, `exception` | Total processing errors |
+| `easygram.update.duration` | Timer | `transport`, `update_type` | Processing time per update |
 
 ### Spring Boot Actuator endpoint
 

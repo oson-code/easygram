@@ -42,7 +42,7 @@ import java.util.List;
  * @since 0.0.1
  */
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "telegram.bot", name = "transport", havingValue = "LONG_POLLING", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "easygram", name = "transport", havingValue = "LONG_POLLING", matchIfMissing = true)
 @Import(LongPollingBotConfig.class)
 public class LongPollingAutoConfiguration {
 

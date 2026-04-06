@@ -1,20 +1,19 @@
-telegram:
-  bot:
-    # Required: your Telegram Bot API token from @BotFather
-    token: "BOT_TOKEN"
+easygram:
+  # Required: your Telegram Bot API token from @BotFather
+  token: "BOT_TOKEN"
 
-    transport: RABBIT_CONSUMER
+  transport: RABBIT_CONSUMER
 
-    rabbit-consumer:
-      # RabbitMQ queue to consume Telegram updates from
-      queue: telegram-updates
+  rabbit-consumer:
+    # RabbitMQ queue to consume Telegram updates from
+    queue: easygram-updates
 
-      # Exchange and routing key used when auto-creating the binding
-      exchange: telegram-exchange
-      routing-key: telegram.updates
+    # Exchange and routing key used when auto-creating the binding
+    exchange: easygram-exchange
+    routing-key: easygram.updates
 
-      # Auto-create the exchange, queue and binding on startup (default: true)
-      create-if-absent: true
+    # Auto-create the exchange, queue and binding on startup (default: true)
+    create-if-absent: true
 
 spring:
   application:

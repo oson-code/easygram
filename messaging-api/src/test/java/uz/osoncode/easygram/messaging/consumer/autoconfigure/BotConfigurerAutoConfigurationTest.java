@@ -35,12 +35,12 @@ class BotConfigurerAutoConfigurationTest {
 
     /**
      * When only {@link CoreAutoConfiguration} is present, the registered {@link BotConfigurer}
-     * must use the transport from {@code telegram.bot.transport} (defaults to
+     * must use the transport from {@code easygram.transport} (defaults to
      * {@link BotTransportType#LONG_POLLING}).
      */
     @Test
     void coreOnly_defaultsToLongPolling() {
-        runner.withPropertyValues("telegram.bot.token=" + BOT_TOKEN)
+        runner.withPropertyValues("easygram.token=" + BOT_TOKEN)
                 .withConfiguration(AutoConfigurations.of(CoreAutoConfiguration.class))
                 .run(context -> {
                     assertThat(context).hasSingleBean(BotConfigurer.class);
@@ -65,10 +65,10 @@ class BotConfigurerAutoConfigurationTest {
         doReturn(mock(User.class)).when(mockClient).execute(any(GetMe.class));
 
         runner.withPropertyValues(
-                        "telegram.bot.token=" + BOT_TOKEN,
-                        "telegram.bot.messaging.consumer.consumer-type=kafka",
-                        "telegram.bot.kafka-consumer.topic=test-topic",
-                        "telegram.bot.kafka-consumer.create-if-absent=false"
+                        "easygram.token=" + BOT_TOKEN,
+                        "easygram.messaging.consumer.consumer-type=kafka",
+                        "easygram.kafka-consumer.topic=test-topic",
+                        "easygram.kafka-consumer.create-if-absent=false"
                 )
                 .withBean(BotTelegramClientProvider.class, () -> (BotTelegramClientProvider) token -> mockClient)
                 .withConfiguration(AutoConfigurations.of(
@@ -90,7 +90,7 @@ class BotConfigurerAutoConfigurationTest {
     void userProvidedConfigurer_customBeanTakesPrecedence() {
         BotConfigurer customConfigurer = new BotConfigurer(null, BotTransportType.KAFKA_CONSUMER);
 
-        runner.withPropertyValues("telegram.bot.token=" + BOT_TOKEN)
+        runner.withPropertyValues("easygram.token=" + BOT_TOKEN)
                 .withBean(BotConfigurer.class, () -> customConfigurer)
                 .withConfiguration(AutoConfigurations.of(CoreAutoConfiguration.class))
                 .run(context -> {

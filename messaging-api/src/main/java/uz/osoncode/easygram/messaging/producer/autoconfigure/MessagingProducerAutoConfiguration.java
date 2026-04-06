@@ -24,7 +24,7 @@ import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitTemplateProvider;
  * Spring Boot auto-configuration for the {@code messaging-producer} module.
  *
  * <p>Selects the correct {@link BotUpdatePublisher} implementation based on
- * {@code telegram.bot.messaging.producer.producer-type}. Runs before the individual
+ * {@code easygram.messaging.producer.producer-type}. Runs before the individual
  * {@code messaging-kafka} / {@code messaging-rabbit} autoconfiguration classes so that
  * the chosen publisher bean is registered first; those classes then skip their own
  * publisher registration via {@code @ConditionalOnMissingBean(BotUpdatePublisher.class)}
@@ -51,7 +51,7 @@ public class MessagingProducerAutoConfiguration {
     @Configuration
     @ConditionalOnClass(KafkaTemplate.class)
     @ConditionalOnProperty(
-            prefix = "telegram.bot.messaging.producer",
+            prefix = "easygram.messaging.producer",
             name = "producer-type",
             havingValue = "kafka"
     )
@@ -79,7 +79,7 @@ public class MessagingProducerAutoConfiguration {
     @Configuration
     @ConditionalOnClass(RabbitTemplate.class)
     @ConditionalOnProperty(
-            prefix = "telegram.bot.messaging.producer",
+            prefix = "easygram.messaging.producer",
             name = "producer-type",
             havingValue = "rabbit"
     )

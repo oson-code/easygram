@@ -63,10 +63,9 @@ public String handleRegistration(String input) { ... }
 spring:
   messages:
     basename: messages/bot
-telegram:
-  bot:
-    i18n:
-      default-locale: en
+easygram:
+  i18n:
+    default-locale: en
 ```
 
 ## Use Cases

@@ -8,17 +8,16 @@ import org.springframework.validation.annotation.Validated;
 /**
  * Configuration properties for the Kafka consumer bot transport.
  *
- * <p>Properties are bound from the {@code telegram.bot.kafka-consumer} prefix.</p>
+ * <p>Properties are bound from the {@code easygram.kafka-consumer} prefix.</p>
  *
  * <p>Example {@code application.yml} snippet:</p>
  * <pre>{@code
- * telegram:
- *   bot:
- *     kafka-consumer:
- *       topic: telegram-updates
- *       create-if-absent: true   # auto-create topic if not present (default: true)
- *       partitions: 1
- *       replication-factor: 1
+ * easygram:
+ *   kafka-consumer:
+ *     topic: easygram-updates
+ *     create-if-absent: true   # auto-create topic if not present (default: true)
+ *     partitions: 1
+ *     replication-factor: 1
  * spring:
  *   kafka:
  *     bootstrap-servers: localhost:9092
@@ -34,10 +33,10 @@ import org.springframework.validation.annotation.Validated;
  * @since 0.0.1
  */
 @Validated
-@ConfigurationProperties("telegram.bot.kafka-consumer")
+@ConfigurationProperties("easygram.kafka-consumer")
 public record KafkaConsumerBotProperties(
 
-        @NotBlank(message = "telegram.bot.kafka-consumer.topic must not be blank")
+        @NotBlank(message = "easygram.kafka-consumer.topic must not be blank")
         String topic,
 
         @DefaultValue("true")

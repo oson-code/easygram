@@ -54,17 +54,16 @@ BotUpdatePublishingFilter ← messaging-producer
 ## Kafka Producer Configuration
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      forward-only: true # Skip local handlers; updates go to Kafka only
-      producer:
-        producer-type: kafka
-      kafka:
-        topic: telegram-updates
-        create-if-absent: true # Auto-create topic on startup
-        partitions: 1
-        replication-factor: 1
+easygram:
+  messaging:
+    forward-only: true # Skip local handlers; updates go to Kafka only
+    producer:
+      producer-type: kafka
+    kafka:
+      topic: easygram-updates
+      create-if-absent: true # Auto-create topic on startup
+      partitions: 1
+      replication-factor: 1
 
 spring:
   kafka:
@@ -79,17 +78,16 @@ spring:
 ## RabbitMQ Producer Configuration
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      forward-only: true
-      producer:
-        producer-type: rabbit
-      rabbit:
-        exchange: telegram-exchange
-        routing-key: telegram.updates
-        queue: telegram-updates
-        create-if-absent: true # Auto-create exchange, queue, and binding
+easygram:
+  messaging:
+    forward-only: true
+    producer:
+      producer-type: rabbit
+    rabbit:
+      exchange: easygram-exchange
+      routing-key: easygram.updates
+      queue: easygram-updates
+      create-if-absent: true # Auto-create exchange, queue, and binding
 
 spring:
   rabbitmq:
@@ -108,18 +106,16 @@ spring:
 
 **Pure ingest gateway** — all processing in downstream services:
 ```yaml
-telegram:
-  bot:
-    messaging:
-      forward-only: true
+easygram:
+  messaging:
+    forward-only: true
 ```
 
 **Hybrid** — local quick-reply + broker for analytics / audit:
 ```yaml
-telegram:
-  bot:
-    messaging:
-      forward-only: false
+easygram:
+  messaging:
+    forward-only: false
 ```
 
 ## Message Format
@@ -162,7 +158,7 @@ public BotUpdatePublisher pubSubPublisher(PubSubTemplate pubSub,
                                           ObjectMapper objectMapper) {
     return request -> {
         String json = objectMapper.writeValueAsString(request.getUpdate());
-        pubSub.publish("telegram-updates", json).get();
+        pubSub.publish("easygram-updates", json).get();
     };
 }
 ```
@@ -173,13 +169,12 @@ Use the consumer transport modules to process updates through the full bot pipel
 
 ```yaml
 # Consumer application.yml
-telegram:
-  bot:
-    transport: KAFKA_CONSUMER # or RABBIT_CONSUMER
-    messaging:
-      kafka:
-        topic: telegram-updates
-        group-id: my-bot-consumer-group
+easygram:
+  transport: KAFKA_CONSUMER # or RABBIT_CONSUMER
+  messaging:
+    kafka:
+      topic: easygram-updates
+      group-id: my-bot-consumer-group
 
 spring:
   kafka:

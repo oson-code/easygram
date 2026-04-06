@@ -23,7 +23,7 @@ import java.util.List;
  * Spring Boot auto-configuration class for the webhook transport module.
  *
  * <p>This class is processed automatically by Spring Boot's auto-configuration mechanism.
- * It activates {@link WebhookBotProperties} binding (prefix {@code telegram.bot.webhook}) and
+ * It activates {@link WebhookBotProperties} binding (prefix {@code easygram.webhook}) and
  * wires the webhook beans from fine-grained provider beans supplied by
  * {@link uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration}.</p>
  *
@@ -42,7 +42,7 @@ import java.util.List;
  * @since 0.0.1
  */
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "telegram.bot", name = "transport", havingValue = "WEBHOOK")
+@ConditionalOnProperty(prefix = "easygram", name = "transport", havingValue = "WEBHOOK")
 @EnableConfigurationProperties(WebhookBotProperties.class)
 public class WebhookAutoConfiguration {
 

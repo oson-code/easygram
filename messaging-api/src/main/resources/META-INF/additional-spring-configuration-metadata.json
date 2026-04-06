@@ -1,0 +1,36 @@
+{
+  "properties": [
+    {
+      "name": "easygram.messaging.forward-only",
+      "type": "java.lang.Boolean",
+      "description": "When true, updates are published to the broker only; local handlers are skipped.",
+      "defaultValue": false
+    },
+    {
+      "name": "easygram.messaging.producer.producer-type",
+      "type": "uz.osoncode.easygram.messaging.producer.ProducerType",
+      "description": "Broker backend for publishing updates."
+    },
+    {
+      "name": "easygram.messaging.consumer.consumer-type",
+      "type": "uz.osoncode.easygram.messaging.consumer.ConsumerType",
+      "description": "Broker backend for consuming updates."
+    }
+  ],
+  "hints": [
+    {
+      "name": "easygram.messaging.producer.producer-type",
+      "values": [
+        { "value": "KAFKA", "description": "Publish updates to Apache Kafka." },
+        { "value": "RABBIT", "description": "Publish updates to RabbitMQ." }
+      ]
+    },
+    {
+      "name": "easygram.messaging.consumer.consumer-type",
+      "values": [
+        { "value": "KAFKA", "description": "Consume updates from Apache Kafka." },
+        { "value": "RABBIT", "description": "Consume updates from RabbitMQ." }
+      ]
+    }
+  ]
+}

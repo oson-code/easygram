@@ -22,12 +22,11 @@ import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitTemplateProvider;
  *
  * <p>Example {@code application.yml}:</p>
  * <pre>{@code
- * telegram:
- *   bot:
- *     messaging:
- *       rabbit:
- *         exchange: telegram-exchange
- *         routing-key: telegram.updates
+ * easygram:
+ *   messaging:
+ *     rabbit:
+ *       exchange: easygram-exchange
+ *       routing-key: easygram.updates
  * spring:
  *   rabbitmq:
  *     host: localhost

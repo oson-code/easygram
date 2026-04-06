@@ -12,7 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
  *
  * <p>The {@link BotUpdatePublishingFilter} calls {@link #publish(Update)} for every
  * incoming update before (or instead of) forwarding it to the bot's handler pipeline,
- * depending on the {@code telegram.bot.messaging.forward-only} property.</p>
+ * depending on the {@code easygram.messaging.forward-only} property.</p>
  *
  * <p>Example custom implementation:</p>
  * <pre>{@code

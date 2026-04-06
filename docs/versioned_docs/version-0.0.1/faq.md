@@ -105,10 +105,9 @@ public InlineKeyboardMarkup itemList(BotMarkupContext ctx) {
 **A:** Yes! Use persistent chat state (Redis) and load balancing:
 
 ```yaml
-telegram:
-  bot:
-    i18n:
-      default-locale: en
+easygram:
+  i18n:
+    default-locale: en
 ```
 
 Then deploy multiple instances pointing to same Redis.

@@ -72,10 +72,9 @@ The simplest possible bot. Uses the default long-polling transport; no extra inf
 
 **Configuration snippet:**
 ```yaml
-telegram:
-  bot:
-    token: "BOT_TOKEN"
-    # transport: LONG_POLLING  # default — no need to set
+easygram:
+  token: "BOT_TOKEN"
+  # transport: LONG_POLLING  # default — no need to set
 ```
 
 **Dependencies:** `longpolling`
@@ -94,15 +93,14 @@ Echo bot using the webhook transport. Requires a public HTTPS URL (e.g. from [jp
 
 **Configuration snippet:**
 ```yaml
-telegram:
-  bot:
-    token: "BOT_TOKEN"
-    transport: WEBHOOK
-    webhook:
-      url: "https://bot.example.com/webhook"
-      path: /webhook
-      drop-pending-updates: false
-      unregister-on-shutdown: false
+easygram:
+  token: "BOT_TOKEN"
+  transport: WEBHOOK
+  webhook:
+    url: "https://bot.example.com/webhook"
+    path: /webhook
+    drop-pending-updates: false
+    unregister-on-shutdown: false
 
 server:
   port: 8080
@@ -159,10 +157,9 @@ stateDiagram-v2
 
 **Configuration snippet:**
 ```yaml
-telegram:
-  bot:
-    token: "BOT_TOKEN"
-    # InMemoryBotChatStateService is registered automatically — no extra config needed.
+easygram:
+  token: "BOT_TOKEN"
+  # InMemoryBotChatStateService is registered automatically — no extra config needed.
 ```
 
 **Dependencies:** `longpolling` (includes `core-chatstate` transitively)
@@ -237,14 +234,13 @@ stateDiagram-v2
 6. **`@BotContact`** — accepts a Telegram contact share as an alternative to typing a number
 7. **Bean Validation** — `@NotBlank` / `@Size` on handler parameters; caught by a local `@BotExceptionHandler(ConstraintViolationException.class)` that returns localised error messages
 
-**Observability included** — the sample ships with a `docker-compose.yml` running Prometheus + Grafana. The pre-built Grafana dashboard visualises `telegram.bot.update` latency histograms and error rates.
+**Observability included** — the sample ships with a `docker-compose.yml` running Prometheus + Grafana. The pre-built Grafana dashboard visualises `easygram.update` latency histograms and error rates.
 
 **Configuration snippet:**
 
 ```yaml
-telegram:
-  bot:
-    token: "BOT_TOKEN"
+easygram:
+  token: "BOT_TOKEN"
 
 spring:
   messages:
@@ -278,17 +274,16 @@ flowchart LR
     K -->|consume| CB[Consumer bot\ne.g. kafka-consumer-bot]
 ```
 
-Set `telegram.bot.messaging.forward-only: true` to skip local handlers entirely.
+Set `easygram.messaging.forward-only: true` to skip local handlers entirely.
 Set it to `false` to both publish and handle locally.
 
-**Switch broker** by changing `telegram.bot.messaging.producer.producer-type`:
+**Switch broker** by changing `easygram.messaging.producer.producer-type`:
 ```yaml
-telegram:
-  bot:
-    messaging:
-      forward-only: true
-      producer:
-        producer-type: rabbit   # or: kafka
+easygram:
+  messaging:
+    forward-only: true
+    producer:
+      producer-type: rabbit   # or: kafka
 ```
 
 **Dependencies:** `longpolling`, `messaging-producer`
@@ -328,13 +323,12 @@ flowchart LR
 
 **Configuration snippet:**
 ```yaml
-telegram:
-  bot:
-    token: "BOT_TOKEN"
-    transport: KAFKA_CONSUMER
-    kafka-consumer:
-      topic: telegram-updates
-      create-if-absent: true
+easygram:
+  token: "BOT_TOKEN"
+  transport: KAFKA_CONSUMER
+  kafka-consumer:
+    topic: easygram-updates
+    create-if-absent: true
 
 spring:
   kafka:
@@ -364,15 +358,14 @@ flowchart LR
 
 **Configuration snippet:**
 ```yaml
-telegram:
-  bot:
-    token: "BOT_TOKEN"
-    transport: RABBIT_CONSUMER
-    rabbit-consumer:
-      queue: telegram-updates
-      exchange: telegram-exchange
-      routing-key: telegram.updates
-      create-if-absent: true
+easygram:
+  token: "BOT_TOKEN"
+  transport: RABBIT_CONSUMER
+  rabbit-consumer:
+    queue: easygram-updates
+    exchange: easygram-exchange
+    routing-key: easygram.updates
+    create-if-absent: true
 
 spring:
   rabbitmq:

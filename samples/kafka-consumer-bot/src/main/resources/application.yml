@@ -1,18 +1,17 @@
-telegram:
-  bot:
-    # Required: your Telegram Bot API token from @BotFather
-    token: "BOT_TOKEN"
+easygram:
+  # Required: your Telegram Bot API token from @BotFather
+  token: "BOT_TOKEN"
 
-    transport: KAFKA_CONSUMER
+  transport: KAFKA_CONSUMER
 
-    kafka-consumer:
-      # Kafka topic to consume Telegram updates from
-      topic: telegram-updates
+  kafka-consumer:
+    # Kafka topic to consume Telegram updates from
+    topic: easygram-updates
 
-      # Auto-create the topic on startup if it does not exist (default: true)
-      create-if-absent: true
-      partitions: 1
-      replication-factor: 1
+    # Auto-create the topic on startup if it does not exist (default: true)
+    create-if-absent: true
+    partitions: 1
+    replication-factor: 1
 
 spring:
   application:
@@ -27,7 +26,6 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     producer:
       acks: all
-
 
 logging:
   level:

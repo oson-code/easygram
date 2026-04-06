@@ -104,7 +104,7 @@ runs at order `BotFilterOrder.OBSERVATION` — just after `BotContextSetterFilte
 
 | Metric name | Type | Description |
 |---|---|---|
-| `telegram.bot.update` | Timer | Duration, count, and error rate per update |
+| `easygram.update` | Timer | Duration, count, and error rate per update |
 
 ### Tags
 
@@ -121,7 +121,7 @@ avoid cardinality explosion in Prometheus.
 ### Distributed tracing
 
 When a Brave or OpenTelemetry bridge is on the classpath, `BotObservabilityFilter`
-automatically creates a **span named `telegram.bot.update`** for each processed update —
+automatically creates a **span named `easygram.update`** for each processed update —
 no additional configuration required.
 
 ### Processing pipeline with observability

@@ -1,0 +1,26 @@
+{
+  "properties": [
+    {
+      "name": "easygram.token",
+      "type": "java.lang.String",
+      "description": "Telegram Bot API token from @BotFather."
+    },
+    {
+      "name": "easygram.transport",
+      "type": "uz.osoncode.easygram.core.bot.BotTransportType",
+      "description": "Active transport mechanism.",
+      "defaultValue": "LONG_POLLING"
+    }
+  ],
+  "hints": [
+    {
+      "name": "easygram.transport",
+      "values": [
+        { "value": "LONG_POLLING", "description": "Long-polling transport — the bot repeatedly calls getUpdates." },
+        { "value": "WEBHOOK", "description": "Webhook transport — Telegram pushes updates to an HTTPS endpoint." },
+        { "value": "KAFKA_CONSUMER", "description": "Kafka consumer transport — updates arrive via a Kafka topic." },
+        { "value": "RABBIT_CONSUMER", "description": "RabbitMQ consumer transport — updates arrive via a RabbitMQ queue." }
+      ]
+    }
+  ]
+}

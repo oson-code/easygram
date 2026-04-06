@@ -21,10 +21,9 @@ import java.util.Locale;
  *
  * <p>Example {@code application.yml} snippet:</p>
  * <pre>{@code
- * telegram:
- *   bot:
- *     i18n:
- *       default-locale: en
+ * easygram:
+ *   i18n:
+ *     default-locale: en
  * }</pre>
  *
  * @param defaultLocale fallback locale used when the Telegram user's language code is absent
@@ -32,7 +31,7 @@ import java.util.Locale;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
-@ConfigurationProperties(prefix = "telegram.bot.i18n")
+@ConfigurationProperties(prefix = "easygram.i18n")
 public record BotI18nProperties(
 
         /**

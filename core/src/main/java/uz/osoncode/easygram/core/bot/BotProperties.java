@@ -9,7 +9,7 @@ import org.springframework.validation.annotation.Validated;
 /**
  * Common Telegram bot properties shared across all transports.
  *
- * <p>Bound from the {@code telegram.bot} configuration prefix.
+ * <p>Bound from the {@code easygram} configuration prefix.
  * Validation is applied on startup — a missing or blank {@code token} causes a
  * {@link org.springframework.boot.context.properties.bind.validation.BindValidationException}
  * that prevents the application from starting.</p>
@@ -21,13 +21,13 @@ import org.springframework.validation.annotation.Validated;
  * @see BotTransportType
  */
 @Validated
-@ConfigurationProperties("telegram.bot")
+@ConfigurationProperties("easygram")
 public record BotProperties(
 
-        @NotBlank(message = "telegram.bot.token must not be blank")
+        @NotBlank(message = "easygram.token must not be blank")
         String token,
 
-        @NotNull(message = "telegram.bot.transport must not be null")
+        @NotNull(message = "easygram.transport must not be null")
         @DefaultValue("LONG_POLLING")
         BotTransportType transport
 ) {

@@ -118,11 +118,10 @@ Alternatively, use the `spring-boot-starter` artifact to pull in all transports 
 ## Step 2 — Configuration (`application.yml`)
 
 ```yaml
-telegram:
-  bot:
-    # Required: your Bot API token from @BotFather
-    token: ${TELEGRAM_BOT_TOKEN}
-    # Transport defaults to LONG_POLLING — no need to set it explicitly
+easygram:
+  # Required: your Bot API token from @BotFather
+  token: ${TELEGRAM_BOT_TOKEN}
+  # Transport defaults to LONG_POLLING — no need to set it explicitly
 
 spring:
   application:

@@ -3,7 +3,7 @@ package uz.osoncode.easygram.messaging.consumer;
 /**
  * Enumerates the supported broker types for the {@code messaging-consumer} module.
  *
- * <p>Set via {@code telegram.bot.messaging.consumer.consumer-type} to select which
+ * <p>Set via {@code easygram.messaging.consumer.consumer-type} to select which
  * broker consumer is activated:</p>
  * <ul>
  *   <li>{@link #KAFKA} — activates the Kafka consumer transport.</li>

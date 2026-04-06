@@ -124,7 +124,7 @@ implementation("uz.osoncode.easygram:spring-boot-starter:0.0.5")
 
 ## 🔀 Transport Selection
 
-Set `telegram.bot.transport` (or env var `TELEGRAM_BOT_TRANSPORT`) to choose the update source:
+Set `easygram.transport` (or env var `TELEGRAM_BOT_TRANSPORT`) to choose the update source:
 
 | Value | Default | Description | Module README |
 |---|---|---|---|
@@ -150,10 +150,9 @@ Only **one** transport is active at a time. See the linked module README for ful
 ```
 
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    # transport: LONG_POLLING   # optional; LONG_POLLING is the default
+easygram:
+  token: ${BOT_TOKEN}
+  # transport: LONG_POLLING   # optional; LONG_POLLING is the default
 ```
 
 ### 2. Create your main class
@@ -255,10 +254,9 @@ spring:
     basename: messages/bot
     encoding: UTF-8
 
-telegram:
-  bot:
-    i18n:
-      default-locale: en
+easygram:
+  i18n:
+    default-locale: en
 ```
 
 See [core-i18n/README.md](core-i18n/README.md) for full usage.

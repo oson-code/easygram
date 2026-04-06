@@ -43,7 +43,7 @@ class BotReplyButtonMatcherAutoConfigurationTest {
      */
     @Test
     void coreOnly_registersExactTextMatcher() {
-        runner.withPropertyValues("telegram.bot.token=" + BOT_TOKEN)
+        runner.withPropertyValues("easygram.token=" + BOT_TOKEN)
                 .withConfiguration(AutoConfigurations.of(CoreAutoConfiguration.class))
                 .run(context -> {
                     assertThat(context).hasSingleBean(BotReplyButtonMatcher.class);
@@ -71,8 +71,8 @@ class BotReplyButtonMatcherAutoConfigurationTest {
     @Test
     void coreAndI18n_i18nMatcherTakesPrecedence() {
         runner.withPropertyValues(
-                        "telegram.bot.token=" + BOT_TOKEN,
-                        "telegram.bot.i18n.default-locale=en"
+                        "easygram.token=" + BOT_TOKEN,
+                        "easygram.i18n.default-locale=en"
                 )
                 .withUserConfiguration(FakeMessageSourceConfig.class)
                 .withConfiguration(AutoConfigurations.of(
@@ -102,8 +102,8 @@ class BotReplyButtonMatcherAutoConfigurationTest {
         BotReplyButtonMatcher customMatcher = (values, request) -> true;
 
         runner.withPropertyValues(
-                        "telegram.bot.token=" + BOT_TOKEN,
-                        "telegram.bot.i18n.default-locale=en"
+                        "easygram.token=" + BOT_TOKEN,
+                        "easygram.i18n.default-locale=en"
                 )
                 .withBean(BotReplyButtonMatcher.class, () -> customMatcher)
                 .withUserConfiguration(FakeMessageSourceConfig.class)

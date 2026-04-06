@@ -1,35 +1,34 @@
-telegram:
-  bot:
-    # Required: your Telegram Bot API token from @BotFather
-    token: "BOT_TOKEN"
+easygram:
+  # Required: your Telegram Bot API token from @BotFather
+  token: "BOT_TOKEN"
 
-    # Transport is LONG_POLLING by default
-    # transport: LONG_POLLING
+  # Transport is LONG_POLLING by default
+  # transport: LONG_POLLING
 
-    messaging:
-      # true  → forward ONLY to broker; local @BotController handlers are skipped
-      # false → forward to broker AND run local handlers
-      forward-only: true
+  messaging:
+    # true  → forward ONLY to broker; local @BotController handlers are skipped
+    # false → forward to broker AND run local handlers
+    forward-only: true
 
-      producer:
-        # consumer-type: rabbit
-        producer-type: kafka
+    producer:
+      # producer-type: rabbit
+      producer-type: kafka
 
-      # ── Kafka settings (active when consumer-type=kafka) ───────────────────
-      kafka:
-        topic: telegram-updates
-        create-if-absent: true   # auto-create topic on startup
-        partitions: 1
-        replication-factor: 1
+    # ── Kafka settings (active when producer-type=kafka) ───────────────────
+    kafka:
+      topic: easygram-updates
+      create-if-absent: true   # auto-create topic on startup
+      partitions: 1
+      replication-factor: 1
 
-      # ── RabbitMQ settings (active when consumer-type=rabbit) ───────────────
-      rabbit:
-        exchange: telegram-exchange
-        routing-key: telegram.updates
-        queue: telegram-updates
-        create-if-absent: true   # auto-create exchange, queue and binding on startup
+    # ── RabbitMQ settings (active when producer-type=rabbit) ───────────────
+    rabbit:
+      exchange: easygram-exchange
+      routing-key: easygram.updates
+      queue: easygram-updates
+      create-if-absent: true   # auto-create exchange, queue and binding on startup
 
-# ── Spring Kafka (required when consumer-type=kafka) ─────────────────────────
+# ── Spring Kafka (required when producer-type=kafka) ─────────────────────────
 spring:
   application:
     name: longpolling-as-producer
@@ -42,7 +41,7 @@ spring:
       acks: all
       retries: 3
 
-  # ── Spring RabbitMQ (required when consumer-type=rabbit) ─────────────────
+  # ── Spring RabbitMQ (required when producer-type=rabbit) ─────────────────
   rabbitmq:
     host: 10.0.0.2
     port: 5675

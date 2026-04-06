@@ -42,7 +42,7 @@ import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitTemplateProvider;
 @ConditionalOnClass(RabbitTemplate.class)
 @EnableConfigurationProperties(RabbitBotPublisherProperties.class)
 @ConditionalOnProperty(
-        prefix = "telegram.bot.messaging.producer",
+        prefix = "easygram.messaging.producer",
         name = "producer-type",
         havingValue = "rabbit"
 )
@@ -81,7 +81,7 @@ public class RabbitMessagingAutoConfiguration {
     /**
      * Declares the topic exchange so that {@link RabbitAdmin} creates it if absent.
      *
-     * <p>Skipped when {@code telegram.bot.messaging.rabbit.create-if-absent=false}.</p>
+     * <p>Skipped when {@code easygram.messaging.rabbit.create-if-absent=false}.</p>
      *
      * @param props the RabbitMQ publisher properties
      * @return a durable {@link TopicExchange} named after {@code props.exchange()}
@@ -89,7 +89,7 @@ public class RabbitMessagingAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = "rabbitPublisherExchange")
     @ConditionalOnProperty(
-            prefix = "telegram.bot.messaging.rabbit",
+            prefix = "easygram.messaging.rabbit",
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
@@ -100,7 +100,7 @@ public class RabbitMessagingAutoConfiguration {
     /**
      * Declares the durable queue so that {@link RabbitAdmin} creates it if absent.
      *
-     * <p>Skipped when {@code telegram.bot.messaging.rabbit.create-if-absent=false}.</p>
+     * <p>Skipped when {@code easygram.messaging.rabbit.create-if-absent=false}.</p>
      *
      * @param props the RabbitMQ publisher properties
      * @return a durable {@link Queue} named after {@code props.queue()}
@@ -108,7 +108,7 @@ public class RabbitMessagingAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = "rabbitPublisherQueue")
     @ConditionalOnProperty(
-            prefix = "telegram.bot.messaging.rabbit",
+            prefix = "easygram.messaging.rabbit",
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
@@ -120,7 +120,7 @@ public class RabbitMessagingAutoConfiguration {
      * Declares the binding between exchange and queue so that {@link RabbitAdmin} creates
      * it if absent.
      *
-     * <p>Skipped when {@code telegram.bot.messaging.rabbit.create-if-absent=false}.</p>
+     * <p>Skipped when {@code easygram.messaging.rabbit.create-if-absent=false}.</p>
      *
      * @param rabbitPublisherQueue    the queue declared by {@link #rabbitPublisherQueue}
      * @param rabbitPublisherExchange the exchange declared by {@link #rabbitPublisherExchange}
@@ -130,7 +130,7 @@ public class RabbitMessagingAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = "rabbitPublisherBinding")
     @ConditionalOnProperty(
-            prefix = "telegram.bot.messaging.rabbit",
+            prefix = "easygram.messaging.rabbit",
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
@@ -146,7 +146,7 @@ public class RabbitMessagingAutoConfiguration {
      * used by the publisher. Only activated when an {@link ObservationRegistry} bean is present.
      *
      * <p>When active, every {@code RabbitTemplate.convertAndSend()} call creates a
-     * {@code spring.rabbit.producer} child span inside the current {@code telegram.bot.update}
+     * {@code spring.rabbit.producer} child span inside the current {@code easygram.update}
      * observation and injects a W3C {@code traceparent} header into the AMQP message
      * properties so the consumer side can continue the trace.</p>
      */

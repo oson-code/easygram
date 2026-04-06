@@ -6,15 +6,14 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 /**
  * Configuration properties for the Telegram Bot messaging integration.
  *
- * <p>Properties are bound from the {@code telegram.bot.messaging} prefix in the application
+ * <p>Properties are bound from the {@code easygram.messaging} prefix in the application
  * configuration (e.g. {@code application.yml} or {@code application.properties}).</p>
  *
  * <p>Example {@code application.yml} snippet:</p>
  * <pre>{@code
- * telegram:
- *   bot:
- *     messaging:
- *       forward-only: false
+ * easygram:
+ *   messaging:
+ *     forward-only: false
  * }</pre>
  *
  * @param forwardOnly when {@code true}, the update is published to the broker and the bot's
@@ -25,7 +24,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
-@ConfigurationProperties("telegram.bot.messaging")
+@ConfigurationProperties("easygram.messaging")
 public record BotPublishingProperties(
 
         /**

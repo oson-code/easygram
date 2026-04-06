@@ -11,7 +11,7 @@ import uz.osoncode.easygram.messaging.BotUpdatePublishingFilter;
 /**
  * Spring Boot auto-configuration for the messaging SPI module.
  *
- * <p>Activates {@link BotPublishingProperties} binding (prefix {@code telegram.bot.messaging})
+ * <p>Activates {@link BotPublishingProperties} binding (prefix {@code easygram.messaging})
  * and registers the {@link BotUpdatePublishingFilter} bean when a {@link BotUpdatePublisher}
  * implementation is present in the application context.</p>
  *

@@ -30,10 +30,9 @@ The `webhook` module autoconfigures a Spring MVC controller that listens at a co
 Without a secret token, any party who guesses your webhook URL can send arbitrary JSON payloads to your bot. The `secret-token` option instructs Telegram to include an `X-Telegram-Bot-Api-Secret-Token` header on every request it sends. The framework validates this header and rejects requests that don't match, ensuring only Telegram can trigger your bot.
 
 ```yaml
-telegram:
-  bot:
-    webhook:
-      secret-token: ${WEBHOOK_SECRET}   # generate a long random string
+easygram:
+  webhook:
+    secret-token: ${WEBHOOK_SECRET}   # generate a long random string
 ```
 
 Use a cryptographically random value (e.g. `openssl rand -hex 32`) and store it as an environment variable or secret.
@@ -60,13 +59,12 @@ ngrok http 8080
 Set the forwarding URL as your webhook URL:
 
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    transport: WEBHOOK
-    webhook:
-      url: https://abc123.ngrok.io/webhook
-      path: /webhook
+easygram:
+  token: ${BOT_TOKEN}
+  transport: WEBHOOK
+  webhook:
+    url: https://abc123.ngrok.io/webhook
+    path: /webhook
 ```
 
 > ngrok generates a new URL on each restart — update `webhook.url` accordingly or use a paid ngrok plan with a fixed subdomain.
@@ -74,40 +72,38 @@ telegram:
 ## Minimal Configuration
 
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    transport: WEBHOOK
-    webhook:
-      url: https://bot.example.com/webhook
+easygram:
+  token: ${BOT_TOKEN}
+  transport: WEBHOOK
+  webhook:
+    url: https://bot.example.com/webhook
 ```
 
 ## All Properties
 
 | Property | Required | Default | Description |
 |---|---|---|---|
-| `telegram.bot.token` | ✅ | — | Bot token (shared across transports) |
-| `telegram.bot.webhook.url` | ✅ | — | Public HTTPS URL Telegram calls |
-| `telegram.bot.webhook.path` | ❌ | `/webhook` | Local request path Spring MVC listens on |
-| `telegram.bot.webhook.secret-token` | ❌ | — | Header validation secret (strongly recommended) |
-| `telegram.bot.webhook.max-connections` | ❌ | — | 1–100 simultaneous connections (Telegram default is 40) |
-| `telegram.bot.webhook.drop-pending-updates` | ❌ | `false` | Drop queued updates on registration |
-| `telegram.bot.webhook.unregister-on-shutdown` | ❌ | `false` | Delete webhook on shutdown |
+| `easygram.token` | ✅ | — | Bot token (shared across transports) |
+| `easygram.webhook.url` | ✅ | — | Public HTTPS URL Telegram calls |
+| `easygram.webhook.path` | ❌ | `/webhook` | Local request path Spring MVC listens on |
+| `easygram.webhook.secret-token` | ❌ | — | Header validation secret (strongly recommended) |
+| `easygram.webhook.max-connections` | ❌ | — | 1–100 simultaneous connections (Telegram default is 40) |
+| `easygram.webhook.drop-pending-updates` | ❌ | `false` | Drop queued updates on registration |
+| `easygram.webhook.unregister-on-shutdown` | ❌ | `false` | Delete webhook on shutdown |
 
 ### Full Example
 
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    transport: webhook
-    webhook:
-      url: https://bot.example.com/webhook
-      path: /webhook
-      secret-token: ${WEBHOOK_SECRET}           # optional but recommended
-      max-connections: 40
-      drop-pending-updates: false
-      unregister-on-shutdown: false
+easygram:
+  token: ${BOT_TOKEN}
+  transport: webhook
+  webhook:
+    url: https://bot.example.com/webhook
+    path: /webhook
+    secret-token: ${WEBHOOK_SECRET}           # optional but recommended
+    max-connections: 40
+    drop-pending-updates: false
+    unregister-on-shutdown: false
 ```
 
 ## Customizing Infrastructure

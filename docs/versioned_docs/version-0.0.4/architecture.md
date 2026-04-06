@@ -298,18 +298,16 @@ Replace in-memory implementation with Redis, JDBC, etc.
 
 ### Required Property
 ```yaml
-telegram:
-  bot:
-    token: YOUR_BOT_TOKEN
+easygram:
+  token: YOUR_BOT_TOKEN
 ```
 
 ### Optional Properties
 ```yaml
-telegram:
-  bot:
-    transport: LONG_POLLING # LONG_POLLING, WEBHOOK, KAFKA_CONSUMER, RABBIT_CONSUMER
-    i18n:
-      default-locale: en
+easygram:
+  transport: LONG_POLLING # LONG_POLLING, WEBHOOK, KAFKA_CONSUMER, RABBIT_CONSUMER
+  i18n:
+    default-locale: en
 
 # Transport-specific (see module READMEs)
 # Long-polling has no additional configurable properties — it uses the defaults from

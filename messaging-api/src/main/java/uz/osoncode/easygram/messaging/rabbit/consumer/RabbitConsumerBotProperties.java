@@ -8,17 +8,16 @@ import org.springframework.validation.annotation.Validated;
 /**
  * Configuration properties for the RabbitMQ consumer bot transport.
  *
- * <p>Properties are bound from the {@code telegram.bot.rabbit-consumer} prefix.</p>
+ * <p>Properties are bound from the {@code easygram.rabbit-consumer} prefix.</p>
  *
  * <p>Example {@code application.yml} snippet:</p>
  * <pre>{@code
- * telegram:
- *   bot:
- *     rabbit-consumer:
- *       queue: telegram-updates
- *       exchange: telegram-exchange
- *       routing-key: telegram.updates
- *       create-if-absent: true   # auto-create exchange, queue and binding (default: true)
+ * easygram:
+ *   rabbit-consumer:
+ *     queue: easygram-updates
+ *     exchange: easygram-exchange
+ *     routing-key: easygram.updates
+ *     create-if-absent: true   # auto-create exchange, queue and binding (default: true)
  * spring:
  *   rabbitmq:
  *     host: localhost
@@ -27,23 +26,23 @@ import org.springframework.validation.annotation.Validated;
  *
  * @param queue          the RabbitMQ queue to consume from
  * @param exchange       the exchange to bind the queue to during auto-creation;
- *                       defaults to {@code telegram-exchange}
- * @param routingKey     the routing key for the binding; defaults to {@code telegram.updates}
+ *                       defaults to {@code easygram-exchange}
+ * @param routingKey     the routing key for the binding; defaults to {@code easygram.updates}
  * @param createIfAbsent auto-create the exchange, queue and binding if absent; defaults to {@code true}
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
 @Validated
-@ConfigurationProperties("telegram.bot.rabbit-consumer")
+@ConfigurationProperties("easygram.rabbit-consumer")
 public record RabbitConsumerBotProperties(
 
-        @NotBlank(message = "telegram.bot.rabbit-consumer.queue must not be blank")
+        @NotBlank(message = "easygram.rabbit-consumer.queue must not be blank")
         String queue,
 
-        @DefaultValue("telegram-exchange")
+        @DefaultValue("easygram-exchange")
         String exchange,
 
-        @DefaultValue("telegram.updates")
+        @DefaultValue("easygram.updates")
         String routingKey,
 
         @DefaultValue("true")

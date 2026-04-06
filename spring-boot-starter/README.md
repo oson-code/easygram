@@ -66,7 +66,7 @@ The starter pulls in every module transitively — you get all of these with the
 
 ## Transport Selection
 
-Only **one** transport is active at a time, controlled by `telegram.bot.transport`:
+Only **one** transport is active at a time, controlled by `easygram.transport`:
 
 | Value | Default? | Description |
 |---|---|---|
@@ -82,9 +82,8 @@ Only **one** transport is active at a time, controlled by `telegram.bot.transpor
 ### Long-polling (default)
 
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
+easygram:
+  token: ${BOT_TOKEN}
 ```
 
 No other properties are required. Long-polling starts automatically.
@@ -92,24 +91,22 @@ No other properties are required. Long-polling starts automatically.
 ### Webhook
 
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    transport: WEBHOOK
-    webhook:
-      url: https://bot.example.com/webhook
-      secret-token: ${WEBHOOK_SECRET}   # strongly recommended
+easygram:
+  token: ${BOT_TOKEN}
+  transport: WEBHOOK
+  webhook:
+    url: https://bot.example.com/webhook
+    secret-token: ${WEBHOOK_SECRET}   # strongly recommended
 ```
 
 ### Kafka consumer
 
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    transport: KAFKA_CONSUMER
-    kafka-consumer:
-      topic: telegram-updates
+easygram:
+  token: ${BOT_TOKEN}
+  transport: KAFKA_CONSUMER
+  kafka-consumer:
+    topic: easygram-updates
 
 spring:
   kafka:
@@ -121,12 +118,11 @@ spring:
 ### RabbitMQ consumer
 
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    transport: RABBIT_CONSUMER
-    rabbit-consumer:
-      queue: telegram-updates
+easygram:
+  token: ${BOT_TOKEN}
+  transport: RABBIT_CONSUMER
+  rabbit-consumer:
+    queue: easygram-updates
 
 spring:
   rabbitmq:
@@ -141,23 +137,23 @@ spring:
 
 | Property | Default | Description |
 |---|---|---|
-| `telegram.bot.token` | — | **Required.** Bot token from @BotFather |
-| `telegram.bot.transport` | `LONG_POLLING` | Active transport: `LONG_POLLING`, `WEBHOOK`, `KAFKA_CONSUMER`, `RABBIT_CONSUMER` |
-| `telegram.bot.webhook.url` | — | Public HTTPS URL for webhook registration |
-| `telegram.bot.webhook.path` | `/webhook` | Local request path Spring MVC listens on |
-| `telegram.bot.webhook.secret-token` | — | Header validation secret (recommended) |
-| `telegram.bot.webhook.max-connections` | — | Max simultaneous Telegram connections (1–100) |
-| `telegram.bot.webhook.drop-pending-updates` | `false` | Drop queued updates on webhook registration |
-| `telegram.bot.webhook.unregister-on-shutdown` | `false` | Call `DeleteWebhook` on graceful shutdown |
-| `telegram.bot.kafka-consumer.topic` | — | Kafka topic to consume updates from |
-| `telegram.bot.kafka-consumer.create-if-absent` | `true` | Auto-create topic on startup |
-| `telegram.bot.kafka-consumer.partitions` | `1` | Partitions for auto-created topic |
-| `telegram.bot.kafka-consumer.replication-factor` | `1` | Replication factor for auto-created topic |
-| `telegram.bot.rabbit-consumer.queue` | — | RabbitMQ queue to consume updates from |
-| `telegram.bot.rabbit-consumer.exchange` | `telegram-exchange` | Exchange for auto-created queue binding |
-| `telegram.bot.rabbit-consumer.routing-key` | `telegram.updates` | Routing key for auto-created binding |
-| `telegram.bot.rabbit-consumer.create-if-absent` | `true` | Auto-create exchange/queue/binding |
-| `telegram.bot.i18n.default-locale` | `en` | Fallback locale when user locale cannot be resolved |
+| `easygram.token` | — | **Required.** Bot token from @BotFather |
+| `easygram.transport` | `LONG_POLLING` | Active transport: `LONG_POLLING`, `WEBHOOK`, `KAFKA_CONSUMER`, `RABBIT_CONSUMER` |
+| `easygram.webhook.url` | — | Public HTTPS URL for webhook registration |
+| `easygram.webhook.path` | `/webhook` | Local request path Spring MVC listens on |
+| `easygram.webhook.secret-token` | — | Header validation secret (recommended) |
+| `easygram.webhook.max-connections` | — | Max simultaneous Telegram connections (1–100) |
+| `easygram.webhook.drop-pending-updates` | `false` | Drop queued updates on webhook registration |
+| `easygram.webhook.unregister-on-shutdown` | `false` | Call `DeleteWebhook` on graceful shutdown |
+| `easygram.kafka-consumer.topic` | — | Kafka topic to consume updates from |
+| `easygram.kafka-consumer.create-if-absent` | `true` | Auto-create topic on startup |
+| `easygram.kafka-consumer.partitions` | `1` | Partitions for auto-created topic |
+| `easygram.kafka-consumer.replication-factor` | `1` | Replication factor for auto-created topic |
+| `easygram.rabbit-consumer.queue` | — | RabbitMQ queue to consume updates from |
+| `easygram.rabbit-consumer.exchange` | `easygram-exchange` | Exchange for auto-created queue binding |
+| `easygram.rabbit-consumer.routing-key` | `easygram.updates` | Routing key for auto-created binding |
+| `easygram.rabbit-consumer.create-if-absent` | `true` | Auto-create exchange/queue/binding |
+| `easygram.i18n.default-locale` | `en` | Fallback locale when user locale cannot be resolved |
 
 ---
 

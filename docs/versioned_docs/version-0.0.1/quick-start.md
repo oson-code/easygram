@@ -39,14 +39,13 @@ implementation("uz.osoncode.easygram:spring-boot-starter:0.0.2")
 
 **application.yml:**
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
+easygram:
+  token: ${BOT_TOKEN}
 ```
 
 Or **application.properties:**
 ```properties
-telegram.bot.token=${BOT_TOKEN}
+easygram.token=${BOT_TOKEN}
 ```
 
 Set the environment variable `BOT_TOKEN` to your Telegram bot token from [@BotFather](https://t.me/BotFather).

@@ -19,24 +19,23 @@ The long-polling transport is the **default** and simplest way to run your bot. 
 
 **application.yml:**
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    transport: LONG_POLLING # Default, can be omitted
+easygram:
+  token: ${BOT_TOKEN}
+  transport: LONG_POLLING # Default, can be omitted
 ```
 
 **application.properties:**
 ```properties
-telegram.bot.token=${BOT_TOKEN}
-telegram.bot.transport=LONG_POLLING
+easygram.token=${BOT_TOKEN}
+easygram.transport=LONG_POLLING
 ```
 
 ## Configuration Options
 
 | Property | Required | Default | Description |
 |---|---|---|---|
-| `telegram.bot.token` | Yes | — | Bot API token from @BotFather |
-| `telegram.bot.transport` | No | `LONG_POLLING` | Transport type |
+| `easygram.token` | Yes | — | Bot API token from @BotFather |
+| `easygram.transport` | No | `LONG_POLLING` | Transport type |
 
 ## Advantages
 
@@ -98,10 +97,9 @@ spring:
   application:
     name: echo-bot
 
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    transport: LONG_POLLING
+easygram:
+  token: ${BOT_TOKEN}
+  transport: LONG_POLLING
 ```
 
 **Run:**

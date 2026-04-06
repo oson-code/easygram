@@ -7,13 +7,12 @@ import org.springframework.validation.annotation.Validated;
 /**
  * Configuration properties for the {@code messaging-consumer} module.
  *
- * <p>Bind via the {@code telegram.bot.messaging.consumer} prefix:</p>
+ * <p>Bind via the {@code easygram.messaging.consumer} prefix:</p>
  * <pre>{@code
- * telegram:
- *   bot:
- *     messaging:
- *       consumer:
- *         consumer-type: kafka   # or rabbit
+ * easygram:
+ *   messaging:
+ *     consumer:
+ *       consumer-type: kafka   # or rabbit
  * }</pre>
  *
  * @param consumerType the broker to activate; must not be null
@@ -21,10 +20,10 @@ import org.springframework.validation.annotation.Validated;
  * @since 0.0.1
  */
 @Validated
-@ConfigurationProperties("telegram.bot.messaging.consumer")
+@ConfigurationProperties("easygram.messaging.consumer")
 public record MessagingConsumerProperties(
 
-        @NotNull(message = "telegram.bot.messaging.consumer.consumer-type must not be null")
+        @NotNull(message = "easygram.messaging.consumer.consumer-type must not be null")
         ConsumerType consumerType
 ) {
 }

@@ -19,7 +19,7 @@ import java.util.Objects;
  *
  * <p><b>Metrics produced:</b></p>
  * <ul>
- *   <li>{@code telegram.bot.update} — timer recording count, total duration and error rate.</li>
+ *   <li>{@code easygram.update} — timer recording count, total duration and error rate.</li>
  * </ul>
  *
  * <p><b>Low-cardinality tags</b> (included in both metrics and spans):</p>
@@ -35,7 +35,7 @@ import java.util.Objects;
  *
  * <p><b>Tracing:</b>
  * When a Brave or OpenTelemetry bridge is on the classpath, this filter automatically
- * creates a span named {@code telegram.bot.update} for each processed update with no
+ * creates a span named {@code easygram.update} for each processed update with no
  * additional configuration.</p>
  *
  * <p>This filter runs at order {@link BotFilterOrder#OBSERVATION}, just after
@@ -88,7 +88,7 @@ public class BotObservabilityFilter implements BotFilter {
     @Override
     public void doFilter(BotRequest botRequest, BotResponse botResponse, BotFilterChain filterChain) {
         Observation observation = Observation
-                .createNotStarted("telegram.bot.update", observationRegistry)
+                .createNotStarted("easygram.update", observationRegistry)
                 .lowCardinalityKeyValue("update.type", resolveUpdateType(botRequest.getUpdate()))
                 .lowCardinalityKeyValue("transport.type", botConfigurer.transportType().name());
 

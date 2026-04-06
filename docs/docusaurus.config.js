@@ -33,8 +33,12 @@ const config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '0.0.4',
+              label: '0.0.5',
               path: '/',
+            },
+            '0.0.4': {
+              label: '0.0.4',
+              path: '/0.0.4',
             },
             '0.0.3': {
               label: '0.0.3',

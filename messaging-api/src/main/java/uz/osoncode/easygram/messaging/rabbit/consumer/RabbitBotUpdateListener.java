@@ -11,7 +11,7 @@ import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
  * Spring AMQP message listener that consumes Telegram {@link Update} JSON payloads from
  * a configured RabbitMQ queue and forwards them into the bot processing pipeline.
  *
- * <p>The queue is resolved from the {@code telegram.bot.rabbit-consumer.queue} property at
+ * <p>The queue is resolved from the {@code easygram.rabbit-consumer.queue} property at
  * startup. Each received AMQP {@link Message} body is deserialized into an {@link Update}
  * using {@link BotObjectMapperProvider} and forwarded to
  * {@link RabbitConsumerBot#handleUpdate(Update)}.</p>
@@ -37,7 +37,7 @@ public class RabbitBotUpdateListener {
      *
      * @param message the raw AMQP message from RabbitMQ
      */
-    @RabbitListener(queues = "${telegram.bot.rabbit-consumer.queue}", containerFactory = "botRabbitListenerContainerFactory")
+    @RabbitListener(queues = "${easygram.rabbit-consumer.queue}", containerFactory = "botRabbitListenerContainerFactory")
     public void onMessage(Message message) {
         log.debug("Received RabbitMQ message: messageId={}", message.getMessageProperties().getMessageId());
         try {

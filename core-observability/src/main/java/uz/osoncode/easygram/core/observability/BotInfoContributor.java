@@ -12,7 +12,7 @@ import java.util.Objects;
 
 /**
  * Spring Boot Actuator {@link InfoContributor} that adds Telegram bot metadata to
- * the {@code /actuator/info} endpoint under the {@code telegram-bot} key.
+ * the {@code /actuator/info} endpoint under the {@code easygram} key.
  *
  * <p>Contributed fields (when bot metadata is available):</p>
  * <ul>
@@ -49,7 +49,7 @@ public class BotInfoContributor implements InfoContributor {
     /**
      * Contributes Telegram bot metadata to the info endpoint.
      *
-     * <p>The {@code telegram-bot} key is only added when bot metadata is available
+     * <p>The {@code easygram} key is only added when bot metadata is available
      * (i.e. after {@code afterPropertiesSet()} has completed successfully).</p>
      *
      * @param builder the info builder to contribute details to
@@ -65,6 +65,6 @@ public class BotInfoContributor implements InfoContributor {
         details.put("username", metadata.getUserName());
         details.put("firstName", metadata.getFirstName());
         details.put("transport", botConfigurer.transportType().name());
-        builder.withDetail("telegram-bot", details);
+        builder.withDetail("easygram", details);
     }
 }

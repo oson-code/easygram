@@ -1,0 +1,37 @@
+{
+  "properties": [
+    {
+      "name": "easygram.webhook.url",
+      "type": "java.lang.String",
+      "description": "Public HTTPS URL that Telegram will POST updates to."
+    },
+    {
+      "name": "easygram.webhook.path",
+      "type": "java.lang.String",
+      "description": "Local path that accepts incoming webhook requests.",
+      "defaultValue": "/webhook"
+    },
+    {
+      "name": "easygram.webhook.secret-token",
+      "type": "java.lang.String",
+      "description": "Secret token validated in X-Telegram-Bot-Api-Secret-Token header."
+    },
+    {
+      "name": "easygram.webhook.max-connections",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of simultaneous Telegram→server connections (1–100)."
+    },
+    {
+      "name": "easygram.webhook.drop-pending-updates",
+      "type": "java.lang.Boolean",
+      "description": "Drop pending updates when registering the webhook.",
+      "defaultValue": false
+    },
+    {
+      "name": "easygram.webhook.unregister-on-shutdown",
+      "type": "java.lang.Boolean",
+      "description": "Delete the webhook from Telegram on application shutdown.",
+      "defaultValue": false
+    }
+  ]
+}

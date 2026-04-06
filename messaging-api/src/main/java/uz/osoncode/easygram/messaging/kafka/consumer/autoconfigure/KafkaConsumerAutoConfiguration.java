@@ -31,7 +31,7 @@ import java.util.List;
  * Spring Boot auto-configuration for the Kafka consumer transport module.
  *
  * <p>Activated only when {@link KafkaListener} is present on the classpath.
- * Enables {@link KafkaConsumerBotProperties} binding (prefix {@code telegram.bot.kafka-consumer})
+ * Enables {@link KafkaConsumerBotProperties} binding (prefix {@code easygram.kafka-consumer})
  * and registers the following beans:</p>
  * <ul>
  *   <li>{@link KafkaConsumerBot} — the bot instance that authenticates with Telegram and processes updates.</li>
@@ -46,7 +46,7 @@ import java.util.List;
  */
 @AutoConfiguration
 @ConditionalOnClass(KafkaListener.class)
-@ConditionalOnProperty(prefix = "telegram.bot", name = "transport", havingValue = "KAFKA_CONSUMER")
+@ConditionalOnProperty(prefix = "easygram", name = "transport", havingValue = "KAFKA_CONSUMER")
 @EnableConfigurationProperties(KafkaConsumerBotProperties.class)
 public class KafkaConsumerAutoConfiguration {
 
@@ -78,7 +78,7 @@ public class KafkaConsumerAutoConfiguration {
      * <p>When active, the listener container extracts the W3C {@code traceparent} header from
      * each incoming Kafka message and continues the distributed trace started on the producer
      * side, creating a {@code spring.kafka.consumer} parent span for the subsequent
-     * {@code telegram.bot.update} observation.</p>
+     * {@code easygram.update} observation.</p>
      */
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(ObservationRegistry.class)
@@ -152,7 +152,7 @@ public class KafkaConsumerAutoConfiguration {
      * Registers a {@code NewTopic} bean so that Kafka creates the consumer
      * topic on startup if it does not already exist.
      *
-     * <p>Skipped when {@code telegram.bot.kafka-consumer.create-if-absent=false}.</p>
+     * <p>Skipped when {@code easygram.kafka-consumer.create-if-absent=false}.</p>
      *
      * @param props the Kafka consumer properties
      * @return a {@code NewTopic} descriptor for the consumer topic
@@ -160,7 +160,7 @@ public class KafkaConsumerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = "kafkaConsumerTopic")
     @ConditionalOnProperty(
-            prefix = "telegram.bot.kafka-consumer",
+            prefix = "easygram.kafka-consumer",
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)

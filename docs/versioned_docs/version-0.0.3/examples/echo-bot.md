@@ -34,9 +34,8 @@ handles `/start` and `/help` commands, and falls back gracefully for unknown inp
 ### application.yml
 
 ```yaml
-telegram:
-  bot:
-    token: "${BOT_TOKEN}"   # Set BOT_TOKEN environment variable
+easygram:
+  token: "${BOT_TOKEN}"   # Set BOT_TOKEN environment variable
 
 spring:
   application:

@@ -10,7 +10,7 @@ import uz.osoncode.easygram.core.bind.annotation.BotTextDefault;
 import uz.osoncode.easygram.core.model.BotRequest;
 
 /**
- * Optional local handler — only active when {@code telegram.bot.messaging.forward-only=false}.
+ * Optional local handler — only active when {@code easygram.messaging.forward-only=false}.
  * When {@code forward-only=true} (the default for a pure producer), this controller is still
  * registered but the {@code BotUpdatePublishingFilter} stops the chain before reaching it.
  */

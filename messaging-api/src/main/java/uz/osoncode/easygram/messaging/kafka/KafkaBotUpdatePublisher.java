@@ -20,14 +20,13 @@ import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
  *
  * <p>Example {@code application.yml}:</p>
  * <pre>{@code
- * telegram:
- *   bot:
- *     messaging:
- *       kafka:
- *         topic: telegram-updates
+ * easygram:
+ *   messaging:
+ *     kafka:
+ *       topic: easygram-updates
  * spring:
  *   kafka:
- *     bootstrap-servers: localhost:9092
+ *   bootstrap-servers: localhost:9092
  * }</pre>
  *
  * @author Islom Mirsaburov

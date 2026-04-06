@@ -38,7 +38,7 @@ import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
 @ConditionalOnClass(KafkaTemplate.class)
 @EnableConfigurationProperties(KafkaBotPublisherProperties.class)
 @ConditionalOnProperty(
-        prefix = "telegram.bot.messaging.producer",
+        prefix = "easygram.messaging.producer",
         name = "producer-type",
         havingValue = "kafka"
 )
@@ -78,7 +78,7 @@ public class KafkaMessagingAutoConfiguration {
      * Registers a {@code NewTopic} bean so that Spring's {@link KafkaAdmin} creates the
      * configured topic on startup if it does not already exist.
      *
-     * <p>Skipped when {@code telegram.bot.messaging.kafka.create-if-absent=false}.</p>
+     * <p>Skipped when {@code easygram.messaging.kafka.create-if-absent=false}.</p>
      *
      * @param props the Kafka publisher properties
      * @return a {@code NewTopic} descriptor for the configured topic
@@ -86,7 +86,7 @@ public class KafkaMessagingAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = "kafkaPublisherTopic")
     @ConditionalOnProperty(
-            prefix = "telegram.bot.messaging.kafka",
+            prefix = "easygram.messaging.kafka",
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
@@ -104,7 +104,7 @@ public class KafkaMessagingAutoConfiguration {
      * classpath and configured.
      *
      * <p>When active, every {@code KafkaTemplate.send()} call creates a
-     * {@code spring.kafka.producer} child span inside the current {@code telegram.bot.update}
+     * {@code spring.kafka.producer} child span inside the current {@code easygram.update}
      * observation and injects a W3C {@code traceparent} header into the Kafka message so the
      * consumer side can continue the trace.</p>
      */

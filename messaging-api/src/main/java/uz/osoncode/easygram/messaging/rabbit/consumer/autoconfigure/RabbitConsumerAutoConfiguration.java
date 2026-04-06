@@ -49,7 +49,7 @@ import java.util.List;
  */
 @AutoConfiguration
 @ConditionalOnClass(RabbitListener.class)
-@ConditionalOnProperty(prefix = "telegram.bot", name = "transport", havingValue = "RABBIT_CONSUMER")
+@ConditionalOnProperty(prefix = "easygram", name = "transport", havingValue = "RABBIT_CONSUMER")
 @EnableConfigurationProperties(RabbitConsumerBotProperties.class)
 public class RabbitConsumerAutoConfiguration {
 
@@ -81,7 +81,7 @@ public class RabbitConsumerAutoConfiguration {
      * <p>When active, the listener container extracts the W3C {@code traceparent} header
      * from each incoming AMQP message and continues the distributed trace started on the
      * producer side, creating a {@code spring.rabbit.listener} parent span for the
-     * subsequent {@code telegram.bot.update} observation.</p>
+     * subsequent {@code easygram.update} observation.</p>
      */
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(ObservationRegistry.class)
@@ -153,7 +153,7 @@ public class RabbitConsumerAutoConfiguration {
     /**
      * Declares the topic exchange so that {@link RabbitAdmin} creates it if absent.
      *
-     * <p>Skipped when {@code telegram.bot.rabbit-consumer.create-if-absent=false}.</p>
+     * <p>Skipped when {@code easygram.rabbit-consumer.create-if-absent=false}.</p>
      *
      * @param props the RabbitMQ consumer properties containing the exchange name
      * @return a durable {@link TopicExchange}
@@ -161,7 +161,7 @@ public class RabbitConsumerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = "rabbitConsumerExchange")
     @ConditionalOnProperty(
-            prefix = "telegram.bot.rabbit-consumer",
+            prefix = "easygram.rabbit-consumer",
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
@@ -172,7 +172,7 @@ public class RabbitConsumerAutoConfiguration {
     /**
      * Declares the durable queue so that {@link RabbitAdmin} creates it if absent.
      *
-     * <p>Skipped when {@code telegram.bot.rabbit-consumer.create-if-absent=false}.</p>
+     * <p>Skipped when {@code easygram.rabbit-consumer.create-if-absent=false}.</p>
      *
      * @param props the RabbitMQ consumer properties containing the queue name
      * @return a durable {@link Queue}
@@ -180,7 +180,7 @@ public class RabbitConsumerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = "rabbitConsumerQueue")
     @ConditionalOnProperty(
-            prefix = "telegram.bot.rabbit-consumer",
+            prefix = "easygram.rabbit-consumer",
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
@@ -191,7 +191,7 @@ public class RabbitConsumerAutoConfiguration {
     /**
      * Declares the binding between exchange and queue so that {@link RabbitAdmin} creates it if absent.
      *
-     * <p>Skipped when {@code telegram.bot.rabbit-consumer.create-if-absent=false}.</p>
+     * <p>Skipped when {@code easygram.rabbit-consumer.create-if-absent=false}.</p>
      *
      * @param rabbitConsumerQueue    the queue to bind
      * @param rabbitConsumerExchange the exchange to bind to
@@ -201,7 +201,7 @@ public class RabbitConsumerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = "rabbitConsumerBinding")
     @ConditionalOnProperty(
-            prefix = "telegram.bot.rabbit-consumer",
+            prefix = "easygram.rabbit-consumer",
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)

@@ -84,16 +84,15 @@ public interface BotUpdatePublisher {
 ## Kafka Publisher
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      producer:
-        producer-type: kafka
-      kafka:
-        topic: telegram-updates
-        create-if-absent: true   # auto-create topic on startup
-        partitions: 3
-        replication-factor: 1
+easygram:
+  messaging:
+    producer:
+      producer-type: kafka
+    kafka:
+      topic: easygram-updates
+      create-if-absent: true   # auto-create topic on startup
+      partitions: 3
+      replication-factor: 1
 
 spring:
   kafka:
@@ -110,15 +109,14 @@ spring:
 ## RabbitMQ Publisher
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      producer:
-        producer-type: rabbit
-      rabbit:
-        exchange: telegram-exchange
-        routing-key: telegram-updates
-        declare-infrastructure: true   # auto-declare exchange + queue on startup
+easygram:
+  messaging:
+    producer:
+      producer-type: rabbit
+    rabbit:
+      exchange: easygram-exchange
+      routing-key: easygram-updates
+      declare-infrastructure: true   # auto-declare exchange + queue on startup
 
 spring:
   rabbitmq:
@@ -135,11 +133,10 @@ spring:
 Set `producer-type` to select the active publisher at runtime without changing code:
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      producer:
-        producer-type: kafka   # or: rabbit
+easygram:
+  messaging:
+    producer:
+      producer-type: kafka   # or: rabbit
 ```
 
 Only one publisher is active at a time. Both `spring-kafka` and `spring-boot-starter-amqp`
@@ -152,15 +149,14 @@ can coexist on the classpath; the property controls which one is wired.
 Set `transport: KAFKA_CONSUMER` to receive updates from a Kafka topic:
 
 ```yaml
-telegram:
-  bot:
-    transport: KAFKA_CONSUMER
-    messaging:
-      consumer:
-        consumer-type: kafka
-      kafka-consumer:
-        topic: telegram-updates
-        group-id: my-bot-group
+easygram:
+  transport: KAFKA_CONSUMER
+  messaging:
+    consumer:
+      consumer-type: kafka
+    kafka-consumer:
+      topic: easygram-updates
+      group-id: my-bot-group
 
 spring:
   kafka:
@@ -178,16 +174,15 @@ spring:
 Set `transport: RABBIT_CONSUMER` to receive updates from a RabbitMQ queue:
 
 ```yaml
-telegram:
-  bot:
-    transport: RABBIT_CONSUMER
-    messaging:
-      consumer:
-        consumer-type: rabbit
-      rabbit-consumer:
-        queue: telegram-updates
-        exchange: telegram-exchange
-        routing-key: telegram-updates
+easygram:
+  transport: RABBIT_CONSUMER
+  messaging:
+    consumer:
+      consumer-type: rabbit
+    rabbit-consumer:
+      queue: easygram-updates
+      exchange: easygram-exchange
+      routing-key: easygram-updates
 
 spring:
   rabbitmq:
@@ -203,12 +198,11 @@ By default, updates are both published to the broker **and** processed locally. 
 forwarding instance:
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      forward-only: true    # publish ONLY, skip local handlers
-      producer:
-        producer-type: kafka
+easygram:
+  messaging:
+    forward-only: true    # publish ONLY, skip local handlers
+    producer:
+      producer-type: kafka
 ```
 
 ---

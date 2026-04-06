@@ -7,16 +7,15 @@ import org.springframework.validation.annotation.Validated;
 /**
  * Configuration properties for the {@code messaging-producer} module.
  *
- * <p>Properties are bound from the {@code telegram.bot.messaging.producer} prefix in the
+ * <p>Properties are bound from the {@code easygram.messaging.producer} prefix in the
  * application configuration.</p>
  *
  * <p>Example {@code application.yml} snippet:</p>
  * <pre>{@code
- * telegram:
- *   bot:
- *     messaging:
- *       producer:
- *         producer-type: rabbit   # or: kafka
+ * easygram:
+ *   messaging:
+ *     producer:
+ *       producer-type: rabbit   # or: kafka
  * }</pre>
  *
  * @param producerType the messaging backend to use for publishing Telegram updates;
@@ -25,14 +24,14 @@ import org.springframework.validation.annotation.Validated;
  * @since 0.0.1
  */
 @Validated
-@ConfigurationProperties("telegram.bot.messaging.producer")
+@ConfigurationProperties("easygram.messaging.producer")
 public record MessagingProducerProperties(
 
         /**
          * The producer backend type. Determines which {@code BotUpdatePublisher}
          * implementation is registered.
          */
-        @NotNull(message = "telegram.bot.messaging.producer.producer-type must not be null")
+        @NotNull(message = "easygram.messaging.producer.producer-type must not be null")
         ProducerType producerType
 ) {
 }

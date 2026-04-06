@@ -2242,7 +2242,7 @@ Auto-configured when `core-observability` is on the classpath via `BotActuatorAu
 |---|---|
 | `BotHealthIndicator` | Spring Boot actuator health check — reports `UP`/`DOWN` based on bot connectivity |
 | `BotInfoContributor` | Actuator `/info` endpoint — exposes bot username, id, and active transport type |
-| `BotObservabilityFilter` | `BotFilter` at `BotFilterOrder.OBSERVATION` — wraps every update in a Micrometer observation span; emits `telegram.bot.update` metric |
+| `BotObservabilityFilter` | `BotFilter` at `BotFilterOrder.OBSERVATION` — wraps every update in a Micrometer observation span; emits `easygram.update` metric |
 
 All three beans are `@ConditionalOnMissingBean` — replace any with a custom `@Bean`.
 
@@ -2282,18 +2282,16 @@ Custom filters that need to run **after** context is set but **before** the hand
 ### Required
 
 ```yaml
-telegram:
-  bot:
-    token: YOUR_BOT_TOKEN # From @BotFather — required for all transports
+easygram:
+  token: YOUR_BOT_TOKEN # From @BotFather — required for all transports
 ```
 
 ### Transport
 
 ```yaml
-telegram:
-  bot:
-    transport: LONG_POLLING # Default
-                              # Options: LONG_POLLING | WEBHOOK | KAFKA_CONSUMER | RABBIT_CONSUMER
+easygram:
+  transport: LONG_POLLING # Default
+                            # Options: LONG_POLLING | WEBHOOK | KAFKA_CONSUMER | RABBIT_CONSUMER
 ```
 
 ### Long-Polling
@@ -2303,58 +2301,54 @@ Long-polling has no additional configurable properties. The polling behaviour (t
 ### Webhook
 
 ```yaml
-telegram:
-  bot:
-    webhook:
-      url: https://my-bot.example.com/webhook # Required — publicly reachable HTTPS URL
-      path: /webhook # Local handler path (default: /webhook)
-      secret-token: ${WEBHOOK_SECRET} # Recommended — validates Telegram requests
-      max-connections: 40
-      drop-pending-updates: false
-      unregister-on-shutdown: false
+easygram:
+  webhook:
+    url: https://my-bot.example.com/webhook # Required — publicly reachable HTTPS URL
+    path: /webhook # Local handler path (default: /webhook)
+    secret-token: ${WEBHOOK_SECRET} # Recommended — validates Telegram requests
+    max-connections: 40
+    drop-pending-updates: false
+    unregister-on-shutdown: false
 ```
 
 ### Broker Publishing
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      forward-only: false # true = publish to broker only, skip local handler dispatch
-      producer:
-        producer-type: kafka # kafka | rabbit
-      kafka:
-        topic: telegram-updates
-        create-if-absent: true
-        partitions: 1
-        replication-factor: 1
-      rabbit:
-        exchange: telegram-exchange
-        routing-key: telegram.updates
-        queue: telegram-updates
-        create-if-absent: true
+easygram:
+  messaging:
+    forward-only: false # true = publish to broker only, skip local handler dispatch
+    producer:
+      producer-type: kafka # kafka | rabbit
+    kafka:
+      topic: easygram-updates
+      create-if-absent: true
+      partitions: 1
+      replication-factor: 1
+    rabbit:
+      exchange: easygram-exchange
+      routing-key: easygram.updates
+      queue: easygram-updates
+      create-if-absent: true
 ```
 
 ### Broker Consumer
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      kafka:
-        topic: telegram-updates
-        group-id: my-bot-consumer
-      rabbit:
-        queue: telegram-updates
+easygram:
+  messaging:
+    kafka:
+      topic: easygram-updates
+      group-id: my-bot-consumer
+    rabbit:
+      queue: easygram-updates
 ```
 
 ### i18n *(core-i18n)*
 
 ```yaml
-telegram:
-  bot:
-    i18n:
-      default-locale: en # Fallback locale when user language_code is absent
+easygram:
+  i18n:
+    default-locale: en # Fallback locale when user language_code is absent
 
 spring:
   messages:
