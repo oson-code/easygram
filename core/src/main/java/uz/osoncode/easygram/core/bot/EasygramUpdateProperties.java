@@ -35,7 +35,7 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties("easygram.update")
-public record BotUpdateProperties(
+public record EasygramUpdateProperties(
 
         @NotNull(message = "easygram.update.transport must not be null")
         @DefaultValue("LONG_POLLING")

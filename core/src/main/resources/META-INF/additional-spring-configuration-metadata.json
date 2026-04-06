@@ -1,9 +1,44 @@
 {
+  "groups": [
+    {
+      "name": "easygram",
+      "type": "uz.osoncode.easygram.core.bot.EasygramProperties",
+      "sourceType": "uz.osoncode.easygram.core.bot.EasygramProperties"
+    },
+    {
+      "name": "easygram.update",
+      "type": "uz.osoncode.easygram.core.bot.EasygramUpdateProperties",
+      "sourceType": "uz.osoncode.easygram.core.bot.EasygramUpdateProperties"
+    }
+  ],
   "properties": [
     {
       "name": "easygram.token",
       "type": "java.lang.String",
-      "description": "Telegram Bot API token from @BotFather."
+      "description": "Telegram Bot API token from @BotFather. Required for all transports.",
+      "sourceType": "uz.osoncode.easygram.core.bot.EasygramProperties"
+    },
+    {
+      "name": "easygram.update.transport",
+      "type": "uz.osoncode.easygram.core.bot.BotTransportType",
+      "description": "Update-delivery transport. LONG_POLLING (default) polls Telegram getUpdates API. WEBHOOK receives updates via HTTPS endpoint. Ignored when easygram.messaging.type=CONSUMER.",
+      "defaultValue": "LONG_POLLING",
+      "sourceType": "uz.osoncode.easygram.core.bot.EasygramUpdateProperties"
+    }
+  ],
+  "hints": [
+    {
+      "name": "easygram.update.transport",
+      "values": [
+        {
+          "value": "LONG_POLLING",
+          "description": "Poll Telegram getUpdates API (default). No public URL required."
+        },
+        {
+          "value": "WEBHOOK",
+          "description": "Receive updates via an HTTPS webhook endpoint. Requires easygram.update.webhook.url."
+        }
+      ]
     }
   ]
 }

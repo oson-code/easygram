@@ -4,14 +4,14 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import uz.osoncode.easygram.messaging.BotPublishingProperties;
+import uz.osoncode.easygram.messaging.EasygramMessagingProperties;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
 import uz.osoncode.easygram.messaging.BotUpdatePublishingFilter;
 
 /**
  * Spring Boot auto-configuration for the messaging SPI module.
  *
- * <p>Activates {@link BotPublishingProperties} binding (prefix {@code easygram.messaging})
+ * <p>Activates {@link EasygramMessagingProperties} binding (prefix {@code easygram.messaging})
  * and registers the {@link BotUpdatePublishingFilter} bean when a {@link BotUpdatePublisher}
  * implementation is present in the application context.</p>
  *
@@ -23,7 +23,7 @@ import uz.osoncode.easygram.messaging.BotUpdatePublishingFilter;
  * @since 0.0.1
  */
 @AutoConfiguration
-@EnableConfigurationProperties(BotPublishingProperties.class)
+@EnableConfigurationProperties(EasygramMessagingProperties.class)
 public class MessagingAutoConfiguration {
 
     /**
@@ -42,7 +42,7 @@ public class MessagingAutoConfiguration {
     @ConditionalOnMissingBean
     public BotUpdatePublishingFilter botUpdatePublishingFilter(
             BotUpdatePublisher botUpdatePublisher,
-            BotPublishingProperties botPublishingProperties) {
+            EasygramMessagingProperties botPublishingProperties) {
         return new BotUpdatePublishingFilter(botUpdatePublisher, botPublishingProperties);
     }
 }

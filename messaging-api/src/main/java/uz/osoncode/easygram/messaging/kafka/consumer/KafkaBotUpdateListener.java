@@ -34,7 +34,11 @@ public class KafkaBotUpdateListener {
      *
      * @param message the raw JSON string payload from Kafka
      */
-    @KafkaListener(topics = "${easygram.messaging.kafka.topic}", containerFactory = "botKafkaListenerContainerFactory")
+    @KafkaListener(
+            topics = "${easygram.messaging.kafka.topic}",
+            groupId = "${easygram.messaging.kafka.group-id:easygram-bot}",
+            containerFactory = "botKafkaListenerContainerFactory"
+    )
     public void onMessage(String message) {
         log.debug("Received Kafka message: {}", message);
         try {

@@ -15,7 +15,7 @@ import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import uz.osoncode.easygram.core.bot.BotConfigurer;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
-import uz.osoncode.easygram.messaging.kafka.BotKafkaProperties;
+import uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties;
 import uz.osoncode.easygram.messaging.kafka.KafkaBotUpdatePublisher;
 import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
 
@@ -24,7 +24,7 @@ import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
  *
  * <p>Activated when {@link KafkaTemplate} is present on the classpath,
  * {@code easygram.messaging.type=PRODUCER}, and {@code easygram.messaging.producer.type=KAFKA}.
- * Enables {@link BotKafkaProperties} binding and registers:</p>
+ * Enables {@link EasygramKafkaProperties} binding and registers:</p>
  * <ul>
  *   <li>{@link KafkaBotUpdatePublisher} — forwards every update to the configured topic.</li>
  *   <li>{@code NewTopic} — auto-creates the topic if {@code create-if-absent=true} (default)
@@ -37,7 +37,7 @@ import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
  */
 @AutoConfiguration
 @ConditionalOnClass(KafkaTemplate.class)
-@EnableConfigurationProperties(BotKafkaProperties.class)
+@EnableConfigurationProperties(EasygramKafkaProperties.class)
 @ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "PRODUCER")
 @ConditionalOnProperty(prefix = "easygram.messaging.producer", name = "type", havingValue = "KAFKA")
 public class KafkaMessagingAutoConfiguration {
@@ -67,7 +67,7 @@ public class KafkaMessagingAutoConfiguration {
     @ConditionalOnMissingBean(BotUpdatePublisher.class)
     public KafkaBotUpdatePublisher kafkaBotUpdatePublisher(
             BotKafkaTemplateProvider templateProvider,
-            BotKafkaProperties kafkaProperties,
+            EasygramKafkaProperties kafkaProperties,
             BotConfigurer botConfigurer) {
         return new KafkaBotUpdatePublisher(templateProvider, kafkaProperties, botConfigurer.objectMapper());
     }
@@ -88,7 +88,7 @@ public class KafkaMessagingAutoConfiguration {
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
-    public org.apache.kafka.clients.admin.NewTopic kafkaPublisherTopic(BotKafkaProperties props) {
+    public org.apache.kafka.clients.admin.NewTopic kafkaPublisherTopic(EasygramKafkaProperties props) {
         return TopicBuilder.name(props.topic())
                 .partitions(props.partitions())
                 .replicas(props.replicationFactor())

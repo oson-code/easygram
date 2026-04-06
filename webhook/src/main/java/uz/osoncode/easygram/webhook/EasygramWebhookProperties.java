@@ -41,7 +41,7 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties("easygram.update.webhook")
-public record WebhookBotProperties(
+public record EasygramWebhookProperties(
 
         /** The public HTTPS URL to which Telegram delivers webhook updates. */
         @NotBlank(message = "easygram.update.webhook.url must not be blank")

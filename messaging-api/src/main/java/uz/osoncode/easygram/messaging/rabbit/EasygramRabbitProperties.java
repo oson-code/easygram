@@ -39,7 +39,7 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties("easygram.messaging.rabbit")
-public record BotRabbitProperties(
+public record EasygramRabbitProperties(
 
         /** The RabbitMQ exchange name. */
         @NotBlank(message = "easygram.messaging.rabbit.exchange must not be blank")

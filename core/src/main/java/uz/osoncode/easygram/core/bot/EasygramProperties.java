@@ -13,16 +13,16 @@ import org.springframework.validation.annotation.Validated;
  * that prevents the application from starting.</p>
  *
  * <p>The active update transport is configured separately via
- * {@link BotUpdateProperties} at the {@code easygram.update} prefix.</p>
+ * {@link EasygramUpdateProperties} at the {@code easygram.update} prefix.</p>
  *
  * @param token the Bot API token issued by @BotFather; required for every transport
  * @author Islom Mirsaburov
  * @since 0.0.1
- * @see BotUpdateProperties
+ * @see EasygramUpdateProperties
  */
 @Validated
 @ConfigurationProperties("easygram")
-public record BotProperties(
+public record EasygramProperties(
 
         @NotBlank(message = "easygram.token must not be blank")
         String token

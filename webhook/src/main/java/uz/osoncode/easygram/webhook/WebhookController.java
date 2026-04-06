@@ -22,7 +22,7 @@ import java.util.Objects;
  * listens on the path configured by the {@code easygram.update.webhook.path} property
  * (defaults to {@code /webhook}).</p>
  *
- * <p>If {@link WebhookBotProperties#secretToken()} is set, every request is validated against
+ * <p>If {@link EasygramWebhookProperties#secretToken()} is set, every request is validated against
  * the {@code X-Telegram-Bot-Api-Secret-Token} header that Telegram attaches to each delivery.
  * Requests with a missing or mismatched token are rejected with {@code 401 Unauthorized}.</p>
  *
@@ -38,7 +38,7 @@ import java.util.Objects;
 public class WebhookController {
 
     private final WebhookBot webhookBot;
-    private final WebhookBotProperties webhookBotProperties;
+    private final EasygramWebhookProperties webhookBotProperties;
     private final BotObjectMapperProvider objectMapperProvider;
 
     /**

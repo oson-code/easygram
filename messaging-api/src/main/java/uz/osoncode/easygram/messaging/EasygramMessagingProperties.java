@@ -46,7 +46,7 @@ import uz.osoncode.easygram.messaging.producer.ProducerType;
  * @see MessagingType
  */
 @ConfigurationProperties("easygram.messaging")
-public record BotPublishingProperties(
+public record EasygramMessagingProperties(
 
         /** Messaging role: PRODUCER or CONSUMER. */
         MessagingType type,

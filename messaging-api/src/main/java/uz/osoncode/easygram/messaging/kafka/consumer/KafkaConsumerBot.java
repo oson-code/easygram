@@ -5,14 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import uz.osoncode.easygram.core.bot.Bot;
-import uz.osoncode.easygram.core.bot.BotProperties;
+import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
 import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
 import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
-import uz.osoncode.easygram.messaging.kafka.BotKafkaProperties;
+import uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -55,8 +55,8 @@ public class KafkaConsumerBot extends Bot implements InitializingBean, Disposabl
      * @param executorServiceProvider     provider for the update-processing thread pool
      */
     public KafkaConsumerBot(
-            BotProperties botProperties,
-            BotKafkaProperties kafkaProperties,
+            EasygramProperties botProperties,
+            EasygramKafkaProperties kafkaProperties,
             List<BotStartTrigger> triggers,
             List<BotFilter> filters,
             BotDispatcher botDispatcher,

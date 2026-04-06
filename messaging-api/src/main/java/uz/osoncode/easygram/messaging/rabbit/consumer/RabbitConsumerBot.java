@@ -5,14 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import uz.osoncode.easygram.core.bot.Bot;
-import uz.osoncode.easygram.core.bot.BotProperties;
+import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
 import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
 import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
-import uz.osoncode.easygram.messaging.rabbit.BotRabbitProperties;
+import uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -55,8 +55,8 @@ public class RabbitConsumerBot extends Bot implements InitializingBean, Disposab
      * @param executorServiceProvider     provider for the update-processing thread pool
      */
     public RabbitConsumerBot(
-            BotProperties botProperties,
-            BotRabbitProperties rabbitProperties,
+            EasygramProperties botProperties,
+            EasygramRabbitProperties rabbitProperties,
             List<BotStartTrigger> triggers,
             List<BotFilter> filters,
             BotDispatcher botDispatcher,

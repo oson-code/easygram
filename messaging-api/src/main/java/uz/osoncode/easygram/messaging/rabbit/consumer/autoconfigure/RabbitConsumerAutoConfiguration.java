@@ -18,7 +18,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import uz.osoncode.easygram.core.bot.BotProperties;
+import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
@@ -26,7 +26,7 @@ import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
 import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
 import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
-import uz.osoncode.easygram.messaging.rabbit.BotRabbitProperties;
+import uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitBotUpdateListener;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitConsumerBot;
 
@@ -37,7 +37,7 @@ import java.util.List;
  *
  * <p>Activated when {@link RabbitListener} is present on the classpath,
  * {@code easygram.messaging.type=CONSUMER}, and {@code easygram.messaging.consumer.type=RABBIT}.
- * Enables {@link BotRabbitProperties} binding (prefix {@code easygram.messaging.rabbit})
+ * Enables {@link EasygramRabbitProperties} binding (prefix {@code easygram.messaging.rabbit})
  * and registers:</p>
  * <ul>
  *   <li>{@link RabbitConsumerBot} — the bot that authenticates with Telegram and processes updates.</li>
@@ -53,7 +53,7 @@ import java.util.List;
 @ConditionalOnClass(RabbitListener.class)
 @ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "CONSUMER")
 @ConditionalOnProperty(prefix = "easygram.messaging.consumer", name = "type", havingValue = "RABBIT")
-@EnableConfigurationProperties(BotRabbitProperties.class)
+@EnableConfigurationProperties(EasygramRabbitProperties.class)
 public class RabbitConsumerAutoConfiguration {
 
     /**
@@ -126,8 +126,8 @@ public class RabbitConsumerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public RabbitConsumerBot rabbitConsumerBot(
-            BotProperties botProperties,
-            BotRabbitProperties rabbitProperties,
+            EasygramProperties botProperties,
+            EasygramRabbitProperties rabbitProperties,
             List<BotStartTrigger> triggers,
             List<BotFilter> filters,
             BotDispatcher botDispatcher,
@@ -168,7 +168,7 @@ public class RabbitConsumerAutoConfiguration {
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
-    public TopicExchange rabbitConsumerExchange(BotRabbitProperties props) {
+    public TopicExchange rabbitConsumerExchange(EasygramRabbitProperties props) {
         return new TopicExchange(props.exchange(), true, false);
     }
 
@@ -187,7 +187,7 @@ public class RabbitConsumerAutoConfiguration {
             name = "create-if-absent",
             havingValue = "true",
             matchIfMissing = true)
-    public Queue rabbitConsumerQueue(BotRabbitProperties props) {
+    public Queue rabbitConsumerQueue(EasygramRabbitProperties props) {
         return QueueBuilder.durable(props.queue()).build();
     }
 
@@ -211,7 +211,7 @@ public class RabbitConsumerAutoConfiguration {
     public Binding rabbitConsumerBinding(
             Queue rabbitConsumerQueue,
             TopicExchange rabbitConsumerExchange,
-            BotRabbitProperties props) {
+            EasygramRabbitProperties props) {
         return BindingBuilder.bind(rabbitConsumerQueue).to(rabbitConsumerExchange).with(props.routingKey());
     }
 }

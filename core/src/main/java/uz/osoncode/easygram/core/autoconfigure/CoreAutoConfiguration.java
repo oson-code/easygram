@@ -60,8 +60,8 @@ import uz.osoncode.easygram.core.argumentresolver.BotChosenInlineResultIdArgumen
 import uz.osoncode.easygram.core.argumentresolver.BotShippingPayloadArgumentResolver;
 import uz.osoncode.easygram.core.argumentresolver.BotPreCheckoutPayloadArgumentResolver;
 import uz.osoncode.easygram.core.bot.BotConfigurer;
-import uz.osoncode.easygram.core.bot.BotProperties;
-import uz.osoncode.easygram.core.bot.BotUpdateProperties;
+import uz.osoncode.easygram.core.bot.EasygramProperties;
+import uz.osoncode.easygram.core.bot.EasygramUpdateProperties;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
@@ -163,7 +163,7 @@ import java.util.concurrent.Executors;
  * @since 0.0.1
  */
 @AutoConfiguration
-@EnableConfigurationProperties({BotProperties.class, BotUpdateProperties.class})
+@EnableConfigurationProperties({EasygramProperties.class, EasygramUpdateProperties.class})
 public class CoreAutoConfiguration {
 
     /**
@@ -1167,7 +1167,7 @@ public class CoreAutoConfiguration {
 
     /**
      * Registers a shared {@link BotConfigurer} backed by the application {@link ObjectMapper} and
-     * the configured transport from {@link BotProperties}.
+     * the configured transport from {@link EasygramProperties}.
      *
      * <p>Consumers can override by declaring their own {@code BotConfigurer} bean.</p>
      *
@@ -1179,7 +1179,7 @@ public class CoreAutoConfiguration {
     @ConditionalOnMissingBean
     public BotConfigurer botConfigurer(
             BotObjectMapperProvider botObjectMapperProvider,
-            BotUpdateProperties botUpdateProperties
+            EasygramUpdateProperties botUpdateProperties
     ) {
         return new BotConfigurer(botObjectMapperProvider.provide(), botUpdateProperties.transport());
     }

@@ -28,7 +28,7 @@
  * <h2>Package overview</h2>
  * <ul>
  *   <li>{@code uz.osoncode.easygram.core.autoconfigure} — Spring Boot {@code @AutoConfiguration} class</li>
- *   <li>{@code uz.osoncode.easygram.core.bot} — abstract {@link uz.osoncode.easygram.core.bot.Bot} base class and {@link uz.osoncode.easygram.core.bot.BotProperties}</li>
+ *   <li>{@code uz.osoncode.easygram.core.bot} — abstract {@link uz.osoncode.easygram.core.bot.Bot} base class and {@link uz.osoncode.easygram.core.bot.EasygramProperties}</li>
  *   <li>{@code uz.osoncode.easygram.core.dispatcher} — {@link uz.osoncode.easygram.core.dispatcher.BotDispatcher}</li>
  *   <li>{@code uz.osoncode.easygram.core.filter} — built-in filter implementations</li>
  *   <li>{@code uz.osoncode.easygram.core.handler} — handler loading, registry, and invocation</li>

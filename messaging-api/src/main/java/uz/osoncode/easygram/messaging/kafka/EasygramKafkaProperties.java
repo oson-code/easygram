@@ -18,7 +18,8 @@ import org.springframework.validation.annotation.Validated;
  *   messaging:
  *     kafka:
  *       topic: my-bot-updates
- *       create-if-absent: true   # auto-create topic if not present (default: true)
+ *       group-id: my-bot-group           # consumer group ID (default: easygram-bot)
+ *       create-if-absent: true           # auto-create topic if not present (default: true)
  *       partitions: 1
  *       replication-factor: 1
  * spring:
@@ -27,6 +28,7 @@ import org.springframework.validation.annotation.Validated;
  * }</pre>
  *
  * @param topic             the Kafka topic to publish to or consume from; must not be blank
+ * @param groupId           the Kafka consumer group ID; defaults to {@code easygram-bot}
  * @param createIfAbsent    auto-create the topic if it does not exist (requires broker admin permissions);
  *                          defaults to {@code true}
  * @param partitions        number of partitions for auto-created topic; defaults to {@code 1}
@@ -36,11 +38,15 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties("easygram.messaging.kafka")
-public record BotKafkaProperties(
+public record EasygramKafkaProperties(
 
         /** The Kafka topic name used for publishing or consuming Telegram updates. */
         @NotBlank(message = "easygram.messaging.kafka.topic must not be blank")
         String topic,
+
+        /** The Kafka consumer group ID. Defaults to {@code easygram-bot}. */
+        @DefaultValue("easygram-bot")
+        String groupId,
 
         /** Auto-create the topic when it does not exist. Defaults to {@code true}. */
         @DefaultValue("true")

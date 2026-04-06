@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import uz.osoncode.easygram.core.bot.BotProperties;
+import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
@@ -14,7 +14,7 @@ import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
 import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
 import uz.osoncode.easygram.webhook.WebhookBot;
-import uz.osoncode.easygram.webhook.WebhookBotProperties;
+import uz.osoncode.easygram.webhook.EasygramWebhookProperties;
 import uz.osoncode.easygram.webhook.WebhookController;
 
 import java.util.List;
@@ -23,7 +23,7 @@ import java.util.List;
  * Spring Boot auto-configuration class for the webhook transport module.
  *
  * <p>This class is processed automatically by Spring Boot's auto-configuration mechanism.
- * It activates {@link WebhookBotProperties} binding (prefix {@code easygram.webhook}) and
+ * It activates {@link EasygramWebhookProperties} binding (prefix {@code easygram.webhook}) and
  * wires the webhook beans from fine-grained provider beans supplied by
  * {@link uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration}.</p>
  *
@@ -43,7 +43,7 @@ import java.util.List;
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "easygram.update", name = "transport", havingValue = "WEBHOOK")
-@EnableConfigurationProperties(WebhookBotProperties.class)
+@EnableConfigurationProperties(EasygramWebhookProperties.class)
 public class WebhookAutoConfiguration {
 
     /**
@@ -62,8 +62,8 @@ public class WebhookAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public WebhookBot webhookBot(
-            BotProperties botProperties,
-            WebhookBotProperties webhookBotProperties,
+            EasygramProperties botProperties,
+            EasygramWebhookProperties webhookBotProperties,
             List<BotStartTrigger> triggers,
             List<BotFilter> filters,
             BotDispatcher botDispatcher,
@@ -93,7 +93,7 @@ public class WebhookAutoConfiguration {
     @ConditionalOnMissingBean
     public WebhookController webhookController(
             WebhookBot webhookBot,
-            WebhookBotProperties webhookBotProperties,
+            EasygramWebhookProperties webhookBotProperties,
             BotObjectMapperProvider objectMapperProvider) {
         return new WebhookController(webhookBot, webhookBotProperties, objectMapperProvider);
     }

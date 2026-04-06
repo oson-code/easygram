@@ -32,7 +32,7 @@ import java.util.Locale;
  * @since 0.0.1
  */
 @ConfigurationProperties(prefix = "easygram.i18n")
-public record BotI18nProperties(
+public record EasygramI18nProperties(
 
         /**
          * Fallback locale used when the Telegram user's language code is absent or unrecognised.

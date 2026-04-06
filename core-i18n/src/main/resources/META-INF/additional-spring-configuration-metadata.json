@@ -1,0 +1,18 @@
+{
+  "groups": [
+    {
+      "name": "easygram.i18n",
+      "type": "uz.osoncode.easygram.core.i18n.EasygramI18nProperties",
+      "sourceType": "uz.osoncode.easygram.core.i18n.EasygramI18nProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "easygram.i18n.default-locale",
+      "type": "java.lang.String",
+      "description": "Fallback locale code (BCP 47) used when a user's language is unknown. Defaults to 'en'.",
+      "defaultValue": "en",
+      "sourceType": "uz.osoncode.easygram.core.i18n.EasygramI18nProperties"
+    }
+  ]
+}

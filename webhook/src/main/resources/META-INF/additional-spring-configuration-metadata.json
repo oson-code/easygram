@@ -1,37 +1,50 @@
 {
+  "groups": [
+    {
+      "name": "easygram.update.webhook",
+      "type": "uz.osoncode.easygram.webhook.EasygramWebhookProperties",
+      "sourceType": "uz.osoncode.easygram.webhook.EasygramWebhookProperties"
+    }
+  ],
   "properties": [
     {
       "name": "easygram.update.webhook.url",
       "type": "java.lang.String",
-      "description": "Public HTTPS URL that Telegram will POST updates to."
+      "description": "Public HTTPS URL that Telegram will POST updates to. Required when transport=WEBHOOK.",
+      "sourceType": "uz.osoncode.easygram.webhook.EasygramWebhookProperties"
     },
     {
       "name": "easygram.update.webhook.path",
       "type": "java.lang.String",
-      "description": "Local path that accepts incoming webhook requests.",
-      "defaultValue": "/webhook"
+      "description": "Local Spring MVC path that receives incoming webhook requests.",
+      "defaultValue": "/webhook",
+      "sourceType": "uz.osoncode.easygram.webhook.EasygramWebhookProperties"
     },
     {
       "name": "easygram.update.webhook.secret-token",
       "type": "java.lang.String",
-      "description": "Secret token validated in X-Telegram-Bot-Api-Secret-Token header."
+      "description": "Secret token validated in X-Telegram-Bot-Api-Secret-Token header. Strongly recommended for production.",
+      "sourceType": "uz.osoncode.easygram.webhook.EasygramWebhookProperties"
     },
     {
       "name": "easygram.update.webhook.max-connections",
       "type": "java.lang.Integer",
-      "description": "Maximum number of simultaneous Telegram→server connections (1–100)."
+      "description": "Maximum number of simultaneous HTTPS connections from Telegram (1-100). Telegram default is 40.",
+      "sourceType": "uz.osoncode.easygram.webhook.EasygramWebhookProperties"
     },
     {
       "name": "easygram.update.webhook.drop-pending-updates",
       "type": "java.lang.Boolean",
       "description": "Drop pending updates when registering the webhook.",
-      "defaultValue": false
+      "defaultValue": false,
+      "sourceType": "uz.osoncode.easygram.webhook.EasygramWebhookProperties"
     },
     {
       "name": "easygram.update.webhook.unregister-on-shutdown",
       "type": "java.lang.Boolean",
       "description": "Delete the webhook from Telegram on application shutdown.",
-      "defaultValue": false
+      "defaultValue": false,
+      "sourceType": "uz.osoncode.easygram.webhook.EasygramWebhookProperties"
     }
   ]
 }

@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Regression tests for {@link BotConfigurer} autoconfiguration ordering.
  *
  * <p>In the new design, {@link CoreAutoConfiguration} reads the transport from
- * {@code easygram.update.transport} (via {@code BotUpdateProperties}). The messaging
+ * {@code easygram.update.transport} (via {@code EasygramUpdateProperties}). The messaging
  * role is expressed separately via {@code easygram.messaging.type}, not in the transport type.
  * Consumer bots simply omit {@code update.transport} — no transport auto-configuration starts.</p>
  */

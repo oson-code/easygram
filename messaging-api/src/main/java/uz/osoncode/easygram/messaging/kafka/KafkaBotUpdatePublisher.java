@@ -14,7 +14,7 @@ import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
  * to an Apache Kafka topic as JSON strings.
  *
  * <p>The update is serialized with the provided {@link ObjectMapper} and sent to the topic
- * configured by {@link BotKafkaProperties#topic()} using a
+ * configured by {@link EasygramKafkaProperties#topic()} using a
  * {@link KafkaTemplate KafkaTemplate&lt;String, String&gt;}. The Kafka record key is the
  * {@code updateId} converted to a string.</p>
  *
@@ -25,11 +25,11 @@ import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
 public class KafkaBotUpdatePublisher implements BotUpdatePublisher {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private final BotKafkaProperties properties;
+    private final EasygramKafkaProperties properties;
     private final ObjectMapper objectMapper;
 
     public KafkaBotUpdatePublisher(BotKafkaTemplateProvider templateProvider,
-                                   BotKafkaProperties properties,
+                                   EasygramKafkaProperties properties,
                                    ObjectMapper objectMapper) {
         this.kafkaTemplate = templateProvider.provide();
         this.properties = properties;
