@@ -37,6 +37,3 @@ management:
       percentiles-histogram:
         easygram.update: true
 
-logging:
-  level:
-    uz.osoncode: DEBUG

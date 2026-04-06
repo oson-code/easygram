@@ -23,12 +23,9 @@ spring:
     name: rabbit-consumer-bot
 
   rabbitmq:
-    host: 10.0.0.2
-    port: 5675
+    # Run: docker compose up -d  (see docker-compose.yml)
+    host: localhost
+    port: 5672
     username: rabbit
     password: rabbit
 
-logging:
-  level:
-    uz.osoncode: DEBUG
-    org.springframework.amqp: WARN

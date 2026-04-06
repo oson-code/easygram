@@ -21,7 +21,7 @@
     {
       "name": "easygram.update.transport",
       "type": "uz.osoncode.easygram.core.bot.BotTransportType",
-      "description": "Update-delivery transport. LONG_POLLING (default) polls Telegram getUpdates API. WEBHOOK receives updates via HTTPS endpoint. Ignored when easygram.messaging.type=CONSUMER.",
+      "description": "Update-delivery transport. LONG_POLLING (default) polls Telegram getUpdates API; WEBHOOK receives updates via HTTPS endpoint. Ignored when easygram.messaging.type=CONSUMER.",
       "defaultValue": "LONG_POLLING",
       "sourceType": "uz.osoncode.easygram.core.bot.EasygramUpdateProperties"
     }

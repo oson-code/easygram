@@ -2,13 +2,15 @@ package uz.example.producer.webhook;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-import org.telegram.telegrambots.meta.TelegramUrl;
-import uz.osoncode.easygram.core.provider.BotTelegramUrlProvider;
 
 /**
- * Spring Boot application that demonstrates an Easygram webhook producer.
- * Receives Telegram webhook updates and produces them to a message broker for asynchronous processing.
+ * Spring Boot application demonstrating an Easygram webhook producer.
+ *
+ * <p>Receives Telegram updates via HTTPS webhook and publishes them to a message broker
+ * (Kafka or RabbitMQ) for asynchronous downstream processing.</p>
+ *
+ * <p>All infrastructure beans ({@code TelegramUrl}, {@code OkHttpClient}, etc.) use
+ * framework defaults. Override individual provider beans only when customisation is needed.</p>
  *
  * @since 0.0.1
  */
@@ -17,14 +19,5 @@ public class WebhookProducerApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(WebhookProducerApplication.class, args);
-    }
-
-    @Bean
-    public BotTelegramUrlProvider botTelegramUrlProvider() {
-        return () -> TelegramUrl.builder()
-                .schema("https")
-                .host("api.telegram.org")
-                .port(443)
-                .build();
     }
 }

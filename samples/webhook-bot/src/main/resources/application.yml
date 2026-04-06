@@ -31,6 +31,3 @@ spring:
   application:
     name: webhook-bot
 
-logging:
-  level:
-    uz.osoncode: DEBUG

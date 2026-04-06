@@ -4,13 +4,15 @@ import okhttp3.OkHttpClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.telegram.telegrambots.meta.TelegramUrl;
 import uz.osoncode.easygram.core.provider.BotOkHttpClientProvider;
-import uz.osoncode.easygram.core.provider.BotTelegramUrlProvider;
+
+import java.time.Duration;
 
 /**
- * Spring Boot application that demonstrates an Easygram bot with conversation state management.
- * Configures custom HTTP client and Telegram URL provider for handling stateful bot interactions.
+ * Spring Boot application demonstrating Easygram conversation state management.
+ *
+ * <p>Overrides the OkHttp client to increase timeouts for long-polling reliability.
+ * All other infrastructure beans (TelegramUrl, ObjectMapper, etc.) use framework defaults.</p>
  *
  * @since 0.0.1
  */
@@ -24,18 +26,9 @@ public class ChatStateBotApplication {
     @Bean
     public BotOkHttpClientProvider botOkHttpClientProvider() {
         return () -> new OkHttpClient.Builder()
-                .connectTimeout(java.time.Duration.ofSeconds(50))
-                .readTimeout(java.time.Duration.ofSeconds(50))
-                .writeTimeout(java.time.Duration.ofSeconds(50))
-                .build();
-    }
-
-    @Bean
-    public BotTelegramUrlProvider  botTelegramUrlProvider() {
-        return () -> TelegramUrl.builder()
-                .schema("https")
-                .host("api.telegram.org")
-                .port(443)
+                .connectTimeout(Duration.ofSeconds(50))
+                .readTimeout(Duration.ofSeconds(50))
+                .writeTimeout(Duration.ofSeconds(50))
                 .build();
     }
 }

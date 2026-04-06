@@ -12,6 +12,8 @@ easygram:
     kafka:
       # Kafka topic to consume Telegram updates from
       topic: easygram-updates
+      # Kafka consumer group ID (default: easygram-bot)
+      group-id: my-telegram-bot
       # Auto-create the topic on startup if it does not exist (default: true)
       create-if-absent: true
       partitions: 1
@@ -22,16 +24,12 @@ spring:
     name: kafka-consumer-bot
 
   kafka:
-    bootstrap-servers: 10.0.0.2:9092
+    # Run: docker compose up -d  (see docker-compose.yml)
+    bootstrap-servers: localhost:9092
     consumer:
-      group-id: my-telegram-bot
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     producer:
       acks: all
 
-logging:
-  level:
-    uz.osoncode: DEBUG
-    org.springframework.kafka: WARN

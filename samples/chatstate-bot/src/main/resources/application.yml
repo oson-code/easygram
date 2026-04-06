@@ -9,6 +9,3 @@ spring:
   application:
     name: chatstate-bot
 
-logging:
-  level:
-    uz.osoncode: DEBUG
