@@ -1,8 +1,8 @@
 # messaging-api
 
 > Unified broker module for the Easygram framework.
-> Contains the publisher SPI, Kafka publisher, RabbitMQ publisher, smart routing,
-> and both Kafka/RabbitMQ consumer transports — consolidated from six modules in 0.0.5.
+> Contains the publisher SPI, Kafka publisher, RabbitMQ publisher,
+> and both Kafka/RabbitMQ consumer transports.
 
 ---
 
@@ -10,12 +10,12 @@
 
 - [Maven Dependency](#maven-dependency)
 - [What's Included](#whats-included)
+- [Configuration Overview](#configuration-overview)
 - [Publisher SPI](#publisher-spi)
-- [Kafka Publisher](#kafka-publisher)
-- [RabbitMQ Publisher](#rabbitmq-publisher)
-- [Smart Producer Routing](#smart-producer-routing)
-- [Kafka Consumer Transport](#kafka-consumer-transport)
-- [RabbitMQ Consumer Transport](#rabbitmq-consumer-transport)
+- [Kafka Producer (type: PRODUCER + producer.type: KAFKA)](#kafka-producer)
+- [RabbitMQ Producer (type: PRODUCER + producer.type: RABBIT)](#rabbitmq-producer)
+- [Kafka Consumer Transport (type: CONSUMER + consumer.type: KAFKA)](#kafka-consumer-transport)
+- [RabbitMQ Consumer Transport (type: CONSUMER + consumer.type: RABBIT)](#rabbitmq-consumer-transport)
 - [Forward-Only Mode](#forward-only-mode)
 - [Custom Publisher](#custom-publisher)
 
@@ -55,16 +55,48 @@ Kafka and RabbitMQ are declared `optional` — add only the broker(s) you use:
 
 | Component | Package | Description |
 |-----------|---------|-------------|
-| `BotUpdatePublisher` | `messaging.*` | SPI interface for publishing raw updates |
-| `BotUpdatePublishingFilter` | `messaging.*` | Filter that invokes the publisher |
-| `KafkaBotUpdatePublisher` | `messaging.kafka.*` | Publishes to Kafka topic via `KafkaTemplate` |
-| `KafkaBotUpdatePublisherAutoConfiguration` | `messaging.kafka.*` | Auto-configures Kafka publisher |
-| `RabbitBotUpdatePublisher` | `messaging.rabbit.*` | Publishes to RabbitMQ via `RabbitTemplate` |
-| `RabbitBotUpdatePublisherAutoConfiguration` | `messaging.rabbit.*` | Auto-configures RabbitMQ publisher |
-| Producer routing auto-config | `messaging.producer.*` | Activates Kafka or RabbitMQ publisher via one property |
-| Kafka consumer transport | `messaging.consumer.kafka.*` | `@KafkaListener` → Bot pipeline |
-| RabbitMQ consumer transport | `messaging.consumer.rabbit.*` | `@RabbitListener` → Bot pipeline |
-| Consumer routing auto-config | `messaging.consumer.*` | Activates Kafka or RabbitMQ consumer via one property |
+| `BotUpdatePublisher` | `messaging` | SPI interface for publishing raw updates |
+| `BotUpdatePublishingFilter` | `messaging` | Filter that invokes the publisher |
+| `KafkaBotUpdatePublisher` | `messaging.kafka` | Publishes to Kafka topic via `KafkaTemplate` |
+| `KafkaMessagingAutoConfiguration` | `messaging.kafka.autoconfigure` | Auto-configures Kafka producer |
+| `RabbitBotUpdatePublisher` | `messaging.rabbit` | Publishes to RabbitMQ via `RabbitTemplate` |
+| `RabbitMessagingAutoConfiguration` | `messaging.rabbit.autoconfigure` | Auto-configures RabbitMQ producer |
+| `KafkaConsumerAutoConfiguration` | `messaging.kafka.consumer.autoconfigure` | Activates Kafka consumer transport |
+| `RabbitConsumerAutoConfiguration` | `messaging.rabbit.consumer.autoconfigure` | Activates RabbitMQ consumer transport |
+
+---
+
+## Configuration Overview
+
+`messaging.type` declares the role of the application:
+
+| Role | Config | LongPolling |
+|------|--------|-------------|
+| **Producer** — receives from Telegram, publishes to broker | `messaging.type: PRODUCER` | Starts (unless `forward-only: true` disables all local dispatch) |
+| **Consumer** — reads from broker, dispatches to `@BotController` | `messaging.type: CONSUMER` | **Blocked** — long-polling never starts for consumer bots |
+
+```yaml
+easygram:
+  token: ${BOT_TOKEN}
+  messaging:
+    type: PRODUCER           # or CONSUMER
+    producer:
+      type: KAFKA            # or RABBIT  (only for PRODUCER)
+    consumer:
+      type: KAFKA            # or RABBIT  (only for CONSUMER)
+
+    kafka:                   # shared by producer + consumer
+      topic: easygram-updates
+      create-if-absent: true
+      partitions: 1
+      replication-factor: 1
+
+    rabbit:                  # shared by producer + consumer
+      exchange: easygram-exchange
+      queue: easygram-updates
+      routing-key: easygram.updates
+      create-if-absent: true
+```
 
 ---
 
@@ -81,16 +113,20 @@ public interface BotUpdatePublisher {
 
 ---
 
-## Kafka Publisher
+## Kafka Producer
+
+Activate by setting `messaging.type: PRODUCER` and `messaging.producer.type: KAFKA`:
 
 ```yaml
 easygram:
+  token: ${BOT_TOKEN}
   messaging:
+    type: PRODUCER
     producer:
-      producer-type: kafka
+      type: KAFKA
     kafka:
       topic: easygram-updates
-      create-if-absent: true   # auto-create topic on startup
+      create-if-absent: true
       partitions: 3
       replication-factor: 1
 
@@ -106,17 +142,21 @@ spring:
 
 ---
 
-## RabbitMQ Publisher
+## RabbitMQ Producer
+
+Activate by setting `messaging.type: PRODUCER` and `messaging.producer.type: RABBIT`:
 
 ```yaml
 easygram:
+  token: ${BOT_TOKEN}
   messaging:
+    type: PRODUCER
     producer:
-      producer-type: rabbit
+      type: RABBIT
     rabbit:
       exchange: easygram-exchange
       routing-key: easygram-updates
-      declare-infrastructure: true   # auto-declare exchange + queue on startup
+      create-if-absent: true
 
 spring:
   rabbitmq:
@@ -128,33 +168,19 @@ spring:
 
 ---
 
-## Smart Producer Routing
-
-Set `producer-type` to select the active publisher at runtime without changing code:
-
-```yaml
-easygram:
-  messaging:
-    producer:
-      producer-type: kafka   # or: rabbit
-```
-
-Only one publisher is active at a time. Both `spring-kafka` and `spring-boot-starter-amqp`
-can coexist on the classpath; the property controls which one is wired.
-
----
-
 ## Kafka Consumer Transport
 
-Set `transport: KAFKA_CONSUMER` to receive updates from a Kafka topic:
+Activate by setting `messaging.type: CONSUMER` and `messaging.consumer.type: KAFKA`.
+No `update.transport` is needed — long-polling is automatically suppressed for consumer bots.
 
 ```yaml
 easygram:
-  transport: KAFKA_CONSUMER
+  token: ${BOT_TOKEN}           # still required to send replies via Telegram API
   messaging:
+    type: CONSUMER
     consumer:
-      consumer-type: kafka
-    kafka-consumer:
+      type: KAFKA
+    kafka:
       topic: easygram-updates
       group-id: my-bot-group
 
@@ -171,15 +197,16 @@ spring:
 
 ## RabbitMQ Consumer Transport
 
-Set `transport: RABBIT_CONSUMER` to receive updates from a RabbitMQ queue:
+Activate by setting `messaging.type: CONSUMER` and `messaging.consumer.type: RABBIT`:
 
 ```yaml
 easygram:
-  transport: RABBIT_CONSUMER
+  token: ${BOT_TOKEN}
   messaging:
+    type: CONSUMER
     consumer:
-      consumer-type: rabbit
-    rabbit-consumer:
+      type: RABBIT
+    rabbit:
       queue: easygram-updates
       exchange: easygram-exchange
       routing-key: easygram-updates
@@ -200,9 +227,10 @@ forwarding instance:
 ```yaml
 easygram:
   messaging:
-    forward-only: true    # publish ONLY, skip local handlers
+    type: PRODUCER
+    forward-only: true       # publish ONLY, skip local handlers
     producer:
-      producer-type: kafka
+      type: KAFKA
 ```
 
 ---
@@ -231,3 +259,4 @@ your custom bean takes precedence automatically.
 
 - [spring-boot-starter/README.md](../spring-boot-starter/README.md) — one-stop dependency
 - [samples/README.md](../samples/README.md) — producer and consumer examples
+

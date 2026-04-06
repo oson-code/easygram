@@ -31,8 +31,9 @@ Without a secret token, any party who guesses your webhook URL can send arbitrar
 
 ```yaml
 easygram:
-  webhook:
-    secret-token: ${WEBHOOK_SECRET}   # generate a long random string
+  update:
+    webhook:
+      secret-token: ${WEBHOOK_SECRET}   # generate a long random string
 ```
 
 Use a cryptographically random value (e.g. `openssl rand -hex 32`) and store it as an environment variable or secret.
@@ -61,10 +62,11 @@ Set the forwarding URL as your webhook URL:
 ```yaml
 easygram:
   token: ${BOT_TOKEN}
-  transport: WEBHOOK
-  webhook:
-    url: https://abc123.ngrok.io/webhook
-    path: /webhook
+  update:
+    transport: WEBHOOK
+    webhook:
+      url: https://abc123.ngrok.io/webhook
+      path: /webhook
 ```
 
 > ngrok generates a new URL on each restart — update `webhook.url` accordingly or use a paid ngrok plan with a fixed subdomain.
@@ -74,9 +76,10 @@ easygram:
 ```yaml
 easygram:
   token: ${BOT_TOKEN}
-  transport: WEBHOOK
-  webhook:
-    url: https://bot.example.com/webhook
+  update:
+    transport: WEBHOOK
+    webhook:
+      url: https://bot.example.com/webhook
 ```
 
 ## All Properties
@@ -84,26 +87,27 @@ easygram:
 | Property | Required | Default | Description |
 |---|---|---|---|
 | `easygram.token` | ✅ | — | Bot token (shared across transports) |
-| `easygram.webhook.url` | ✅ | — | Public HTTPS URL Telegram calls |
-| `easygram.webhook.path` | ❌ | `/webhook` | Local request path Spring MVC listens on |
-| `easygram.webhook.secret-token` | ❌ | — | Header validation secret (strongly recommended) |
-| `easygram.webhook.max-connections` | ❌ | — | 1–100 simultaneous connections (Telegram default is 40) |
-| `easygram.webhook.drop-pending-updates` | ❌ | `false` | Drop queued updates on registration |
-| `easygram.webhook.unregister-on-shutdown` | ❌ | `false` | Delete webhook on shutdown |
+| `easygram.update.webhook.url` | ✅ | — | Public HTTPS URL Telegram calls |
+| `easygram.update.webhook.path` | ❌ | `/webhook` | Local request path Spring MVC listens on |
+| `easygram.update.webhook.secret-token` | ❌ | — | Header validation secret (strongly recommended) |
+| `easygram.update.webhook.max-connections` | ❌ | — | 1–100 simultaneous connections (Telegram default is 40) |
+| `easygram.update.webhook.drop-pending-updates` | ❌ | `false` | Drop queued updates on registration |
+| `easygram.update.webhook.unregister-on-shutdown` | ❌ | `false` | Delete webhook on shutdown |
 
 ### Full Example
 
 ```yaml
 easygram:
   token: ${BOT_TOKEN}
-  transport: webhook
-  webhook:
-    url: https://bot.example.com/webhook
-    path: /webhook
-    secret-token: ${WEBHOOK_SECRET}           # optional but recommended
-    max-connections: 40
-    drop-pending-updates: false
-    unregister-on-shutdown: false
+  update:
+    transport: WEBHOOK
+    webhook:
+      url: https://bot.example.com/webhook
+      path: /webhook
+      secret-token: ${WEBHOOK_SECRET}           # optional but recommended
+      max-connections: 40
+      drop-pending-updates: false
+      unregister-on-shutdown: false
 ```
 
 ## Customizing Infrastructure

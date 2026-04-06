@@ -117,6 +117,98 @@ To surface these in log output, update your Logback pattern:
 
 ---
 
+### Configuration API redesign (transport + messaging)
+
+The configuration API has been redesigned to separate **update transport** (how updates
+arrive from Telegram) from **broker integration** (publishing/consuming via Kafka or RabbitMQ).
+
+#### Property rename table
+
+| Old (0.0.5-pre) | New |
+|---|---|
+| `easygram.transport=LONG_POLLING` | `easygram.update.transport=LONG_POLLING` (or omit — it is the default) |
+| `easygram.transport=WEBHOOK` | `easygram.update.transport=WEBHOOK` |
+| `easygram.transport=KAFKA_CONSUMER` | `easygram.messaging.type=CONSUMER` + `easygram.messaging.consumer.type=KAFKA` |
+| `easygram.transport=RABBIT_CONSUMER` | `easygram.messaging.type=CONSUMER` + `easygram.messaging.consumer.type=RABBIT` |
+| `easygram.webhook.url` | `easygram.update.webhook.url` |
+| `easygram.webhook.path` | `easygram.update.webhook.path` |
+| `easygram.webhook.secret-token` | `easygram.update.webhook.secret-token` |
+| `easygram.webhook.max-connections` | `easygram.update.webhook.max-connections` |
+| `easygram.webhook.drop-pending-updates` | `easygram.update.webhook.drop-pending-updates` |
+| `easygram.webhook.unregister-on-shutdown` | `easygram.update.webhook.unregister-on-shutdown` |
+| `easygram.messaging.producer.producer-type=kafka` | `easygram.messaging.type=PRODUCER` + `easygram.messaging.producer.type=KAFKA` |
+| `easygram.messaging.producer.producer-type=rabbit` | `easygram.messaging.type=PRODUCER` + `easygram.messaging.producer.type=RABBIT` |
+| `easygram.kafka-consumer.*` | `easygram.messaging.kafka.*` |
+| `easygram.rabbit-consumer.*` | `easygram.messaging.rabbit.*` |
+| `easygram.messaging.kafka.*` | `easygram.messaging.kafka.*` *(unchanged — shared now)* |
+| `easygram.messaging.rabbit.*` | `easygram.messaging.rabbit.*` *(unchanged — shared now)* |
+
+#### `BotTransportType` enum changes
+
+`KAFKA_CONSUMER` and `RABBIT_CONSUMER` have been **removed** from `BotTransportType`.
+Consumer bots no longer set `update.transport`; instead they set `messaging.type=CONSUMER`.
+
+If you referenced these enum values directly in code, replace them:
+
+```java
+// Old
+BotTransportType.KAFKA_CONSUMER
+
+// New — there is no enum constant; check via messaging properties instead
+// easygram.messaging.type=CONSUMER + easygram.messaging.consumer.type=KAFKA
+```
+
+#### Consumer bot example (before / after)
+
+```yaml
+# ── Before ──────────────────────────────────────
+easygram:
+  transport: KAFKA_CONSUMER
+  kafka-consumer:
+    topic: my-updates
+    group-id: my-group
+
+# ── After ───────────────────────────────────────
+easygram:
+  messaging:
+    type: CONSUMER
+    consumer:
+      type: KAFKA
+    kafka:
+      topic: my-updates
+      group-id: my-group
+```
+
+#### Producer bot example (before / after)
+
+```yaml
+# ── Before ──────────────────────────────────────
+easygram:
+  transport: WEBHOOK
+  webhook:
+    url: https://example.com/bot
+  messaging:
+    producer:
+      producer-type: kafka
+    kafka:
+      topic: my-updates
+
+# ── After ───────────────────────────────────────
+easygram:
+  update:
+    transport: WEBHOOK
+    webhook:
+      url: https://example.com/bot
+  messaging:
+    type: PRODUCER
+    producer:
+      type: KAFKA
+    kafka:
+      topic: my-updates
+```
+
+---
+
 ## 0.0.3 → 0.0.4
 
 Version 0.0.4 introduced **Dynamic Callback Queries** (`@BotDynamicCallbackQuery`,
