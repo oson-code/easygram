@@ -1163,16 +1163,29 @@ PlainReply.builder()
 ### PlainTextTemplate — Fluent API
 
 Uses `#{index}` positional tokens (0-based) for value substitution. Same markup methods as `PlainReply`.
+Supports the same AnswerCallbackQuery API — the **resolved template text** is used as the popup notification.
 
 ```java
 PlainTextTemplate.of("Hello, #{0}! You have #{1} messages.", user.getFirstName(), count)
 PlainTextTemplate.of("Order ##{0} ready.", orderId).withMarkup("order_kb")
+PlainTextTemplate.of("Updated #{0}!").withEditMessage()  // edit callback-query message (since 0.0.2)
+
+// Answer callback query — resolved template text used as popup (since 0.0.5)
+PlainTextTemplate.of("Step #{0} complete!", step).asAnswerCallbackQuery()              // toast
+PlainTextTemplate.of("Deleted #{0}.", item).asAnswerCallbackQuery().withCallbackAlert() // alert dialog
+PlainTextTemplate.of("Done #{0}.").asAnswerCallbackQuery().withCallbackUrl("https://example.com")
+PlainTextTemplate.of("OK #{0}.").asAnswerCallbackQuery().withCallbackCacheTime(10)
 
 // Builder
 PlainTextTemplate.builder()
     .template("Hello, #{0}! Order ##{1} is ready.")
     .args(user.getFirstName(), orderId)
     .markupId("order_kb")
+    .editMessage(true)            // edit instead of send (since 0.0.2)
+    .answerCallbackQuery(true)    // send AnswerCallbackQuery (since 0.0.5)
+    .callbackAlert(true)          // showAlert=true (since 0.0.5)
+    .callbackUrl("https://...")   // optional URL (since 0.0.5)
+    .callbackCacheTime(10)        // cache seconds (since 0.0.5)
     .build()
 ```
 
@@ -1207,18 +1220,28 @@ LocalizedReply.builder()
 ### LocalizedTemplate — Fluent API *(core-i18n)*
 
 Supports mixed `${messageKey}` bundle lookups and `#{index}` positional arg substitution.
+Supports the same AnswerCallbackQuery API — the **fully resolved template string** is used as the popup notification.
 
 ```java
 LocalizedTemplate.of("${welcome.title}\n\nHello, #{0}!", user.getFirstName())
 LocalizedTemplate.of("${stats.header}\n\nMessages: #{0}", count).withMarkup("stats_menu")
 LocalizedTemplate.of("${updated}").withEditMessage()  // edit callback-query message (since 0.0.2)
 
+// Answer callback query — fully resolved template text used as popup (since 0.0.5)
+LocalizedTemplate.of("${action.confirmed}").asAnswerCallbackQuery()              // toast
+LocalizedTemplate.of("${item.deleted}").asAnswerCallbackQuery().withCallbackAlert() // alert dialog
+LocalizedTemplate.of("${opening.page}").asAnswerCallbackQuery().withCallbackUrl("https://example.com")
+
 // Builder
 LocalizedTemplate.builder()
     .template("${stats.header}\n\nMessages: #{0}\nCommands: #{1}")
     .args(messages, commands)
     .markupId("stats_menu")
-    .editMessage(true)   // since 0.0.2
+    .editMessage(true)            // since 0.0.2
+    .answerCallbackQuery(true)    // send AnswerCallbackQuery (since 0.0.5)
+    .callbackAlert(true)          // showAlert=true (since 0.0.5)
+    .callbackUrl("https://...")   // optional URL (since 0.0.5)
+    .callbackCacheTime(10)        // cache seconds (since 0.0.5)
     .build()
 ```
 

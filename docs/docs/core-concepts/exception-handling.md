@@ -218,6 +218,99 @@ public class GlobalHandlers {
 }
 ```
 
+## Markup in Exception Handlers
+
+`@BotExceptionHandler` methods participate in the full markup pipeline — the same
+`@BotReplyMarkup`, `@BotClearMarkup`, state-bound keyboards, and `MarkupAware` fluent API
+that work on regular handler methods work on exception handlers too.
+
+### `@BotReplyMarkup` on an exception handler
+
+```java
+@BotControllerAdvice
+public class GlobalExceptionHandler {
+
+    // Attaches the "error_kb" keyboard to every error response
+    @BotReplyMarkup("error_kb")
+    @BotExceptionHandler(Exception.class)
+    public String handleGeneric(Exception e) {
+        log.error("Unhandled exception", e);
+        return "An error occurred. Please choose an option:";
+    }
+}
+```
+
+### Rich return types with inline keyboards
+
+Exception handlers can return any `MarkupAware` type. Markup annotations and fluent methods
+work identically to regular handlers:
+
+```java
+@BotExceptionHandler(ValidationException.class)
+public PlainReply handleValidation(ValidationException e) {
+    return PlainReply.of("Invalid input: " + e.getMessage())
+            .withMarkup("retry_kb");         // keyboard from registry
+}
+
+@BotExceptionHandler(PaymentException.class)
+public PlainReply handlePayment(PaymentException e) {
+    return PlainReply.of("Payment failed.")
+            .withKeyboard(buildRetryKeyboard());  // inline keyboard built directly
+}
+```
+
+### State-bound keyboards
+
+If a keyboard is registered with `@BotChatState("SOME_STATE")`, it is automatically attached
+to any exception handler response when the effective state matches — exactly as it is for
+regular handlers:
+
+```java
+@BotConfiguration
+public class FlowMarkups {
+
+    // Registered as state-bound keyboard for AWAITING_PAYMENT
+    @BotMarkup("payment_retry_kb")
+    @BotChatState("AWAITING_PAYMENT")
+    public ReplyKeyboard paymentRetryKeyboard() {
+        return ReplyKeyboardMarkup.builder()
+                .keyboardRow(List.of(new KeyboardButton("Retry payment")))
+                .build();
+    }
+}
+
+@BotController
+public class PaymentController {
+
+    @BotChatState("AWAITING_PAYMENT")
+    @BotText
+    public String handlePaymentInput(@BotTextValue String input) {
+        // may throw PaymentException
+    }
+
+    // payment_retry_kb is automatically attached because the current state is AWAITING_PAYMENT
+    @BotChatState("AWAITING_PAYMENT")
+    @BotExceptionHandler(PaymentException.class)
+    public String handlePaymentError(PaymentException e) {
+        return "Payment failed: " + e.getMessage();
+    }
+}
+```
+
+### Answering callback queries from exception handlers
+
+Exception handlers can also return `PlainReply.asAnswerCallbackQuery()` to acknowledge the
+callback spinner even when an error occurs:
+
+```java
+@BotExceptionHandler(IllegalStateException.class)
+public PlainReply handleInvalidCallback(IllegalStateException e) {
+    return PlainReply.of("This action is no longer valid.")
+            .asAnswerCallbackQuery()
+            .withCallbackAlert();
+}
+```
+
 ## Logging Errors
 
 ```java

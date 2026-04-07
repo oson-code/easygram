@@ -168,6 +168,42 @@ is out of bounds the token is left unchanged.
 `PlainTextTemplate` also supports the `editMessage` flag — see [Edit-Message](#edit-message)
 above for details (the behaviour is identical to `PlainReply`).
 
+### Answering Callback Queries from a Template
+
+`PlainTextTemplate` supports the same callback-answer API as `PlainReply`. The **resolved
+template text** (after all `#{index}` substitutions) is used as the popup notification text:
+
+```java
+// Toast popup — resolved text shown in the notification
+@BotCallbackQuery("next")
+public PlainTextTemplate nextStep(User user) {
+    return PlainTextTemplate.of("Step #{0} complete, #{1}!", step, user.getFirstName())
+            .asAnswerCallbackQuery();
+}
+
+// Alert dialog
+@BotCallbackQuery("reset")
+public PlainTextTemplate resetDone() {
+    return PlainTextTemplate.of("Reset complete. Starting over.")
+            .asAnswerCallbackQuery()
+            .withCallbackAlert();
+}
+
+// Builder
+@BotCallbackQuery("confirm")
+public PlainTextTemplate confirmOrder(User user) {
+    return PlainTextTemplate.builder()
+            .template("Order #{0} confirmed for #{1}!")
+            .args(orderId, user.getFirstName())
+            .answerCallbackQuery(true)
+            .callbackAlert(true)
+            .build();
+}
+```
+
+See [Answering Callback Queries](#callback-answer) in the MarkupAware section for the full
+method reference.
+
 ---
 
 ## `BotApiMethod<?>`
@@ -423,6 +459,43 @@ not `{0}`. The `${key}` tokens are message bundle lookups, not Spring EL.
 `LocalizedTemplate` also supports the `editMessage` flag — see [Edit-Message](#edit-message)
 for details. Use `withEditMessage()` or `Builder.editMessage(true)`.
 
+### Answering Callback Queries from a Template
+
+`LocalizedTemplate` supports the same callback-answer API as `LocalizedReply`. The **fully
+resolved template string** (after all `${key}` lookups and `#{index}` substitutions) is used
+as the popup notification text:
+
+```java
+// Toast popup — resolved template text shown in the notification
+@BotCallbackQuery("next")
+public LocalizedTemplate nextStep() {
+    return LocalizedTemplate.of("${step.complete} #{0}!", stepNumber)
+            .asAnswerCallbackQuery();
+}
+
+// Alert dialog
+@BotCallbackQuery("confirm")
+public LocalizedTemplate confirmAction() {
+    return LocalizedTemplate.of("${action.confirmed}")
+            .asAnswerCallbackQuery()
+            .withCallbackAlert();
+}
+
+// Builder
+@BotCallbackQuery("approve")
+public LocalizedTemplate approve(User user) {
+    return LocalizedTemplate.builder()
+            .template("${approved.message} #{0}")
+            .args(user.getFirstName())
+            .answerCallbackQuery(true)
+            .callbackAlert(true)
+            .build();
+}
+```
+
+See [Answering Callback Queries](#callback-answer) in the MarkupAware section for the full
+method reference.
+
 ---
 
 ## MarkupAware
@@ -546,6 +619,24 @@ public LocalizedReply onConfirm() {
 @BotCallbackQuery("delete")
 public LocalizedReply onDelete() {
     return LocalizedReply.of("item.deleted").asAnswerCallbackQuery().withCallbackAlert();
+}
+```
+
+`PlainTextTemplate` and `LocalizedTemplate` work identically — the **resolved template
+string** (after token substitution and bundle lookups) is used as the popup text:
+
+```java
+@BotCallbackQuery("next")
+public PlainTextTemplate nextStep(User user) {
+    return PlainTextTemplate.of("Step #{0} done, #{1}!", step, user.getFirstName())
+            .asAnswerCallbackQuery();
+}
+
+@BotCallbackQuery("confirm")
+public LocalizedTemplate confirmLocalized() {
+    return LocalizedTemplate.of("${action.confirmed}")
+            .asAnswerCallbackQuery()
+            .withCallbackAlert();
 }
 ```
 
