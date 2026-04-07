@@ -1,0 +1,65 @@
+# Easygram producer bot — RabbitMQ transport
+#
+# Prerequisites:
+#   docker compose -f docker-compose.rabbit.yml up
+#
+# Required env var (set in .env file or export before running):
+#   easygram.token=<your-bot-token>      # token from @BotFather
+#
+# Optional overrides (add to .env):
+#   easygram.update.transport=WEBHOOK    # switch to webhook mode
+#   easygram.update.webhook.url=https://example.com/webhook
+#   easygram.messaging.rabbit.exchange=my-exchange
+#   easygram.messaging.rabbit.queue=my-queue
+#   spring.rabbitmq.host=external-rabbitmq
+
+services:
+
+  # ── RabbitMQ with management UI (http://localhost:15672, rabbit/rabbit) ───
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbit
+      RABBITMQ_DEFAULT_PASS: rabbit
+    ports:
+      - "15672:15672"    # management UI
+      # - "5672:5672"    # uncomment to expose AMQP port to host
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ── Easygram producer bot ─────────────────────────────────────────────────
+  bot:
+    build: .
+    environment:
+      # ── Required — provide in .env file ───────────────────────────────────
+      easygram.token: "${easygram.token}"
+
+      # ── Transport: LONG_POLLING (default) or WEBHOOK ──────────────────────
+      # easygram.update.transport: WEBHOOK
+      # easygram.update.webhook.url: https://example.com/webhook
+      # easygram.update.webhook.path: /webhook
+      # easygram.update.webhook.secret-token: <secret>
+
+      # ── Messaging ─────────────────────────────────────────────────────────
+      easygram.messaging.type: PRODUCER
+      easygram.messaging.forward-only: "true"
+      easygram.messaging.producer.type: RABBIT
+      easygram.messaging.rabbit.exchange: easygram-exchange
+      easygram.messaging.rabbit.queue: easygram-updates
+      easygram.messaging.rabbit.routing-key: easygram.updates
+      easygram.messaging.rabbit.create-if-absent: "true"
+
+      # ── RabbitMQ connection ───────────────────────────────────────────────
+      spring.rabbitmq.host: rabbitmq
+      spring.rabbitmq.port: "5672"
+      spring.rabbitmq.username: rabbit
+      spring.rabbitmq.password: rabbit
+    ports:
+      - "8080:8080"    # only needed for WEBHOOK mode
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure

@@ -1,0 +1,76 @@
+# Easygram producer bot — Kafka transport
+#
+# Prerequisites:
+#   docker compose -f docker-compose.kafka.yml up
+#
+# Required env var (set in .env file or export before running):
+#   easygram.token=<your-bot-token>      # token from @BotFather
+#
+# Optional overrides (add to .env):
+#   easygram.update.transport=WEBHOOK    # switch to webhook mode
+#   easygram.update.webhook.url=https://example.com/webhook
+#   easygram.messaging.kafka.topic=my-topic
+#   spring.kafka.bootstrap-servers=external-kafka:9092
+
+services:
+
+  # ── Apache Kafka (KRaft mode — no Zookeeper) ──────────────────────────────
+  kafka:
+    image: bitnami/kafka:latest
+    environment:
+      KAFKA_CFG_NODE_ID: "1"
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    healthcheck:
+      test: ["CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ── Kafka UI (optional, browse topics at http://localhost:8090) ───────────
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # ── Easygram producer bot ─────────────────────────────────────────────────
+  bot:
+    build: .
+    environment:
+      # ── Required — provide in .env file ───────────────────────────────────
+      easygram.token: "${easygram.token}"
+
+      # ── Transport: LONG_POLLING (default) or WEBHOOK ──────────────────────
+      # easygram.update.transport: WEBHOOK
+      # easygram.update.webhook.url: https://example.com/webhook
+      # easygram.update.webhook.path: /webhook
+      # easygram.update.webhook.secret-token: <secret>
+
+      # ── Messaging ─────────────────────────────────────────────────────────
+      easygram.messaging.type: PRODUCER
+      easygram.messaging.forward-only: "true"
+      easygram.messaging.producer.type: KAFKA
+      easygram.messaging.kafka.topic: easygram-updates
+      easygram.messaging.kafka.create-if-absent: "true"
+
+      # ── Kafka connection ──────────────────────────────────────────────────
+      spring.kafka.bootstrap-servers: kafka:9092
+    ports:
+      - "8080:8080"    # only needed for WEBHOOK mode
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: on-failure
