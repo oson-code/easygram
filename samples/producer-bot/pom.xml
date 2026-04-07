@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.4</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>uz.osoncode.easygram.samples</groupId>
+    <artifactId>producer-bot</artifactId>
+    <version>0.0.5</version>
+    <name>sample :: producer-bot</name>
+    <description>
+        Docker-ready Telegram bot that forwards every incoming update to Kafka or RabbitMQ.
+        Supports LONG_POLLING and WEBHOOK transports.
+        Configured entirely via Spring property names in environment variables.
+    </description>
+
+    <properties>
+        <java.version>17</java.version>
+        <library.version>0.0.5</library.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- ── Easygram transports ────────────────────────────────────────────── -->
+        <!-- Long-polling transport (default) -->
+        <dependency>
+            <groupId>uz.osoncode.easygram</groupId>
+            <artifactId>longpolling</artifactId>
+            <version>${library.version}</version>
+        </dependency>
+
+        <!-- Webhook transport (active when easygram.update.transport=WEBHOOK) -->
+        <dependency>
+            <groupId>uz.osoncode.easygram</groupId>
+            <artifactId>webhook</artifactId>
+            <version>${library.version}</version>
+        </dependency>
+
+        <!-- Messaging SPI — contains producer + consumer code for both brokers.
+             spring-kafka and spring-boot-starter-amqp are optional there,
+             so they must be declared explicitly below. -->
+        <dependency>
+            <groupId>uz.osoncode.easygram</groupId>
+            <artifactId>messaging-api</artifactId>
+            <version>${library.version}</version>
+        </dependency>
+
+        <!-- ── Broker drivers (both included; only one activates at runtime) ── -->
+        <!-- Kafka driver: active when easygram.messaging.producer.type=KAFKA -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <!-- RabbitMQ driver: active when easygram.messaging.producer.type=RABBIT -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

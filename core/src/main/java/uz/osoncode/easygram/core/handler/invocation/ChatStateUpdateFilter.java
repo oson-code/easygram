@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.handler.invocation;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
 import uz.osoncode.easygram.core.bind.annotation.BotClearChatState;
 import uz.osoncode.easygram.core.bind.annotation.BotForwardChatState;
@@ -31,6 +32,7 @@ import java.util.Optional;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 @RequiredArgsConstructor
 public class ChatStateUpdateFilter implements BotHandlerInvocationFilter {
 
@@ -63,12 +65,16 @@ public class ChatStateUpdateFilter implements BotHandlerInvocationFilter {
             BotClearChatState clearAnnotation =
                     AnnotationUtils.findAnnotation(context.getMethod(), BotClearChatState.class);
             if (Objects.nonNull(clearAnnotation)) {
+                log.debug("Clearing chat state: chatId={} method='{}'",
+                        chatId, context.getMethod().getName());
                 service.clearState(chatId);
                 return;
             }
             BotForwardChatState forwardAnnotation =
                     AnnotationUtils.findAnnotation(context.getMethod(), BotForwardChatState.class);
             if (Objects.nonNull(forwardAnnotation)) {
+                log.debug("Forwarding chat state: chatId={} newState='{}' method='{}'",
+                        chatId, forwardAnnotation.value(), context.getMethod().getName());
                 service.setState(chatId, forwardAnnotation.value());
             }
         });

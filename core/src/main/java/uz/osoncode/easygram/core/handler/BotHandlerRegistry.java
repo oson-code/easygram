@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.handler;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.List;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 @Getter
 public class BotHandlerRegistry {
 
@@ -44,6 +46,7 @@ public class BotHandlerRegistry {
      * @param botHandler the state-specific handler to register; must not be {@code null}
      */
     public void registerState(BotHandler botHandler) {
+        log.debug("Registering state handler: {}", botHandler.info());
         register(botHandler, stateHandlers);
     }
 
@@ -54,6 +57,7 @@ public class BotHandlerRegistry {
      * @param botHandler the specific handler to register; must not be {@code null}
      */
     public void register(BotHandler botHandler) {
+        log.debug("Registering specific handler: {}", botHandler.info());
         register(botHandler, botHandlers);
     }
 
@@ -64,6 +68,7 @@ public class BotHandlerRegistry {
      * @param botHandler the fallback handler to register; must not be {@code null}
      */
     public void registerDefault(BotHandler botHandler) {
+        log.debug("Registering default handler: {}", botHandler.info());
         register(botHandler, defaultHandlers);
     }
 

@@ -18,7 +18,7 @@ Telegram
   ↓ long-polling
 BotContextSetterFilter
   ↓
-BotUpdatePublishingFilter → Kafka topic "telegram-updates"
+BotUpdatePublishingFilter → Kafka topic "easygram-updates"
   ↓ (forward-only: true)
   STOP — local @BotController handlers never run
 ```
@@ -38,31 +38,30 @@ BotUpdatePublishingFilter → Kafka topic "telegram-updates"
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 
 ### application.yml
 
 ```yaml
-telegram:
-  bot:
-    token: "${BOT_TOKEN}"
-    # transport: LONG_POLLING is the default
+easygram:
+  token: "${BOT_TOKEN}"
+  # transport: LONG_POLLING is the default
 
-    messaging:
-      # true  → forward ONLY to broker; local @BotController handlers are skipped
-      # false → forward to broker AND run local handlers
-      forward-only: true
+  messaging:
+    # true  → forward ONLY to broker; local @BotController handlers are skipped
+    # false → forward to broker AND run local handlers
+    forward-only: true
 
-      producer:
-        producer-type: kafka
+    producer:
+      type: KAFKA
 
-      kafka:
-        topic: telegram-updates
-        create-if-absent: true  # Auto-create topic on startup
-        partitions: 1
-        replication-factor: 1
+    kafka:
+      topic: easygram-updates
+      create-if-absent: true  # Auto-create topic on startup
+      partitions: 1
+      replication-factor: 1
 
 spring:
   application:
@@ -161,28 +160,24 @@ when using a custom key-based partitioner.
 
 ## Downstream Consumer
 
-Use `messaging-kafka-consumer` transport to consume updates through the full bot pipeline
+Use the consumer transport to process updates through the full bot pipeline
 in a separate application:
 
 ```yaml
 # consumer/application.yml
-telegram:
-  bot:
-    token: "${BOT_TOKEN}"
-    transport: KAFKA_CONSUMER
-    messaging:
-      kafka:
-        topic:    telegram-updates
-        group-id: my-bot-consumer-group
+easygram:
+  token: "${BOT_TOKEN}"
+  messaging:
+    type: CONSUMER
+    consumer:
+      type: KAFKA
+    kafka:
+      topic: easygram-updates
+      group-id: my-bot-consumer-group
 
 spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    consumer:
-      key-deserializer:   org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      group-id: my-bot-consumer-group
-      auto-offset-reset: earliest
 ```
 
 See the [Kafka Consumer Guide](../transports/kafka-consumer-guide) for full configuration.
@@ -192,16 +187,16 @@ See the [Kafka Consumer Guide](../transports/kafka-consumer-guide) for full conf
 Switch to RabbitMQ by changing two properties:
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      producer:
-        producer-type: rabbit    # was: kafka
-      rabbit:
-        exchange:     telegram-exchange
-        routing-key:  telegram.updates
-        queue:        telegram-updates
-        create-if-absent: true
+easygram:
+  messaging:
+    type: PRODUCER
+    producer:
+      type: RABBIT    # was: KAFKA
+    rabbit:
+      exchange:     easygram-exchange
+      routing-key:  easygram.updates
+      queue:        easygram-updates
+      create-if-absent: true
 
 spring:
   rabbitmq:
@@ -213,31 +208,36 @@ spring:
 
 ## Running with Docker Compose
 
-```yaml
-version: '3.8'
-services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+The `samples/producer-bot` module provides ready-to-use compose files with Bitnami KRaft
+(no ZooKeeper). For a minimal custom setup:
 
+```yaml
+services:
   kafka:
-    image: confluentinc/cp-kafka:7.4.0
-    depends_on: [zookeeper]
-    ports: ["9092:9092"]
+    image: bitnami/kafka:latest
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CFG_NODE_ID: "1"
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+    ports: ["9092:9092"]
 
   bot:
     image: my-kafka-producer-bot:latest
     depends_on: [kafka]
     environment:
-      BOT_TOKEN: "${BOT_TOKEN}"
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      easygram.token: "${BOT_TOKEN}"
+      easygram.messaging.type: PRODUCER
+      easygram.messaging.forward-only: "true"
+      easygram.messaging.producer.type: KAFKA
+      easygram.messaging.kafka.topic: easygram-updates
+      spring.kafka.bootstrap-servers: kafka:9092
 ```
+
+See [Docker Producer Bot](./producer-bot) for the full production-ready module.
 
 ## Error Handling
 

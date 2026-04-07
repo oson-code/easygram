@@ -1,13 +1,13 @@
-telegram:
-  bot:
-    # Required: your Telegram Bot API token from @BotFather
-    token: "BOT_TOKEN"
+easygram:
+  # Required: your Telegram Bot API token from @BotFather.
+  # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
+  token: "${BOT_TOKEN}"
 
+  update:
     transport: WEBHOOK
-
     webhook:
       # Required: the public HTTPS URL Telegram will POST updates to
-      url: "https://example.com${telegram.bot.webhook.path}"
+      url: "https://example.com${easygram.update.webhook.path}"
 
       # Local path that accepts incoming webhook requests (default: /webhook)
       path: /webhook
@@ -18,55 +18,54 @@ telegram:
       drop-pending-updates: false
       unregister-on-shutdown: false
 
-    messaging:
-      # true  → forward ONLY to broker; local @BotController handlers are skipped
-      # false → forward to broker AND run local handlers
-      forward-only: true
+  messaging:
+    # Declare this bot as a PRODUCER: it receives updates from Telegram and publishes them.
+    type: PRODUCER
 
-      producer:
-        producer-type: rabbit
-        # Choose which broker to publish to: kafka | rabbit
-#        consumer-type: kafka
+    # true  → forward ONLY to broker; local @BotController handlers are skipped
+    # false → forward to broker AND run local handlers (default)
+    forward-only: true
 
-      # ── Kafka settings (active when consumer-type=kafka) ───────────────────
-      kafka:
-        topic: telegram-updates
-        create-if-absent: true
-        partitions: 1
-        replication-factor: 1
+    producer:
+      # Choose which broker to publish to: KAFKA | RABBIT
+      type: RABBIT
 
-      # ── RabbitMQ settings (active when consumer-type=rabbit) ───────────────
-      rabbit:
-        exchange: telegram-exchange
-        routing-key: telegram.updates
-        queue: telegram-updates
-        create-if-absent: true
+    # ── Kafka settings (active when producer.type=KAFKA) ────────────────────
+    # kafka:
+    #   topic: easygram-updates
+    #   create-if-absent: true
+    #   partitions: 1
+    #   replication-factor: 1
+
+    # ── RabbitMQ settings (active when producer.type=RABBIT) ────────────────
+    rabbit:
+      exchange: easygram-exchange
+      routing-key: easygram.updates
+      queue: easygram-updates
+      create-if-absent: true
 
 server:
   port: 8080
 
-# ── Spring Kafka (required when consumer-type=kafka) ─────────────────────────
+# ── Spring Kafka (required when producer.type=KAFKA) ─────────────────────────
 spring:
   application:
     name: webhook-as-producer
 
   kafka:
-    bootstrap-servers: 10.0.0.2:9092
+    # Run: docker compose up -d  (see docker-compose.yml)
+    bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       acks: all
       retries: 3
 
-  # ── Spring RabbitMQ (required when consumer-type=rabbit) ─────────────────
+  # ── Spring RabbitMQ (required when producer.type=RABBIT) ─────────────────
   rabbitmq:
-    host: 10.0.0.2
-    port: 5675
+    # Run: docker compose up -d  (see docker-compose.yml)
+    host: localhost
+    port: 5672
     username: rabbit
     password: rabbit
 
-logging:
-  level:
-    uz.osoncode: DEBUG
-    org.springframework.kafka: WARN
-    org.springframework.amqp: WARN

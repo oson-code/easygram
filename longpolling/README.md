@@ -9,7 +9,7 @@
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>longpolling</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 
@@ -52,17 +52,17 @@ public BotBackOffProvider botBackOffProvider() {
 ## Minimal Configuration
 
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}              # required
-    transport: LONG_POLLING          # optional — this is the default
+easygram:
+  token: ${BOT_TOKEN}              # required
+  # update.transport defaults to LONG_POLLING — nothing else needed
 ```
 
 ## All Properties
 
 | Property | Required | Default | Description |
 |---|---|---|---|
-| `telegram.bot.token` | ✅ | — | Bot token from @BotFather (shared across transports) |
+| `easygram.token` | ✅ | — | Bot token from @BotFather (shared across transports) |
+| `easygram.update.transport` | ❌ | `LONG_POLLING` | Update transport. Must be `LONG_POLLING` (or omitted) to activate this module |
 
 ## Customizing Infrastructure
 

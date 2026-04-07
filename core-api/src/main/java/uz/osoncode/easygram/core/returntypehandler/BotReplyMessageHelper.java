@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.returntypehandler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -175,5 +176,48 @@ public final class BotReplyMessageHelper {
                 }
             }
         });
+    }
+
+    /**
+     * Adds an {@link AnswerCallbackQuery} method to the response when the current update
+     * originates from a callback query. Silently does nothing if the update is not a callback
+     * query, making this call safe to use from any handler context.
+     *
+     * <p>The {@code text} parameter is used as the popup notification text shown to the user.
+     * Pass {@code null} for a silent acknowledgment (spinner is dismissed without a popup).</p>
+     *
+     * @param botResponse  the response to add the method to; must not be {@code null}
+     * @param botRequest   the current request; must not be {@code null}
+     * @param text         the notification popup text; {@code null} for silent ack
+     * @param showAlert    when {@code true} an alert dialog is shown instead of a toast
+     * @param url          optional URL to open; {@code null} if not needed
+     * @param cacheTime    client-side cache duration in seconds; {@code null} to use Telegram default
+     * @since 0.0.5
+     */
+    public static void addCallbackAnswer(
+            BotResponse botResponse,
+            BotRequest botRequest,
+            String text,
+            boolean showAlert,
+            String url,
+            Integer cacheTime) {
+
+        if (!botRequest.getUpdate().hasCallbackQuery()) {
+            return;
+        }
+        String callbackQueryId = botRequest.getUpdate().getCallbackQuery().getId();
+        AnswerCallbackQuery.AnswerCallbackQueryBuilder<?, ?> builder =
+                AnswerCallbackQuery.builder().callbackQueryId(callbackQueryId);
+        if (Objects.nonNull(text)) {
+            builder.text(text);
+        }
+        builder.showAlert(showAlert);
+        if (Objects.nonNull(url)) {
+            builder.url(url);
+        }
+        if (Objects.nonNull(cacheTime)) {
+            builder.cacheTime(cacheTime);
+        }
+        botResponse.addBotApiMethod(builder.build());
     }
 }

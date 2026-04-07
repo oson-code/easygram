@@ -223,7 +223,7 @@ The filter pipeline on the **producer** side executes in this order:
 
 ```
 CONTEXT_SETTER (MIN_VALUE)
-  → OBSERVATION (MIN_VALUE + 1) ← telegram.bot.update span starts HERE
+  → OBSERVATION (MIN_VALUE + 1) ← easygram.update span starts HERE
   → ...
   → PUBLISHING (MIN_VALUE + 1000) ← KafkaTemplate / RabbitTemplate sends the message
 ```
@@ -240,13 +240,13 @@ dispatching the message to the bot.
 
 ```
 [producer service]
-  telegram.bot.update (BotObservabilityFilter)
+  easygram.update (BotObservabilityFilter)
      spring.kafka.producer (KafkaTemplate with observationEnabled=true)
              ↓ W3C traceparent header in Kafka record
 
 [consumer service]
   spring.kafka.consumer (KafkaListenerContainerFactory with observationEnabled=true)
-     telegram.bot.update (BotObservabilityFilter — child of kafka.consumer span)
+     easygram.update (BotObservabilityFilter — child of kafka.consumer span)
 ```
 
 The same pattern applies for RabbitMQ (`spring.rabbit.producer` / `spring.rabbit.listener`).

@@ -18,17 +18,16 @@ Webhook transport lets Telegram **push** updates to your bot via HTTPS, eliminat
 
 **application.yml:**
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    transport: WEBHOOK
-    webhook:
-      url: https://your-domain.com/webhook
-      path: /webhook
-      secret-token: ${WEBHOOK_SECRET}
-      max-connections: 40
-      drop-pending-updates: false
-      unregister-on-shutdown: false
+easygram:
+  token: ${BOT_TOKEN}
+  transport: WEBHOOK
+  webhook:
+    url: https://your-domain.com/webhook
+    path: /webhook
+    secret-token: ${WEBHOOK_SECRET}
+    max-connections: 40
+    drop-pending-updates: false
+    unregister-on-shutdown: false
 ```
 
 ## Configuration Options
@@ -68,13 +67,12 @@ server:
     key-store-type: PKCS12
     key-alias: tomcat
 
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    transport: WEBHOOK
-    webhook:
-      url: https://your-domain.com/webhook
-      secret-token: ${WEBHOOK_SECRET}
+easygram:
+  token: ${BOT_TOKEN}
+  transport: WEBHOOK
+  webhook:
+    url: https://your-domain.com/webhook
+    secret-token: ${WEBHOOK_SECRET}
 ```
 
 ### 3. Deploy Behind Reverse Proxy (Recommended)
@@ -164,12 +162,11 @@ server:
   servlet:
     context-path: /
 
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    transport: WEBHOOK
-    webhook:
-      url: https://your-domain.com/webhook
+easygram:
+  token: ${BOT_TOKEN}
+  transport: WEBHOOK
+  webhook:
+    url: https://your-domain.com/webhook
 ```
 
 ## Testing Webhook Locally

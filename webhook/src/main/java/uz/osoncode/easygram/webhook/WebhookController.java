@@ -19,10 +19,10 @@ import java.util.Objects;
  *
  * <p>Telegram delivers updates as HTTP POST requests to the URL registered via
  * {@link org.telegram.telegrambots.meta.api.methods.updates.SetWebhook}. This controller
- * listens on the path configured by the {@code telegram.bot.webhook.path} property
+ * listens on the path configured by the {@code easygram.update.webhook.path} property
  * (defaults to {@code /webhook}).</p>
  *
- * <p>If {@link WebhookBotProperties#secretToken()} is set, every request is validated against
+ * <p>If {@link EasygramWebhookProperties#secretToken()} is set, every request is validated against
  * the {@code X-Telegram-Bot-Api-Secret-Token} header that Telegram attaches to each delivery.
  * Requests with a missing or mismatched token are rejected with {@code 401 Unauthorized}.</p>
  *
@@ -38,13 +38,13 @@ import java.util.Objects;
 public class WebhookController {
 
     private final WebhookBot webhookBot;
-    private final WebhookBotProperties webhookBotProperties;
+    private final EasygramWebhookProperties webhookBotProperties;
     private final BotObjectMapperProvider objectMapperProvider;
 
     /**
      * Handles an incoming Telegram update delivered via webhook.
      *
-     * <p>The path is resolved from the {@code telegram.bot.webhook.path} property at startup
+     * <p>The path is resolved from the {@code easygram.update.webhook.path} property at startup
      * (defaults to {@code /webhook}). The method:</p>
      * <ol>
      *   <li>Validates the {@code X-Telegram-Bot-Api-Secret-Token} header when a secret token
@@ -60,7 +60,7 @@ public class WebhookController {
      * @return {@code 200 OK} on success, {@code 401 Unauthorized} if secret token validation
      *         fails, or {@code 500 Internal Server Error} if deserialization fails
      */
-    @PostMapping("${telegram.bot.webhook.path:/webhook}")
+    @PostMapping("${easygram.update.webhook.path:/webhook}")
     public ResponseEntity<Void> receiveUpdate(
             @RequestBody String body,
             @RequestHeader(value = "X-Telegram-Bot-Api-Secret-Token", required = false) String secretToken) {

@@ -46,15 +46,14 @@ If you are NOT using `spring-boot-starter`, add `messaging-rabbit-consumer` dire
 
 **application.yml:**
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
-    transport: RABBIT_CONSUMER
-    rabbit-consumer:
-      queue: telegram-updates
-      exchange: telegram-exchange
-      routing-key: telegram.updates
-      create-if-absent: true
+easygram:
+  token: ${BOT_TOKEN}
+  transport: RABBIT_CONSUMER
+  rabbit-consumer:
+    queue: easygram-updates
+    exchange: easygram-exchange
+    routing-key: easygram.updates
+    create-if-absent: true
 
 spring:
   rabbitmq:
@@ -69,10 +68,10 @@ spring:
 
 | Property | Required | Default | Description |
 |---|---|---|---|
-| `telegram.bot.rabbit-consumer.queue` | Yes | — | RabbitMQ queue to consume from |
-| `telegram.bot.rabbit-consumer.exchange` | No | `telegram-exchange` | Exchange to bind queue to |
-| `telegram.bot.rabbit-consumer.routing-key` | No | `telegram.updates` | Routing key for the binding |
-| `telegram.bot.rabbit-consumer.create-if-absent` | No | `true` | Auto-create exchange, queue, and binding |
+| `easygram.rabbit-consumer.queue` | Yes | — | RabbitMQ queue to consume from |
+| `easygram.rabbit-consumer.exchange` | No | `easygram-exchange` | Exchange to bind queue to |
+| `easygram.rabbit-consumer.routing-key` | No | `easygram.updates` | Routing key for the binding |
+| `easygram.rabbit-consumer.create-if-absent` | No | `true` | Auto-create exchange, queue, and binding |
 
 ## Docker Deployment
 

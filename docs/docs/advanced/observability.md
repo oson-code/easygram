@@ -19,7 +19,7 @@ health at `/actuator/health`, and a **`BotInfoContributor`** that exposes bot me
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-observability</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.5</version>
 </dependency>
 
 <!-- Spring Boot Actuator — health, info, prometheus endpoints -->
@@ -46,7 +46,7 @@ management:
     distribution:
       # Enable histogram buckets so Grafana can compute histogram_quantile()
       percentiles-histogram:
-        telegram.bot.update: true
+        easygram.update: true
 ```
 
 ---
@@ -107,7 +107,7 @@ tracing bridge is on the classpath, traced.
 
 | Micrometer name | Prometheus series |
 |---|---|
-| `telegram.bot.update` | `telegram_bot_update_seconds_count` |
+| `easygram.update` | `telegram_bot_update_seconds_count` |
 | | `telegram_bot_update_seconds_sum` |
 | | `telegram_bot_update_seconds_max` |
 | | `telegram_bot_update_seconds_bucket` (when histogram enabled) |
@@ -119,7 +119,7 @@ tracing bridge is on the classpath, traced.
 | Tag | Values | Description |
 |---|---|---|
 | `update_type` | `message`, `callback_query`, `inline_query`, `edited_message`, `channel_post`, `poll`, `poll_answer`, `my_chat_member`, `chat_member`, `chat_join_request`, `business_connection`, `business_message`, `edited_business_message`, `deleted_business_message`, `paid_media_purchased`, … | Type of the incoming Telegram Update |
-| `transport_type` | `LONG_POLLING`, `WEBHOOK`, `KAFKA_CONSUMER`, `RABBIT_CONSUMER` | Active transport |
+| `transport_type` | `LONG_POLLING`, `WEBHOOK` | Active transport (broker consumer bots emit the broker type via MDC) |
 
 **High-cardinality** (present in spans/traces only — not in Prometheus labels):
 
@@ -238,7 +238,7 @@ management:
       endpoint: http://localhost:9411/api/v2/spans
 ```
 
-Every update processed through the filter chain gets a `telegram.bot.update` span automatically.
+Every update processed through the filter chain gets a `easygram.update` span automatically.
 
 ---
 
@@ -285,13 +285,13 @@ headers through the broker when a Micrometer Tracing bridge is configured.
 
 ```
 [producer service]
-  telegram.bot.update  (BotObservabilityFilter)
+  easygram.update  (BotObservabilityFilter)
     spring.kafka.producer  (KafkaTemplate — observationEnabled=true)
            ↓ W3C traceparent in Kafka record
 
 [consumer service]
   spring.kafka.consumer  (listener container — observationEnabled=true)
-    telegram.bot.update  (BotObservabilityFilter — child span)
+    easygram.update  (BotObservabilityFilter — child span)
 ```
 
 The same pattern applies for RabbitMQ (`spring.rabbit.producer` / `spring.rabbit.listener`).
@@ -316,6 +316,74 @@ public ConcurrentKafkaListenerContainerFactory<Object, Object> customKafkaFactor
 
 ---
 
+## MDC Correlation Context
+
+Since **0.0.5**, `BotMdcFilter` (order `Integer.MIN_VALUE`, first in the filter chain)
+automatically populates SLF4J MDC for every incoming `Update`. All subsequent log
+statements — including those in custom `BotFilter` beans, argument resolvers, and handler
+methods — carry these keys automatically.
+
+### MDC Keys
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `bot.update.id` | String (integer) | Telegram update ID |
+| `bot.transport` | String (enum name) | Active transport: `LONG_POLLING`, `WEBHOOK`, or broker type (`KAFKA`, `RABBIT`) for consumer bots |
+| `bot.user.id` | String (long) | Telegram user ID (set after `BotContextSetterFilter`) |
+| `bot.chat.id` | String (long) | Telegram chat ID (set after `BotContextSetterFilter`) |
+
+Keys are always cleared in `finally` at the end of filter chain execution.
+
+### Logback Pattern with MDC Keys
+
+```xml
+<!-- logback-spring.xml -->
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>
+        %d{HH:mm:ss.SSS} %highlight(%-5level) [upd:%X{bot.update.id}] [chat:%X{bot.chat.id}] [user:%X{bot.user.id}] %cyan(%logger{36}) - %msg%n
+      </pattern>
+    </encoder>
+  </appender>
+  <root level="INFO">
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>
+```
+
+### Log Level Guide
+
+| Level | What you see |
+|-------|-------------|
+| `ERROR` | Processing failures, unhandled exceptions |
+| `WARN` | No handler matched; no argument resolver found for a parameter |
+| `INFO` | Bot startup: handler count, markup count, transport type |
+| `DEBUG` | Handler matched per update; state transitions; markup applied |
+| `TRACE` | Per-parameter argument resolution; method invocation; return type dispatch |
+
+### Recommended Production Configuration
+
+```yaml
+logging:
+  level:
+    root: WARN
+    uz.osoncode.easygram: INFO   # startup events only, no per-request noise
+```
+
+### Accessing MDC Keys in Custom Code
+
+```java
+import uz.osoncode.easygram.core.filter.BotMdcFilter;
+
+String updateId  = MDC.get(BotMdcFilter.MDC_UPDATE_ID);
+String chatId    = MDC.get(BotMdcFilter.MDC_CHAT_ID);
+String userId    = MDC.get(BotMdcFilter.MDC_USER_ID);
+String transport = MDC.get(BotMdcFilter.MDC_TRANSPORT);
+```
+
+---
+
 ## Structured Log Correlation
 
 Enable trace/span IDs in log lines (requires Micrometer Tracing configured):
@@ -323,7 +391,7 @@ Enable trace/span IDs in log lines (requires Micrometer Tracing configured):
 ```yaml
 logging:
   pattern:
-    console: "%d{HH:mm:ss} %-5level [%X{traceId},%X{spanId}] %logger{36} - %msg%n"
+    console: "%d{HH:mm:ss} %-5level [%X{traceId},%X{spanId}] [upd:%X{bot.update.id}] %logger{36} - %msg%n"
 ```
 
 ---
@@ -336,12 +404,13 @@ logging:
 | Health endpoint | Automatic via `BotHealthIndicator` (UP/UNKNOWN) |
 | Info endpoint | Automatic via `BotInfoContributor` |
 | Prometheus metrics | Add `micrometer-registry-prometheus` |
-| P95/P99 latency | Add `percentiles-histogram.telegram.bot.update: true` |
+| P95/P99 latency | Add `percentiles-histogram.easygram.update: true` |
 | Grafana dashboard | Copy from `samples/i18n-registration-bot/grafana/` |
 | Distributed tracing | Add `micrometer-tracing-bridge-brave` + Zipkin |
 | Pub/sub trace propagation | Automatic when `ObservationRegistry` bean is present |
 | Custom counters/timers | Inject `MeterRegistry` |
-| Structured logging | Configure Logback with MDC trace pattern |
+| MDC correlation context | Automatic via `BotMdcFilter` (since 0.0.5) |
+| Structured log pattern | Configure Logback with MDC + optional traceId pattern |
 
 ---
 

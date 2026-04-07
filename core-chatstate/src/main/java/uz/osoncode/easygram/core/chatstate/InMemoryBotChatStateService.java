@@ -1,5 +1,7 @@
 package uz.osoncode.easygram.core.chatstate;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 public class InMemoryBotChatStateService implements BotChatStateService {
 
     /** Thread-safe map from chat ID to the current state string. */
@@ -33,7 +36,9 @@ public class InMemoryBotChatStateService implements BotChatStateService {
      */
     @Override
     public String getState(Long chatId) {
-        return stateMap.get(chatId);
+        String state = stateMap.get(chatId);
+        log.trace("Chat state get: chatId={} state={}", chatId, state);
+        return state;
     }
 
     /**
@@ -49,7 +54,8 @@ public class InMemoryBotChatStateService implements BotChatStateService {
         if (Objects.isNull(state)) {
             throw new IllegalArgumentException("state must not be null — use clearState(chatId) to remove the current state");
         }
-        stateMap.put(chatId, state);
+        String previous = stateMap.put(chatId, state);
+        log.debug("Chat state set: chatId={} previousState={} newState={}", chatId, previous, state);
     }
 
     /**
@@ -60,6 +66,7 @@ public class InMemoryBotChatStateService implements BotChatStateService {
      */
     @Override
     public void clearState(Long chatId) {
-        stateMap.remove(chatId);
+        String removed = stateMap.remove(chatId);
+        log.debug("Chat state cleared: chatId={} removedState={}", chatId, removed);
     }
 }

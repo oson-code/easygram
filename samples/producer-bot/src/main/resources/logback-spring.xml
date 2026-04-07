@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <!-- Inherit Spring Boot defaults (color support, system properties) -->
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <!--
+        MDC fields injected by Easygram's BotMdcFilter:
+          bot.transport  — active transport (LONG_POLLING, WEBHOOK, …)
+          bot.update.id  — Telegram update ID (set per incoming update)
+          bot.chat.id    — Telegram chat ID
+          bot.user.id    — Telegram user ID
+      -->
+      <pattern>%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%X{bot.transport:--} upd=%-8X{bot.update.id:--} chat=%X{bot.chat.id:--} user=%X{bot.user.id:--}]){cyan} %clr(%logger{36}){blue} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Framework internals at DEBUG to observe filter chain and dispatch -->
+  <logger name="uz.osoncode" level="DEBUG"/>
+
+  <!-- Suppress verbose broker client logs unless there is an actual problem -->
+  <logger name="org.springframework.kafka" level="WARN"/>
+  <logger name="org.springframework.amqp" level="WARN"/>
+  <logger name="org.apache.kafka" level="WARN"/>
+  <logger name="com.rabbitmq" level="WARN"/>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+
+</configuration>

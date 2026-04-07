@@ -26,27 +26,26 @@ Create a new Spring Boot project (using Spring Initializr or your IDE) with depe
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 
 **Gradle (build.gradle.kts):**
 ```kotlin
-implementation("uz.osoncode.easygram:spring-boot-starter:0.0.3")
+implementation("uz.osoncode.easygram:spring-boot-starter:0.0.5")
 ```
 
 ## 3. Configure Your Bot Token
 
 **application.yml:**
 ```yaml
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
+easygram:
+  token: ${BOT_TOKEN}
 ```
 
 Or **application.properties:**
 ```properties
-telegram.bot.token=${BOT_TOKEN}
+easygram.token=${BOT_TOKEN}
 ```
 
 Set the environment variable `BOT_TOKEN` to your Telegram bot token from [@BotFather](https://t.me/BotFather).
@@ -196,7 +195,7 @@ server:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-chatstate</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 (Already included in `spring-boot-starter`)

@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import uz.osoncode.easygram.core.bot.BotProperties;
+import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
@@ -38,11 +38,19 @@ import java.util.List;
  * <p>The {@link LongPollingBot} bean is guarded by {@link ConditionalOnMissingBean} so
  * applications can supply a customised subclass if needed.</p>
  *
+ * <p>This auto-configuration activates when:</p>
+ * <ul>
+ *   <li>{@code easygram.update.transport} is {@code LONG_POLLING} or absent (default), AND</li>
+ *   <li>{@code easygram.messaging.type} is NOT {@code CONSUMER} — the second condition prevents
+ *       long-polling from starting when the bot receives updates from a broker instead.</li>
+ * </ul>
+ *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "telegram.bot", name = "transport", havingValue = "LONG_POLLING", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "easygram.update", name = "transport", havingValue = "LONG_POLLING", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "PRODUCER", matchIfMissing = true)
 @Import(LongPollingBotConfig.class)
 public class LongPollingAutoConfiguration {
 
@@ -67,7 +75,7 @@ public class LongPollingAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public LongPollingBot longPollingBot(
-            BotProperties botProperties,
+            EasygramProperties botProperties,
             List<BotStartTrigger> triggers,
             List<BotFilter> filters,
             BotDispatcher botDispatcher,

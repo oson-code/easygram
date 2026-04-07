@@ -11,7 +11,7 @@ Already included transitively through the starter. To add it explicitly:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-i18n</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 
@@ -28,10 +28,9 @@ spring:
     encoding: UTF-8
     use-code-as-default-message: true   # returns key if translation missing
 
-telegram:
-  bot:
-    i18n:
-      default-locale: en          # fallback when user language is unknown
+easygram:
+  i18n:
+    default-locale: en          # fallback when user language is unknown
 ```
 
 ### 2. Create locale-specific property files
@@ -255,7 +254,7 @@ public BotLocaleResolver botLocaleResolver(UserRepository users) {
 }
 ```
 
-The default resolver reads `user.getLanguageCode()` from the Telegram `User` object and falls back to `telegram.bot.i18n.default-locale`.
+The default resolver reads `user.getLanguageCode()` from the Telegram `User` object and falls back to `easygram.i18n.default-locale`.
 
 ---
 

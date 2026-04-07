@@ -8,7 +8,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import uz.osoncode.easygram.core.handler.inlinequery.BotInlineQueryMatcher;
 import uz.osoncode.easygram.core.handler.message.replybutton.BotReplyButtonMatcher;
-import uz.osoncode.easygram.core.i18n.BotI18nProperties;
+import uz.osoncode.easygram.core.i18n.EasygramI18nProperties;
 import uz.osoncode.easygram.core.i18n.BotLocaleResolver;
 import uz.osoncode.easygram.core.i18n.BotMessageSource;
 import uz.osoncode.easygram.core.i18n.filter.BotLocaleSetterFilter;
@@ -50,12 +50,12 @@ import java.util.Optional;
  */
 @AutoConfiguration(after = MessageSourceAutoConfiguration.class,
         beforeName = "uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration")
-@EnableConfigurationProperties(BotI18nProperties.class)
+@EnableConfigurationProperties(EasygramI18nProperties.class)
 public class BotI18nAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(BotLocaleResolver.class)
-    public BotLocaleResolver botLocaleResolver(BotI18nProperties properties) {
+    public BotLocaleResolver botLocaleResolver(EasygramI18nProperties properties) {
         return new UserLanguageCodeLocaleResolver(properties.defaultLocale());
     }
 

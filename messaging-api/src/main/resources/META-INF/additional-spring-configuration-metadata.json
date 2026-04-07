@@ -1,0 +1,158 @@
+{
+  "groups": [
+    {
+      "name": "easygram.messaging",
+      "type": "uz.osoncode.easygram.messaging.EasygramMessagingProperties",
+      "sourceType": "uz.osoncode.easygram.messaging.EasygramMessagingProperties"
+    },
+    {
+      "name": "easygram.messaging.producer",
+      "type": "uz.osoncode.easygram.messaging.EasygramMessagingProperties$ProducerConfig",
+      "sourceType": "uz.osoncode.easygram.messaging.EasygramMessagingProperties"
+    },
+    {
+      "name": "easygram.messaging.consumer",
+      "type": "uz.osoncode.easygram.messaging.EasygramMessagingProperties$ConsumerConfig",
+      "sourceType": "uz.osoncode.easygram.messaging.EasygramMessagingProperties"
+    },
+    {
+      "name": "easygram.messaging.kafka",
+      "type": "uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties",
+      "sourceType": "uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties"
+    },
+    {
+      "name": "easygram.messaging.rabbit",
+      "type": "uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties",
+      "sourceType": "uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "easygram.messaging.type",
+      "type": "uz.osoncode.easygram.messaging.MessagingType",
+      "description": "Role of this application in broker integration. PRODUCER publishes Telegram updates to a broker; CONSUMER reads from a broker and dispatches to @BotController handlers. Omit for standalone bots.",
+      "sourceType": "uz.osoncode.easygram.messaging.EasygramMessagingProperties"
+    },
+    {
+      "name": "easygram.messaging.forward-only",
+      "type": "java.lang.Boolean",
+      "description": "When true, updates are published to the broker only — local @BotController handlers are skipped. Only meaningful when messaging.type=PRODUCER.",
+      "defaultValue": false,
+      "sourceType": "uz.osoncode.easygram.messaging.EasygramMessagingProperties"
+    },
+    {
+      "name": "easygram.messaging.producer.type",
+      "type": "uz.osoncode.easygram.messaging.producer.ProducerType",
+      "description": "Broker backend for publishing Telegram updates. Required when messaging.type=PRODUCER.",
+      "sourceType": "uz.osoncode.easygram.messaging.EasygramMessagingProperties"
+    },
+    {
+      "name": "easygram.messaging.consumer.type",
+      "type": "uz.osoncode.easygram.messaging.consumer.ConsumerType",
+      "description": "Broker backend for consuming Telegram updates. Required when messaging.type=CONSUMER.",
+      "sourceType": "uz.osoncode.easygram.messaging.EasygramMessagingProperties"
+    },
+    {
+      "name": "easygram.messaging.kafka.topic",
+      "type": "java.lang.String",
+      "description": "Kafka topic name for publishing or consuming Telegram updates. Required when using Kafka.",
+      "sourceType": "uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties"
+    },
+    {
+      "name": "easygram.messaging.kafka.group-id",
+      "type": "java.lang.String",
+      "description": "Kafka consumer group ID. Used by consumer bots to identify their consumer group.",
+      "defaultValue": "easygram-bot",
+      "sourceType": "uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties"
+    },
+    {
+      "name": "easygram.messaging.kafka.create-if-absent",
+      "type": "java.lang.Boolean",
+      "description": "Auto-create the Kafka topic on startup if it does not exist. Requires broker admin permissions.",
+      "defaultValue": true,
+      "sourceType": "uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties"
+    },
+    {
+      "name": "easygram.messaging.kafka.partitions",
+      "type": "java.lang.Integer",
+      "description": "Number of partitions for the auto-created Kafka topic. Only used when create-if-absent=true.",
+      "defaultValue": 1,
+      "sourceType": "uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties"
+    },
+    {
+      "name": "easygram.messaging.kafka.replication-factor",
+      "type": "java.lang.Integer",
+      "description": "Replication factor for the auto-created Kafka topic. Only used when create-if-absent=true.",
+      "defaultValue": 1,
+      "sourceType": "uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties"
+    },
+    {
+      "name": "easygram.messaging.rabbit.exchange",
+      "type": "java.lang.String",
+      "description": "RabbitMQ exchange name for publishing or binding the queue. Required when using RabbitMQ.",
+      "sourceType": "uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties"
+    },
+    {
+      "name": "easygram.messaging.rabbit.queue",
+      "type": "java.lang.String",
+      "description": "RabbitMQ queue name for consuming updates and auto-creation.",
+      "defaultValue": "easygram-updates",
+      "sourceType": "uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties"
+    },
+    {
+      "name": "easygram.messaging.rabbit.routing-key",
+      "type": "java.lang.String",
+      "description": "RabbitMQ routing key used when publishing messages to the exchange.",
+      "defaultValue": "easygram.updates",
+      "sourceType": "uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties"
+    },
+    {
+      "name": "easygram.messaging.rabbit.create-if-absent",
+      "type": "java.lang.Boolean",
+      "description": "Auto-declare the RabbitMQ exchange, queue, and binding on startup if they do not exist.",
+      "defaultValue": true,
+      "sourceType": "uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties"
+    }
+  ],
+  "hints": [
+    {
+      "name": "easygram.messaging.type",
+      "values": [
+        {
+          "value": "PRODUCER",
+          "description": "Receive updates from Telegram and publish to a message broker. Long-polling or webhook transport is started."
+        },
+        {
+          "value": "CONSUMER",
+          "description": "Consume updates from a message broker and dispatch to @BotController handlers. No Telegram transport is started."
+        }
+      ]
+    },
+    {
+      "name": "easygram.messaging.producer.type",
+      "values": [
+        {
+          "value": "KAFKA",
+          "description": "Publish Telegram updates to Apache Kafka."
+        },
+        {
+          "value": "RABBIT",
+          "description": "Publish Telegram updates to RabbitMQ."
+        }
+      ]
+    },
+    {
+      "name": "easygram.messaging.consumer.type",
+      "values": [
+        {
+          "value": "KAFKA",
+          "description": "Consume Telegram updates from Apache Kafka."
+        },
+        {
+          "value": "RABBIT",
+          "description": "Consume Telegram updates from RabbitMQ."
+        }
+      ]
+    }
+  ]
+}

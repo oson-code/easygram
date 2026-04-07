@@ -14,11 +14,12 @@ architectures where multiple downstream services consume the same Telegram updat
 ```
 Telegram
   ↓ transport (long-polling or webhook)
-BotContextSetterFilter
+BotMdcFilter           ← sets MDC: bot.update.id, bot.transport
+BotContextSetterFilter ← extracts Chat + User
   ↓
-BotUpdatePublishingFilter ← messaging-producer
-   KafkaBotUpdatePublisher (messaging-kafka)
-   RabbitBotUpdatePublisher (messaging-rabbit)
+BotUpdatePublishingFilter ← messaging-api (producer auto-config)
+   KafkaBotUpdatePublisher  (messaging-api, requires spring-kafka)
+   RabbitBotUpdatePublisher (messaging-api, requires spring-amqp)
   ↓
   forward-only: true → STOP (local handlers skipped)
   forward-only: false → continue to BotDispatcher
@@ -26,70 +27,65 @@ BotUpdatePublishingFilter ← messaging-producer
 
 ## Dependencies
 
-`spring-boot-starter` includes all messaging modules. For targeted setups:
+`spring-boot-starter` includes `messaging-api` automatically. For targeted setups:
 
 ```xml
-<!-- Kafka publishing -->
+<!-- All broker functionality: Kafka + RabbitMQ publishing and consuming -->
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
-    <artifactId>messaging-kafka</artifactId>
-    <version>0.0.3</version>
+    <artifactId>messaging-api</artifactId>
+    <version>0.0.5</version>
 </dependency>
 
-<!-- RabbitMQ publishing -->
+<!-- Required for Kafka: spring-kafka is optional in messaging-api -->
 <dependency>
-    <groupId>uz.osoncode.easygram</groupId>
-    <artifactId>messaging-rabbit</artifactId>
-    <version>0.0.3</version>
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
 </dependency>
 
-<!-- Smart routing: Kafka OR RabbitMQ based on a single property -->
+<!-- Required for RabbitMQ: spring-amqp is optional in messaging-api -->
 <dependency>
-    <groupId>uz.osoncode.easygram</groupId>
-    <artifactId>messaging-producer</artifactId>
-    <version>0.0.3</version>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
 </dependency>
 ```
 
 ## Kafka Producer Configuration
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      forward-only: true # Skip local handlers; updates go to Kafka only
-      producer:
-        producer-type: kafka
-      kafka:
-        topic: telegram-updates
-        create-if-absent: true # Auto-create topic on startup
-        partitions: 1
-        replication-factor: 1
+easygram:
+  token: ${BOT_TOKEN}
+  messaging:
+    type: PRODUCER
+    forward-only: true    # Skip local handlers; updates go to Kafka only
+    producer:
+      type: KAFKA
+    kafka:
+      topic: easygram-updates
+      create-if-absent: true
+      partitions: 1
+      replication-factor: 1
 
 spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-      acks: all
-      retries: 3
 ```
 
 ## RabbitMQ Producer Configuration
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      forward-only: true
-      producer:
-        producer-type: rabbit
-      rabbit:
-        exchange: telegram-exchange
-        routing-key: telegram.updates
-        queue: telegram-updates
-        create-if-absent: true # Auto-create exchange, queue, and binding
+easygram:
+  token: ${BOT_TOKEN}
+  messaging:
+    type: PRODUCER
+    forward-only: true
+    producer:
+      type: RABBIT
+    rabbit:
+      exchange: easygram-exchange
+      routing-key: easygram.updates
+      queue: easygram-updates
+      create-if-absent: true
 
 spring:
   rabbitmq:
@@ -108,18 +104,16 @@ spring:
 
 **Pure ingest gateway** — all processing in downstream services:
 ```yaml
-telegram:
-  bot:
-    messaging:
-      forward-only: true
+easygram:
+  messaging:
+    forward-only: true
 ```
 
 **Hybrid** — local quick-reply + broker for analytics / audit:
 ```yaml
-telegram:
-  bot:
-    messaging:
-      forward-only: false
+easygram:
+  messaging:
+    forward-only: false
 ```
 
 ## Message Format
@@ -162,32 +156,48 @@ public BotUpdatePublisher pubSubPublisher(PubSubTemplate pubSub,
                                           ObjectMapper objectMapper) {
     return request -> {
         String json = objectMapper.writeValueAsString(request.getUpdate());
-        pubSub.publish("telegram-updates", json).get();
+        pubSub.publish("easygram-updates", json).get();
     };
 }
 ```
 
 ## Consuming Updates from the Broker
 
-Use the consumer transport modules to process updates through the full bot pipeline:
+Use the consumer transport to process updates through the full bot pipeline. A consumer bot
+does **not** poll Telegram directly — it reads from the broker topic/queue:
 
 ```yaml
-# Consumer application.yml
-telegram:
-  bot:
-    transport: KAFKA_CONSUMER # or RABBIT_CONSUMER
-    messaging:
-      kafka:
-        topic: telegram-updates
-        group-id: my-bot-consumer-group
+# Consumer application.yml (Kafka)
+easygram:
+  token: ${BOT_TOKEN}
+  messaging:
+    type: CONSUMER
+    consumer:
+      type: KAFKA
+    kafka:
+      topic: easygram-updates
+      group-id: my-bot-consumer-group
 
 spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+```
+
+```yaml
+# Consumer application.yml (RabbitMQ)
+easygram:
+  token: ${BOT_TOKEN}
+  messaging:
+    type: CONSUMER
     consumer:
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      auto-offset-reset: earliest
+      type: RABBIT
+    rabbit:
+      exchange: easygram-exchange
+      queue: easygram-updates
+
+spring:
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
 ```
 
 See the [Kafka Consumer Guide](../transports/kafka-consumer-guide) and

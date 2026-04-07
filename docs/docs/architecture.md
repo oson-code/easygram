@@ -94,22 +94,19 @@ Depends on: `core-api`
 ### Transports
 - **longpolling** — Polling updates from Telegram API (default)
 - **webhook** — Receiving updates via HTTPS webhooks (Spring MVC)
-- **messaging-kafka-consumer** — Consuming updates from Kafka
-- **messaging-rabbit-consumer** — Consuming updates from RabbitMQ
+- Kafka consumer transport — included in `messaging-api`
+- RabbitMQ consumer transport — included in `messaging-api`
 
-### Brokers
-- **messaging-api** — `BotUpdatePublisher` SPI
-- **messaging-kafka** — Kafka publisher using `KafkaTemplate`
-- **messaging-rabbit** — RabbitMQ publisher using `RabbitTemplate`
-- **messaging-producer** — Smart routing (publish to Kafka OR RabbitMQ based on property)
+### Brokers / Messaging
+- **messaging-api** — Unified broker module: `BotUpdatePublisher` SPI, Kafka publisher (`KafkaTemplate`), RabbitMQ publisher (`RabbitTemplate`), smart routing, and both consumer transports. All broker functionality consolidated since 0.0.5.
 
 ### spring-boot-starter
 **One-stop dependency.**
 
 Pulls in:
 - `core`, `core-chatstate`, `core-i18n`, `core-observability`
-- All transports (`longpolling`, `webhook`, `messaging-kafka-consumer`, `messaging-rabbit-consumer`)
-- All brokers
+- All transports (`longpolling`, `webhook`)
+- `messaging-api` (Kafka + RabbitMQ publishing and consuming)
 
 ### samples
 **Runnable Spring Boot applications** demonstrating each transport and pattern.
@@ -130,10 +127,11 @@ public interface BotFilter {
 ```
 
 Built-in filters (in order):
-1. **BotContextSetterFilter** — Resolve `User` and `Chat` from update
-2. **BotUpdatePublishingFilter** — Publish update to broker (if enabled)
-3. **BotDispatcher** — Route to handler
-4. **BotApiMethodsSenderFilter** — Execute queued API calls
+1. **BotMdcFilter** *(order `Integer.MIN_VALUE`)* — Set MDC keys: `bot.update.id`, `bot.transport`, `bot.user.id`, `bot.chat.id`
+2. **BotContextSetterFilter** *(order `MIN_VALUE+1`)* — Resolve `User` and `Chat` from update
+3. **BotObservabilityFilter** *(order `MIN_VALUE+2`)* — Wrap update in Micrometer `Observation`
+4. **BotApiMethodsSenderFilter** *(order `MIN_VALUE+3`)* — Execute queued API calls
+5. **BotUpdatePublishingFilter** — Publish update to broker (if enabled)
 
 Custom filters can be inserted at any priority level.
 
@@ -298,22 +296,42 @@ Replace in-memory implementation with Redis, JDBC, etc.
 
 ### Required Property
 ```yaml
-telegram:
-  bot:
-    token: YOUR_BOT_TOKEN
+easygram:
+  token: YOUR_BOT_TOKEN
 ```
 
 ### Optional Properties
 ```yaml
-telegram:
-  bot:
-    transport: LONG_POLLING # LONG_POLLING, WEBHOOK, KAFKA_CONSUMER, RABBIT_CONSUMER
-    i18n:
-      default-locale: en
+# Update delivery transport (defaults to LONG_POLLING — omit block entirely for long-polling bots)
+easygram:
+  update:
+    transport: LONG_POLLING   # LONG_POLLING | WEBHOOK
+    webhook:                  # only needed when transport: WEBHOOK
+      url: https://example.com/webhook
+      path: /webhook
+      secret-token: ${WEBHOOK_SECRET}
 
-# Transport-specific (see module READMEs)
-# Long-polling has no additional configurable properties — it uses the defaults from
-# the underlying telegrambots library. Use spring.kafka.* / spring.rabbitmq.* for broker transports.
+# Internationalisation (core-i18n module)
+easygram:
+  i18n:
+    default-locale: en
+
+# Broker integration (messaging-api module — omit block for standalone bots)
+easygram:
+  messaging:
+    type: PRODUCER   # PRODUCER | CONSUMER
+    forward-only: false
+    producer:
+      type: KAFKA    # KAFKA | RABBIT
+    consumer:
+      type: KAFKA    # KAFKA | RABBIT
+    kafka:
+      topic: easygram-updates
+      group-id: easygram-bot   # consumer group ID (consumer mode)
+    rabbit:
+      exchange: easygram-exchange
+      queue: easygram-updates
+      routing-key: easygram.updates
 ```
 
 ## Request/Response Model

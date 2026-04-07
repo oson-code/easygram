@@ -17,7 +17,7 @@ import uz.osoncode.easygram.core.model.BotResponse;
  * {@code Integer.MIN_VALUE + 1000}) so that every update — regardless of which transport
  * delivered it (long-polling or webhook) — is forwarded to the broker.</p>
  *
- * <p>Behaviour is governed by {@link BotPublishingProperties#forwardOnly()}:</p>
+ * <p>Behaviour is governed by {@link EasygramMessagingProperties#forwardOnly()}:</p>
  * <ul>
  *   <li>{@code false} (default): the update is published <em>and</em> the filter chain
  *       continues normally so bot handler methods still receive the update.</li>
@@ -35,7 +35,7 @@ public class BotUpdatePublishingFilter implements BotFilter {
     private static final int ORDER = BotFilterOrder.PUBLISHING;
 
     private final BotUpdatePublisher botUpdatePublisher;
-    private final BotPublishingProperties botPublishingProperties;
+    private final EasygramMessagingProperties botPublishingProperties;
 
     /**
      * Publishes the incoming update and optionally stops the filter chain.

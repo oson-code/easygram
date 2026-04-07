@@ -1,14 +1,19 @@
-telegram:
-  bot:
-    # Required: your Telegram Bot API token from @BotFather
-    token: "BOT_TOKEN"
+easygram:
+  # Required: your Telegram Bot API token from @BotFather.
+  # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
+  token: "${BOT_TOKEN}"
 
-    transport: KAFKA_CONSUMER
-
-    kafka-consumer:
+  messaging:
+    # Declare this bot as a CONSUMER: it receives updates from Kafka, not from Telegram directly.
+    type: CONSUMER
+    consumer:
+      # Broker type to consume from: KAFKA | RABBIT
+      type: KAFKA
+    kafka:
       # Kafka topic to consume Telegram updates from
-      topic: telegram-updates
-
+      topic: easygram-updates
+      # Kafka consumer group ID (default: easygram-bot)
+      group-id: my-telegram-bot
       # Auto-create the topic on startup if it does not exist (default: true)
       create-if-absent: true
       partitions: 1
@@ -19,17 +24,10 @@ spring:
     name: kafka-consumer-bot
 
   kafka:
-    bootstrap-servers: 10.0.0.2:9092
+    # Run: docker compose up -d  (see docker-compose.yml)
+    bootstrap-servers: localhost:9092
     consumer:
-      group-id: my-telegram-bot
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    producer:
-      acks: all
 
-
-logging:
-  level:
-    uz.osoncode: DEBUG
-    org.springframework.kafka: WARN

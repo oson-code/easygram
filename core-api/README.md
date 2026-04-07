@@ -28,7 +28,7 @@
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-api</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 
@@ -243,7 +243,8 @@ public interface BotFilterChain {
 
 | Filter | Order | Purpose |
 |---|---|---|
-| `BotContextSetterFilter` | `Integer.MIN_VALUE` | Resolves `User` and `Chat` from the update and stores them on `BotRequest` |
+| `BotMdcFilter` | `Integer.MIN_VALUE` | Sets MDC keys (`bot.update.id`, `bot.transport`, `bot.user.id`, `bot.chat.id`) for log correlation |
+| `BotContextSetterFilter` | `MIN_VALUE + 1` | Resolves `User` and `Chat` from the update and stores them on `BotRequest` |
 | `BotUpdatePublishingFilter` | `MIN_VALUE + 1000` | Forwards the update to the configured `BotUpdatePublisher` (broker) |
 | `BotApiMethodsSenderFilter` | `Integer.MAX_VALUE` | Sends all queued `BotApiMethod` instances at the end of the chain |
 

@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.handler;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -67,6 +68,7 @@ import java.util.function.Consumer;
  * @see BotMethodHandlerFactory
  * @see DefaultBotMethodHandlerFactory
  */
+@Slf4j
 @RequiredArgsConstructor
 public class BotHandlerLoader implements ApplicationRunner {
 
@@ -98,15 +100,24 @@ public class BotHandlerLoader implements ApplicationRunner {
      */
     @Override
     public void run(ApplicationArguments args) {
-        applicationContext.getBeansWithAnnotation(BotController.class).forEach((beanName, bean) -> {
+        var controllers = applicationContext.getBeansWithAnnotation(BotController.class);
+        log.info("Scanning {} @BotController bean(s) for handler methods", controllers.size());
+
+        controllers.forEach((beanName, bean) -> {
             Class<?> targetClass = AopUtils.getTargetClass(bean);
             BotChatState classChatState = AnnotationUtils.findAnnotation(targetClass, BotChatState.class);
+            log.debug("Processing controller: {} (class={})", beanName, targetClass.getSimpleName());
 
             processResolvers(botMetaDataResolverFactory.getSpecResolvers(), targetClass, bean, classChatState,
                     false);
             processResolvers(botMetaDataResolverFactory.getDefaultResolvers(), targetClass, bean, classChatState,
                     true);
         });
+
+        log.info("Handler registration complete: stateHandlers={}, specificHandlers={}, defaultHandlers={}",
+                botHandlerRegistry.getStateHandlers().size(),
+                botHandlerRegistry.getBotHandlers().size(),
+                botHandlerRegistry.getDefaultHandlers().size());
     }
 
     /**

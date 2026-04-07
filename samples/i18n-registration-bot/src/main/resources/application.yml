@@ -1,10 +1,9 @@
-telegram:
-  bot:
-    # Required: paste your Telegram Bot API token from @BotFather here.
-    token: "BOT_TOKEN"
+easygram:
+  # Required: paste your Telegram Bot API token from @BotFather here.
+  # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
+  token: "${BOT_TOKEN}"
 
-    # Transport defaults to LONG_POLLING — no need to set it explicitly.
-    # transport: LONG_POLLING
+  # update.transport defaults to LONG_POLLING — no need to set it explicitly.
 
 spring:
   application:
@@ -33,11 +32,8 @@ management:
       show-details: always
   metrics:
     distribution:
-      # Enable full histogram buckets for telegram.bot.update so that Grafana can
+      # Enable full histogram buckets for easygram.update so that Grafana can
       # compute accurate quantiles (e.g. P95 latency) with histogram_quantile().
       percentiles-histogram:
-        telegram.bot.update: true
+        easygram.update: true
 
-logging:
-  level:
-    uz.osoncode: DEBUG

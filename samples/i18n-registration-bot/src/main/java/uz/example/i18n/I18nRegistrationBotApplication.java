@@ -2,9 +2,6 @@ package uz.example.i18n;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-import org.telegram.telegrambots.meta.TelegramUrl;
-import uz.osoncode.easygram.core.provider.BotTelegramUrlProvider;
 
 /**
  * Entry point for the i18n Registration Bot sample.
@@ -15,12 +12,12 @@ import uz.osoncode.easygram.core.provider.BotTelegramUrlProvider;
  *   <li>Fully localised responses using {@code LocalizedReply} and {@code LocalizedTemplate}</li>
  *   <li>Locale-aware keyboards built with {@code BotKeyboardFactory}</li>
  *   <li>Direct message resolution via {@code BotMessageSource}</li>
- *   <li>Phone-number routing with the new {@code @BotTextPattern} annotation</li>
- *   <li>Three supported languages: English, Uzbek and Russian</li>
+ *   <li>Phone-number routing with {@code @BotTextPattern}</li>
+ *   <li>Three supported languages: English, Uzbek, and Russian</li>
  * </ul>
  *
- * <p>The user's locale is resolved automatically from their Telegram
- * {@code languageCode} field (e.g. {@code en}, {@code uz}, {@code ru}) by the built-in
+ * <p>The user's locale is resolved automatically from their Telegram {@code languageCode}
+ * field (e.g. {@code en}, {@code uz}, {@code ru}) by the built-in
  * {@code UserLanguageCodeLocaleResolver}. No extra configuration is required.</p>
  *
  * @author Islom Mirsaburov
@@ -31,14 +28,5 @@ public class I18nRegistrationBotApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(I18nRegistrationBotApplication.class, args);
-    }
-
-    @Bean
-    public BotTelegramUrlProvider botTelegramUrlProvider() {
-        return () -> TelegramUrl.builder()
-                .schema("https")
-                .host("api.telegram.org")
-                .port(443)
-                .build();
     }
 }

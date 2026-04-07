@@ -7,7 +7,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.telegram.telegrambots.meta.api.methods.updates.DeleteWebhook;
 import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
 import uz.osoncode.easygram.core.bot.Bot;
-import uz.osoncode.easygram.core.bot.BotProperties;
+import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  *       first (which authenticates with Telegram and runs {@link BotStartTrigger}s), then a
  *       {@link SetWebhook} request is executed to register the configured public URL with Telegram.</li>
  *   <li>On {@link #destroy()}: the executor service is shut down, and if
- *       {@link WebhookBotProperties#unregisterOnShutdown()} is {@code true}, a
+ *       {@link EasygramWebhookProperties#unregisterOnShutdown()} is {@code true}, a
  *       {@link DeleteWebhook} request is sent to Telegram.</li>
  * </ul>
  *
@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class WebhookBot extends Bot implements InitializingBean, DisposableBean {
 
-    private final WebhookBotProperties webhookBotProperties;
+    private final EasygramWebhookProperties webhookBotProperties;
 
     /**
      * Constructs a new {@code WebhookBot} wired from fine-grained provider beans.
@@ -62,8 +62,8 @@ public class WebhookBot extends Bot implements InitializingBean, DisposableBean 
      * @param executorServiceProvider     provider for the update-processing thread pool
      */
     public WebhookBot(
-            BotProperties botProperties,
-            WebhookBotProperties webhookBotProperties,
+            EasygramProperties botProperties,
+            EasygramWebhookProperties webhookBotProperties,
             List<BotStartTrigger> triggers,
             List<BotFilter> filters,
             BotDispatcher botDispatcher,
@@ -113,7 +113,7 @@ public class WebhookBot extends Bot implements InitializingBean, DisposableBean 
      * Shuts down the bot and releases all associated resources.
      *
      * <p>Shuts down the executor service, and, if
-     * {@link WebhookBotProperties#unregisterOnShutdown()} is {@code true},
+     * {@link EasygramWebhookProperties#unregisterOnShutdown()} is {@code true},
      * deletes the webhook from Telegram.</p>
      */
     @Override

@@ -1,0 +1,80 @@
+easygram:
+  # ── Bot token ─────────────────────────────────────────────────────────────
+  # Required. Set via: easygram.token=<token>  (in .env or container environment)
+  token: "${easygram.token:}"
+
+  # ── Update transport ───────────────────────────────────────────────────────
+  # LONG_POLLING (default) or WEBHOOK
+  # Override: easygram.update.transport=WEBHOOK
+  update:
+    transport: LONG_POLLING
+
+    webhook:
+      # Required when transport=WEBHOOK. Public HTTPS URL Telegram will POST to.
+      # Override: easygram.update.webhook.url=https://example.com/webhook
+      url: "${easygram.update.webhook.url:https://example.com/webhook}"
+
+      # Local path receiving webhook requests. Default: /webhook
+      path: "${easygram.update.webhook.path:/webhook}"
+
+      # Optional HMAC secret validated in X-Telegram-Bot-Api-Secret-Token header.
+      # Override: easygram.update.webhook.secret-token=<secret>
+      secret-token: "${easygram.update.webhook.secret-token:}"
+
+      drop-pending-updates: false
+      unregister-on-shutdown: false
+
+  # ── Messaging ──────────────────────────────────────────────────────────────
+  messaging:
+    # Always PRODUCER for this image.
+    type: PRODUCER
+
+    # true  → publish to broker only; local @BotController handlers are skipped (default)
+    # false → publish to broker AND run local handlers
+    forward-only: true
+
+    producer:
+      # KAFKA (default) or RABBIT
+      # Override: easygram.messaging.producer.type=RABBIT
+      type: KAFKA
+
+    # ── Kafka settings (active when producer.type=KAFKA) ──────────────────
+    kafka:
+      topic: easygram-updates
+      create-if-absent: true
+      partitions: 1
+      replication-factor: 1
+
+    # ── RabbitMQ settings (active when producer.type=RABBIT) ──────────────
+    rabbit:
+      exchange: easygram-exchange
+      queue: easygram-updates
+      routing-key: easygram.updates
+      create-if-absent: true
+
+# ── Spring Kafka ────────────────────────────────────────────────────────────
+# Service name 'kafka' matches the docker-compose service.
+# Override: spring.kafka.bootstrap-servers=<host>:<port>
+spring:
+  application:
+    name: producer-bot
+
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+
+  # ── Spring RabbitMQ ────────────────────────────────────────────────────────
+  # Service name 'rabbitmq' matches the docker-compose service.
+  # Override: spring.rabbitmq.host=<host>
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: rabbit
+    password: rabbit
+
+server:
+  port: 8080

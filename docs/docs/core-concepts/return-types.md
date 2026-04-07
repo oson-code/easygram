@@ -168,6 +168,42 @@ is out of bounds the token is left unchanged.
 `PlainTextTemplate` also supports the `editMessage` flag — see [Edit-Message](#edit-message)
 above for details (the behaviour is identical to `PlainReply`).
 
+### Answering Callback Queries from a Template
+
+`PlainTextTemplate` supports the same callback-answer API as `PlainReply`. The **resolved
+template text** (after all `#{index}` substitutions) is used as the popup notification text:
+
+```java
+// Toast popup — resolved text shown in the notification
+@BotCallbackQuery("next")
+public PlainTextTemplate nextStep(User user) {
+    return PlainTextTemplate.of("Step #{0} complete, #{1}!", step, user.getFirstName())
+            .asAnswerCallbackQuery();
+}
+
+// Alert dialog
+@BotCallbackQuery("reset")
+public PlainTextTemplate resetDone() {
+    return PlainTextTemplate.of("Reset complete. Starting over.")
+            .asAnswerCallbackQuery()
+            .withCallbackAlert();
+}
+
+// Builder
+@BotCallbackQuery("confirm")
+public PlainTextTemplate confirmOrder(User user) {
+    return PlainTextTemplate.builder()
+            .template("Order #{0} confirmed for #{1}!")
+            .args(orderId, user.getFirstName())
+            .answerCallbackQuery(true)
+            .callbackAlert(true)
+            .build();
+}
+```
+
+See [Answering Callback Queries](#callback-answer) in the MarkupAware section for the full
+method reference.
+
 ---
 
 ## `BotApiMethod<?>`
@@ -423,6 +459,43 @@ not `{0}`. The `${key}` tokens are message bundle lookups, not Spring EL.
 `LocalizedTemplate` also supports the `editMessage` flag — see [Edit-Message](#edit-message)
 for details. Use `withEditMessage()` or `Builder.editMessage(true)`.
 
+### Answering Callback Queries from a Template
+
+`LocalizedTemplate` supports the same callback-answer API as `LocalizedReply`. The **fully
+resolved template string** (after all `${key}` lookups and `#{index}` substitutions) is used
+as the popup notification text:
+
+```java
+// Toast popup — resolved template text shown in the notification
+@BotCallbackQuery("next")
+public LocalizedTemplate nextStep() {
+    return LocalizedTemplate.of("${step.complete} #{0}!", stepNumber)
+            .asAnswerCallbackQuery();
+}
+
+// Alert dialog
+@BotCallbackQuery("confirm")
+public LocalizedTemplate confirmAction() {
+    return LocalizedTemplate.of("${action.confirmed}")
+            .asAnswerCallbackQuery()
+            .withCallbackAlert();
+}
+
+// Builder
+@BotCallbackQuery("approve")
+public LocalizedTemplate approve(User user) {
+    return LocalizedTemplate.builder()
+            .template("${approved.message} #{0}")
+            .args(user.getFirstName())
+            .answerCallbackQuery(true)
+            .callbackAlert(true)
+            .build();
+}
+```
+
+See [Answering Callback Queries](#callback-answer) in the MarkupAware section for the full
+method reference.
+
 ---
 
 ## MarkupAware
@@ -486,6 +559,93 @@ framework edits the original message instead of sending a new one:
 ```java
 return PlainReply.of("Updated!").withEditMessage();
 ```
+
+### Answering Callback Queries {#callback-answer}
+
+Every Telegram callback query (inline keyboard button press) must be acknowledged, otherwise
+the user sees a loading spinner indefinitely. Call `.asAnswerCallbackQuery()` to send an
+`AnswerCallbackQuery` alongside your reply. The reply's own text is used as the popup
+notification text. If the update is **not** a callback query, the call is silently ignored.
+
+```java
+// Toast popup using the reply text
+@BotCallbackQuery("confirm")
+public PlainReply onConfirm() {
+    return PlainReply.of("Confirmed! ✅").asAnswerCallbackQuery();
+}
+
+// Alert dialog (showAlert = true)
+@BotCallbackQuery("delete")
+public PlainReply onDelete() {
+    return PlainReply.of("Item deleted.").asAnswerCallbackQuery().withCallbackAlert();
+}
+
+// Full control: alert + URL + cache time
+@BotCallbackQuery("premium")
+public PlainReply onPremium() {
+    return PlainReply.of("Opening premium page…")
+            .asAnswerCallbackQuery()
+            .withCallbackAlert()
+            .withCallbackUrl("https://example.com/premium")
+            .withCallbackCacheTime(10);
+}
+
+// Combine with edit-message: edit the original message AND answer the callback
+@BotCallbackQuery("approve")
+public PlainReply onApprove() {
+    return PlainReply.of("✅ Approved").withEditMessage().asAnswerCallbackQuery();
+}
+```
+
+Builder equivalent:
+
+```java
+PlainReply.builder()
+        .text("Saved!")
+        .answerCallbackQuery(true)
+        .callbackAlert(true)
+        .callbackCacheTime(5)
+        .build();
+```
+
+`LocalizedReply` has identical methods — the resolved i18n message is used as the popup text:
+
+```java
+@BotCallbackQuery("confirm")
+public LocalizedReply onConfirm() {
+    return LocalizedReply.of("action.confirmed").asAnswerCallbackQuery();
+}
+
+@BotCallbackQuery("delete")
+public LocalizedReply onDelete() {
+    return LocalizedReply.of("item.deleted").asAnswerCallbackQuery().withCallbackAlert();
+}
+```
+
+`PlainTextTemplate` and `LocalizedTemplate` work identically — the **resolved template
+string** (after token substitution and bundle lookups) is used as the popup text:
+
+```java
+@BotCallbackQuery("next")
+public PlainTextTemplate nextStep(User user) {
+    return PlainTextTemplate.of("Step #{0} done, #{1}!", step, user.getFirstName())
+            .asAnswerCallbackQuery();
+}
+
+@BotCallbackQuery("confirm")
+public LocalizedTemplate confirmLocalized() {
+    return LocalizedTemplate.of("${action.confirmed}")
+            .asAnswerCallbackQuery()
+            .withCallbackAlert();
+}
+```
+
+| Method | Effect |
+|---|---|
+| `.asAnswerCallbackQuery()` | Activates `AnswerCallbackQuery` — toast popup with reply text |
+| `.withCallbackAlert()` | Sets `showAlert=true` — alert dialog instead of toast |
+| `.withCallbackUrl(String)` | Sets the URL to open (deep link or game URL) |
+| `.withCallbackCacheTime(int)` | Sets the client-side cache duration in seconds |
 
 ---
 

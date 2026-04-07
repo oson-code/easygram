@@ -1,5 +1,6 @@
 package uz.osoncode.easygram.core.handler;
 
+import lombok.extern.slf4j.Slf4j;
 import uz.osoncode.easygram.core.chatstate.BotChatState;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 import uz.osoncode.easygram.core.model.BotRequest;
@@ -28,6 +29,7 @@ import java.util.Set;
  * @see BotHandlerCondition
  * @see BotChatState
  */
+@Slf4j
 public class BotChatStateCondition implements BotHandlerCondition {
 
     private final BotChatStateService botChatStateService;
@@ -61,12 +63,19 @@ public class BotChatStateCondition implements BotHandlerCondition {
             return true;
         }
         if (Objects.isNull(botRequest.getChat())) {
+            log.trace("State check skipped: no chat in request");
             return false;
         }
         String currentState = botChatStateService.getState(botRequest.getChat().getId());
         if (Objects.isNull(currentState)) {
+            log.trace("State check failed: no current state for chatId={}", botRequest.getChat().getId());
             return false;
         }
-        return states.contains(currentState);
+        boolean matches = states.contains(currentState);
+        if (!matches) {
+            log.trace("State check failed: chatId={} currentState={} requiredStates={}",
+                    botRequest.getChat().getId(), currentState, states);
+        }
+        return matches;
     }
 }

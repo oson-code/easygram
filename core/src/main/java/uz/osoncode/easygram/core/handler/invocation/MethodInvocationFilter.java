@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import jakarta.validation.executable.ExecutableValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import uz.osoncode.easygram.core.argumentresolver.BotArgumentResolverFactory;
 import uz.osoncode.easygram.core.exception.BotHandlerException;
 
@@ -63,6 +64,7 @@ import java.util.Set;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 @RequiredArgsConstructor
 public class MethodInvocationFilter implements BotHandlerInvocationFilter {
 
@@ -102,6 +104,8 @@ public class MethodInvocationFilter implements BotHandlerInvocationFilter {
     public void invoke(BotHandlerInvocationContext context, BotHandlerInvocationChain chain) throws InvocationTargetException, IllegalAccessException {
         Object[] args;
         try {
+            log.trace("Resolving arguments for method '{}.{}'",
+                    context.getBean().getClass().getSimpleName(), context.getMethod().getName());
             args = botArgumentResolverFactory.resolveArguments(
                     context.getMethod().getParameters(),
                     context.getRequest(),
@@ -123,7 +127,10 @@ public class MethodInvocationFilter implements BotHandlerInvocationFilter {
 
         Object returnValue = null;
         try {
+            log.trace("Invoking handler method '{}.{}'",
+                    context.getBean().getClass().getSimpleName(), context.getMethod().getName());
             returnValue = context.getMethod().invoke(context.getBean(), args);
+            log.trace("Handler method '{}' returned: {}", context.getMethod().getName(), returnValue);
             context.setReturnValue(returnValue);
             chain.proceed(context);
         } catch (IllegalAccessException | InvocationTargetException e) {

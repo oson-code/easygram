@@ -89,14 +89,14 @@ The sample uses **`longpolling`** (which pulls in `core`, `core-api`, and `core-
     <dependency>
         <groupId>uz.osoncode.easygram</groupId>
         <artifactId>longpolling</artifactId>
-        <version>0.0.3</version>
+        <version>0.0.5</version>
     </dependency>
 
     <!-- i18n: BotMessageSource, BotKeyboardFactory, LocalizedReply, LocalizedTemplate -->
     <dependency>
         <groupId>uz.osoncode.easygram</groupId>
         <artifactId>core-i18n</artifactId>
-        <version>0.0.3</version>
+        <version>0.0.5</version>
     </dependency>
 </dependencies>
 ```
@@ -108,7 +108,7 @@ Alternatively, use the `spring-boot-starter` artifact to pull in all transports 
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 :::
@@ -118,11 +118,10 @@ Alternatively, use the `spring-boot-starter` artifact to pull in all transports 
 ## Step 2 — Configuration (`application.yml`)
 
 ```yaml
-telegram:
-  bot:
-    # Required: your Bot API token from @BotFather
-    token: ${TELEGRAM_BOT_TOKEN}
-    # Transport defaults to LONG_POLLING — no need to set it explicitly
+easygram:
+  # Required: your Bot API token from @BotFather
+  token: ${TELEGRAM_BOT_TOKEN}
+  # Transport defaults to LONG_POLLING — no need to set it explicitly
 
 spring:
   application:

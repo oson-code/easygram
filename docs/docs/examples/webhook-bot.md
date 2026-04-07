@@ -38,18 +38,17 @@ Webhook requires a **publicly accessible HTTPS URL**:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 
 ### application.yml
 
 ```yaml
-telegram:
-  bot:
-    token: "${BOT_TOKEN}"
+easygram:
+  token: "${BOT_TOKEN}"
+  update:
     transport: WEBHOOK
-
     webhook:
       # Public HTTPS URL Telegram will POST updates to
       url: "https://my-bot.example.com/webhook"
@@ -186,8 +185,8 @@ Application shutdown (if unregister-on-shutdown: true)
 Prevent spoofed webhook requests by configuring a secret token:
 
 ```yaml
-telegram:
-  bot:
+easygram:
+  update:
     webhook:
       secret-token: "${WEBHOOK_SECRET}"
 ```
@@ -206,7 +205,7 @@ mvn spring-boot:run
 ngrok http 8080
 
 # 3. Update application.yml with the ngrok URL
-#    telegram.bot.webhook.url: https://abc123.ngrok-free.app/webhook
+#    easygram.update.webhook.url: https://abc123.ngrok-free.app/webhook
 
 # 4. Restart the bot — it registers the new URL automatically
 ```
@@ -218,7 +217,7 @@ ngrok http 8080
 jprq http 8080
 
 # 2. Copy the *.jprq.live URL and update application.yml
-#    telegram.bot.webhook.url: https://my-session.jprq.live/webhook
+#    easygram.update.webhook.url: https://my-session.jprq.live/webhook
 
 # 3. Restart the bot
 ```
@@ -232,7 +231,7 @@ jprq http 8080
 | **Internet** | Outbound only | Inbound HTTPS required |
 | **Best for** | Development, small bots | Production, high traffic |
 | **Horizontal scaling** | Limited | Yes (multiple instances) |
-| **Property** | *(default)* | `transport: WEBHOOK` |
+| **Property** | *(default)* | `easygram.update.transport: WEBHOOK` |
 
 ## Running in Production with Docker
 
@@ -250,9 +249,10 @@ services:
   bot:
     build: .
     environment:
-      BOT_TOKEN: "${BOT_TOKEN}"
-      WEBHOOK_SECRET: "${WEBHOOK_SECRET}"
-      TELEGRAM_BOT_WEBHOOK_URL: "https://my-bot.example.com/webhook"
+      easygram.token: "${BOT_TOKEN}"
+      easygram.update.transport: WEBHOOK
+      easygram.update.webhook.url: "https://my-bot.example.com/webhook"
+      easygram.update.webhook.secret-token: "${WEBHOOK_SECRET}"
     ports: ["8080:8080"]
 ```
 

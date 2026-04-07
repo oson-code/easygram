@@ -25,7 +25,7 @@ import uz.osoncode.easygram.core.observability.BotObservabilityFilter;
  *
  * <p>The resulting filter automatically produces:</p>
  * <ul>
- *   <li>A {@code telegram.bot.update} timer metric (count, duration, error rate) with
+ *   <li>A {@code easygram.update} timer metric (count, duration, error rate) with
  *       {@code update.type} and {@code transport.type} tags.</li>
  *   <li>A distributed tracing span per update when a Brave or OpenTelemetry bridge is
  *       also on the classpath — no additional configuration required.</li>

@@ -60,18 +60,20 @@ import uz.osoncode.easygram.core.argumentresolver.BotChosenInlineResultIdArgumen
 import uz.osoncode.easygram.core.argumentresolver.BotShippingPayloadArgumentResolver;
 import uz.osoncode.easygram.core.argumentresolver.BotPreCheckoutPayloadArgumentResolver;
 import uz.osoncode.easygram.core.bot.BotConfigurer;
-import uz.osoncode.easygram.core.bot.BotProperties;
+import uz.osoncode.easygram.core.bot.EasygramProperties;
+import uz.osoncode.easygram.core.bot.EasygramUpdateProperties;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.exceptionhandler.BotMethodExceptionHandlerLoader;
 import uz.osoncode.easygram.core.filter.BotApiMethodsSenderFilter;
+import uz.osoncode.easygram.core.filter.BotMdcFilter;
+import uz.osoncode.easygram.core.filter.BotContextSetterFilter;
 import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
 import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
 import uz.osoncode.easygram.core.provider.BotOkHttpClientProvider;
 import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
 import uz.osoncode.easygram.core.provider.BotTelegramUrlProvider;
-import uz.osoncode.easygram.core.filter.BotContextSetterFilter;
 import uz.osoncode.easygram.core.handler.BotHandlerConditionContributor;
 import uz.osoncode.easygram.core.handler.BotHandlerLoader;
 import uz.osoncode.easygram.core.handler.BotHandlerRegistry;
@@ -161,7 +163,7 @@ import java.util.concurrent.Executors;
  * @since 0.0.1
  */
 @AutoConfiguration
-@EnableConfigurationProperties(BotProperties.class)
+@EnableConfigurationProperties({EasygramProperties.class, EasygramUpdateProperties.class})
 public class CoreAutoConfiguration {
 
     /**
@@ -958,6 +960,22 @@ public class CoreAutoConfiguration {
     }
 
     /**
+     * Registers the MDC correlation filter that sets {@code bot.update.id},
+     * {@code bot.transport}, {@code bot.user.id}, and {@code bot.chat.id} keys in the
+     * Mapped Diagnostic Context for every incoming update, enabling correlated log output
+     * across the entire processing pipeline.
+     *
+     * @param botConfigurer provides the active transport type for the {@code bot.transport} key
+     * @return a new {@link BotMdcFilter} instance
+     * @since 0.0.4
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public BotMdcFilter botMdcFilter(BotConfigurer botConfigurer) {
+        return new BotMdcFilter(botConfigurer);
+    }
+
+    /**
      * Registers the filter that populates the thread-local bot context before handler invocation.
      *
      * @return a new {@link BotContextSetterFilter} instance
@@ -1141,29 +1159,30 @@ public class CoreAutoConfiguration {
             BotArgumentResolverFactory botArgumentResolverFactory,
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
             BotReturnTypeHandlerFactory botReturnTypeHandlerFactory,
-            Optional<BotChatStateService> chatStateService) {
+            Optional<BotChatStateService> chatStateService,
+            MarkupApplicationFilter markupApplicationFilter) {
         return new BotMethodExceptionHandlerLoader(applicationContext, botArgumentResolverFactory,
-                botExceptionHandlerRegistry, botReturnTypeHandlerFactory, chatStateService);
+                botExceptionHandlerRegistry, botReturnTypeHandlerFactory, chatStateService, markupApplicationFilter);
     }
 
 
     /**
      * Registers a shared {@link BotConfigurer} backed by the application {@link ObjectMapper} and
-     * the configured transport from {@link BotProperties}.
+     * the configured transport from {@link EasygramProperties}.
      *
      * <p>Consumers can override by declaring their own {@code BotConfigurer} bean.</p>
      *
      * @param botObjectMapperProvider provider for the shared {@link ObjectMapper}
-     * @param botProperties           common bot properties containing the transport type
+     * @param botUpdateProperties     bot update configuration containing the transport type
      * @return a {@link BotConfigurer} instance
      */
     @Bean
     @ConditionalOnMissingBean
     public BotConfigurer botConfigurer(
             BotObjectMapperProvider botObjectMapperProvider,
-            BotProperties botProperties
+            EasygramUpdateProperties botUpdateProperties
     ) {
-        return new BotConfigurer(botObjectMapperProvider.provide(), botProperties.transport());
+        return new BotConfigurer(botObjectMapperProvider.provide(), botUpdateProperties.transport());
     }
 
     /**

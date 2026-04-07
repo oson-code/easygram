@@ -1,0 +1,18 @@
+# Run: docker compose up -d
+# Starts RabbitMQ on localhost:5672 with the management UI at http://localhost:15672
+# Credentials: rabbit / rabbit  (matches application.yml)
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: easygram-rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbit
+      RABBITMQ_DEFAULT_PASS: rabbit
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

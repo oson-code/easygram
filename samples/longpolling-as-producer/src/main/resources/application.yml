@@ -1,56 +1,55 @@
-telegram:
-  bot:
-    # Required: your Telegram Bot API token from @BotFather
-    token: "BOT_TOKEN"
+easygram:
+  # Required: your Telegram Bot API token from @BotFather.
+  # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
+  token: "${BOT_TOKEN}"
 
-    # Transport is LONG_POLLING by default
-    # transport: LONG_POLLING
+  # update.transport defaults to LONG_POLLING — no need to set it explicitly.
 
-    messaging:
-      # true  → forward ONLY to broker; local @BotController handlers are skipped
-      # false → forward to broker AND run local handlers
-      forward-only: true
+  messaging:
+    # Declare this bot as a PRODUCER: it receives updates from Telegram and publishes them.
+    type: PRODUCER
 
-      producer:
-        # consumer-type: rabbit
-        producer-type: kafka
+    # true  → forward ONLY to broker; local @BotController handlers are skipped
+    # false → forward to broker AND run local handlers (default)
+    forward-only: true
 
-      # ── Kafka settings (active when consumer-type=kafka) ───────────────────
-      kafka:
-        topic: telegram-updates
-        create-if-absent: true   # auto-create topic on startup
-        partitions: 1
-        replication-factor: 1
+    producer:
+      # Choose which broker to publish to: KAFKA | RABBIT
+      type: KAFKA
 
-      # ── RabbitMQ settings (active when consumer-type=rabbit) ───────────────
-      rabbit:
-        exchange: telegram-exchange
-        routing-key: telegram.updates
-        queue: telegram-updates
-        create-if-absent: true   # auto-create exchange, queue and binding on startup
+    # ── Kafka settings (active when producer.type=KAFKA) ────────────────────
+    kafka:
+      topic: easygram-updates
+      create-if-absent: true   # auto-create topic on startup (default: true)
+      partitions: 1
+      replication-factor: 1
 
-# ── Spring Kafka (required when consumer-type=kafka) ─────────────────────────
+    # ── RabbitMQ settings (active when producer.type=RABBIT) ────────────────
+    # rabbit:
+    #   exchange: easygram-exchange
+    #   routing-key: easygram.updates
+    #   queue: easygram-updates
+    #   create-if-absent: true
+
+# ── Spring Kafka (required when producer.type=KAFKA) ─────────────────────────
 spring:
   application:
     name: longpolling-as-producer
 
   kafka:
-    bootstrap-servers: 10.0.0.2:9092
+    # Run: docker compose up -d  (see docker-compose.yml)
+    bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       acks: all
       retries: 3
 
-  # ── Spring RabbitMQ (required when consumer-type=rabbit) ─────────────────
+  # ── Spring RabbitMQ (required when producer.type=RABBIT) ─────────────────
   rabbitmq:
-    host: 10.0.0.2
-    port: 5675
+    # Run: docker compose up -d  (see docker-compose.yml)
+    host: localhost
+    port: 5672
     username: rabbit
     password: rabbit
 
-logging:
-  level:
-    uz.osoncode: DEBUG
-    org.springframework.kafka: WARN
-    org.springframework.amqp: WARN

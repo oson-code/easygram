@@ -1142,27 +1142,50 @@ PlainReply.of("Pick:").withKeyboard(myKeyboard)  // attach ReplyKeyboard directl
 PlainReply.of("Done.").removeMarkup()            // send ReplyKeyboardRemove
 PlainReply.of("Updated!").withEditMessage()      // edit originating callback-query message (since 0.0.2)
 
+// Answer callback query — reply text used as popup notification (since 0.0.5)
+PlainReply.of("Confirmed!").asAnswerCallbackQuery()              // toast popup
+PlainReply.of("Deleted.").asAnswerCallbackQuery().withCallbackAlert()  // alert dialog
+PlainReply.of("Open page").asAnswerCallbackQuery().withCallbackUrl("https://example.com")
+PlainReply.of("OK").asAnswerCallbackQuery().withCallbackCacheTime(10)
+
 // Builder
 PlainReply.builder()
     .text("Choose:")
     .markupId("main_menu")
-    .editMessage(true)          // edit instead of send (since 0.0.2)
+    .editMessage(true)            // edit instead of send (since 0.0.2)
+    .answerCallbackQuery(true)    // send AnswerCallbackQuery (since 0.0.5)
+    .callbackAlert(true)          // showAlert=true (since 0.0.5)
+    .callbackUrl("https://...")   // optional URL (since 0.0.5)
+    .callbackCacheTime(10)        // cache seconds (since 0.0.5)
     .build()
 ```
 
 ### PlainTextTemplate — Fluent API
 
 Uses `#{index}` positional tokens (0-based) for value substitution. Same markup methods as `PlainReply`.
+Supports the same AnswerCallbackQuery API — the **resolved template text** is used as the popup notification.
 
 ```java
 PlainTextTemplate.of("Hello, #{0}! You have #{1} messages.", user.getFirstName(), count)
 PlainTextTemplate.of("Order ##{0} ready.", orderId).withMarkup("order_kb")
+PlainTextTemplate.of("Updated #{0}!").withEditMessage()  // edit callback-query message (since 0.0.2)
+
+// Answer callback query — resolved template text used as popup (since 0.0.5)
+PlainTextTemplate.of("Step #{0} complete!", step).asAnswerCallbackQuery()              // toast
+PlainTextTemplate.of("Deleted #{0}.", item).asAnswerCallbackQuery().withCallbackAlert() // alert dialog
+PlainTextTemplate.of("Done #{0}.").asAnswerCallbackQuery().withCallbackUrl("https://example.com")
+PlainTextTemplate.of("OK #{0}.").asAnswerCallbackQuery().withCallbackCacheTime(10)
 
 // Builder
 PlainTextTemplate.builder()
     .template("Hello, #{0}! Order ##{1} is ready.")
     .args(user.getFirstName(), orderId)
     .markupId("order_kb")
+    .editMessage(true)            // edit instead of send (since 0.0.2)
+    .answerCallbackQuery(true)    // send AnswerCallbackQuery (since 0.0.5)
+    .callbackAlert(true)          // showAlert=true (since 0.0.5)
+    .callbackUrl("https://...")   // optional URL (since 0.0.5)
+    .callbackCacheTime(10)        // cache seconds (since 0.0.5)
     .build()
 ```
 
@@ -1176,30 +1199,49 @@ LocalizedReply.of("choose.option").withMarkup("main_menu")
 LocalizedReply.of("confirm.prompt").withMarkup("confirm_kb", Map.of("id", itemId))
 LocalizedReply.of("updated.text").withEditMessage()  // edit callback-query message (since 0.0.2)
 
+// Answer callback query — resolved i18n message used as popup text (since 0.0.5)
+LocalizedReply.of("action.confirmed").asAnswerCallbackQuery()
+LocalizedReply.of("item.deleted").asAnswerCallbackQuery().withCallbackAlert()
+LocalizedReply.of("opening.page").asAnswerCallbackQuery().withCallbackUrl("https://example.com")
+
 // Builder
 LocalizedReply.builder()
     .key("welcome.message")
     .args(user.getFirstName())
     .markupId("main_menu")
-    .editMessage(true)   // since 0.0.2
+    .editMessage(true)            // since 0.0.2
+    .answerCallbackQuery(true)    // since 0.0.5
+    .callbackAlert(true)          // showAlert=true (since 0.0.5)
+    .callbackUrl("https://...")   // optional URL (since 0.0.5)
+    .callbackCacheTime(10)        // cache seconds (since 0.0.5)
     .build()
 ```
 
 ### LocalizedTemplate — Fluent API *(core-i18n)*
 
 Supports mixed `${messageKey}` bundle lookups and `#{index}` positional arg substitution.
+Supports the same AnswerCallbackQuery API — the **fully resolved template string** is used as the popup notification.
 
 ```java
 LocalizedTemplate.of("${welcome.title}\n\nHello, #{0}!", user.getFirstName())
 LocalizedTemplate.of("${stats.header}\n\nMessages: #{0}", count).withMarkup("stats_menu")
 LocalizedTemplate.of("${updated}").withEditMessage()  // edit callback-query message (since 0.0.2)
 
+// Answer callback query — fully resolved template text used as popup (since 0.0.5)
+LocalizedTemplate.of("${action.confirmed}").asAnswerCallbackQuery()              // toast
+LocalizedTemplate.of("${item.deleted}").asAnswerCallbackQuery().withCallbackAlert() // alert dialog
+LocalizedTemplate.of("${opening.page}").asAnswerCallbackQuery().withCallbackUrl("https://example.com")
+
 // Builder
 LocalizedTemplate.builder()
     .template("${stats.header}\n\nMessages: #{0}\nCommands: #{1}")
     .args(messages, commands)
     .markupId("stats_menu")
-    .editMessage(true)   // since 0.0.2
+    .editMessage(true)            // since 0.0.2
+    .answerCallbackQuery(true)    // send AnswerCallbackQuery (since 0.0.5)
+    .callbackAlert(true)          // showAlert=true (since 0.0.5)
+    .callbackUrl("https://...")   // optional URL (since 0.0.5)
+    .callbackCacheTime(10)        // cache seconds (since 0.0.5)
     .build()
 ```
 
@@ -2221,14 +2263,12 @@ public class MyComponent {
 
 **Package:** `uz.osoncode.easygram.core.bot`
 
-Enumerates the supported update-delivery transports.
+Enumerates the supported update-delivery transports. Set via `easygram.update.transport`.
 
 | Constant | Description |
 |---|---|
-| `LONG_POLLING` | Bot repeatedly calls `getUpdates` |
+| `LONG_POLLING` | Bot repeatedly calls `getUpdates` (default — omit `update` block entirely) |
 | `WEBHOOK` | Telegram pushes updates to an HTTPS endpoint |
-| `KAFKA_CONSUMER` | Updates arrive via a Kafka topic |
-| `RABBIT_CONSUMER` | Updates arrive via a RabbitMQ queue |
 
 ---
 
@@ -2242,7 +2282,7 @@ Auto-configured when `core-observability` is on the classpath via `BotActuatorAu
 |---|---|
 | `BotHealthIndicator` | Spring Boot actuator health check — reports `UP`/`DOWN` based on bot connectivity |
 | `BotInfoContributor` | Actuator `/info` endpoint — exposes bot username, id, and active transport type |
-| `BotObservabilityFilter` | `BotFilter` at `BotFilterOrder.OBSERVATION` — wraps every update in a Micrometer observation span; emits `telegram.bot.update` metric |
+| `BotObservabilityFilter` | `BotFilter` at `BotFilterOrder.OBSERVATION` — wraps every update in a Micrometer observation span; emits `easygram.update` metric |
 
 All three beans are `@ConditionalOnMissingBean` — replace any with a custom `@Bean`.
 
@@ -2254,10 +2294,11 @@ All three beans are `@ConditionalOnMissingBean` — replace any with a custom `@
 
 | Constant | Value | Built-in filter |
 |---|---|---|
-| `CONTEXT_SETTER` | `Integer.MIN_VALUE` | Sets `User` and `Chat` on `BotRequest` |
-| `OBSERVATION` | `MIN_VALUE + 1` | Micrometer observation span (core-observability) |
-| `API_SENDER` | `MIN_VALUE + 2` | Executes queued `BotApiMethod` calls via `TelegramClient` |
-| `PUBLISHING` | `MIN_VALUE + 1000` | Forwards update to message broker (messaging-*) |
+| `MDC_CONTEXT` | `Integer.MIN_VALUE` | Sets `bot.update.id` and `bot.transport` MDC keys |
+| `CONTEXT_SETTER` | `MIN_VALUE + 1` | Sets `User` and `Chat` on `BotRequest`; enriches MDC |
+| `OBSERVATION` | `MIN_VALUE + 2` | Micrometer observation span (core-observability) |
+| `API_SENDER` | `MIN_VALUE + 3` | Executes queued `BotApiMethod` calls via `TelegramClient` |
+| `PUBLISHING` | `MIN_VALUE + 1000` | Forwards update to message broker (messaging-api) |
 | *(custom default)* | `MAX_VALUE` | Default for user-defined filters — runs last |
 
 Custom filters that need to run **after** context is set but **before** the handler should use a value between `API_SENDER` and `PUBLISHING` (e.g. `0` or `100`).
@@ -2282,33 +2323,33 @@ Custom filters that need to run **after** context is set but **before** the hand
 ### Required
 
 ```yaml
-telegram:
-  bot:
-    token: YOUR_BOT_TOKEN # From @BotFather — required for all transports
+easygram:
+  token: YOUR_BOT_TOKEN # From @BotFather — required for all transports
 ```
 
 ### Transport
 
 ```yaml
-telegram:
-  bot:
-    transport: LONG_POLLING # Default
-                              # Options: LONG_POLLING | WEBHOOK | KAFKA_CONSUMER | RABBIT_CONSUMER
+easygram:
+  update:
+    transport: LONG_POLLING   # Default — omit block entirely for long-polling
+                              # Options: LONG_POLLING | WEBHOOK
 ```
 
 ### Long-Polling
 
-Long-polling has no additional configurable properties. The polling behaviour (timeout, batch size, back-off) is handled internally by the telegrambots library and cannot be overridden via `application.yml`.
+Long-polling has no additional configurable properties. The polling behaviour (timeout, batch size, back-off) is handled internally by the telegrambots library.
 
 ### Webhook
 
 ```yaml
-telegram:
-  bot:
+easygram:
+  update:
+    transport: WEBHOOK
     webhook:
       url: https://my-bot.example.com/webhook # Required — publicly reachable HTTPS URL
-      path: /webhook # Local handler path (default: /webhook)
-      secret-token: ${WEBHOOK_SECRET} # Recommended — validates Telegram requests
+      path: /webhook                           # Local handler path (default: /webhook)
+      secret-token: ${WEBHOOK_SECRET}          # Recommended — validates Telegram requests
       max-connections: 40
       drop-pending-updates: false
       unregister-on-shutdown: false
@@ -2317,44 +2358,46 @@ telegram:
 ### Broker Publishing
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      forward-only: false # true = publish to broker only, skip local handler dispatch
-      producer:
-        producer-type: kafka # kafka | rabbit
-      kafka:
-        topic: telegram-updates
-        create-if-absent: true
-        partitions: 1
-        replication-factor: 1
-      rabbit:
-        exchange: telegram-exchange
-        routing-key: telegram.updates
-        queue: telegram-updates
-        create-if-absent: true
+easygram:
+  messaging:
+    type: PRODUCER            # Required: PRODUCER or CONSUMER
+    forward-only: false       # true = publish to broker only, skip local handler dispatch
+    producer:
+      type: KAFKA             # KAFKA | RABBIT
+    kafka:
+      topic: easygram-updates
+      create-if-absent: true
+      partitions: 1
+      replication-factor: 1
+    rabbit:
+      exchange: easygram-exchange
+      routing-key: easygram.updates
+      queue: easygram-updates
+      create-if-absent: true
 ```
 
 ### Broker Consumer
 
 ```yaml
-telegram:
-  bot:
-    messaging:
-      kafka:
-        topic: telegram-updates
-        group-id: my-bot-consumer
-      rabbit:
-        queue: telegram-updates
+easygram:
+  messaging:
+    type: CONSUMER            # Required: PRODUCER or CONSUMER
+    consumer:
+      type: KAFKA             # KAFKA | RABBIT
+    kafka:
+      topic: easygram-updates
+      group-id: my-bot-consumer   # consumer group ID (default: easygram-bot)
+    rabbit:
+      exchange: easygram-exchange
+      queue: easygram-updates
 ```
 
 ### i18n *(core-i18n)*
 
 ```yaml
-telegram:
-  bot:
-    i18n:
-      default-locale: en # Fallback locale when user language_code is absent
+easygram:
+  i18n:
+    default-locale: en # Fallback locale when user language_code is absent
 
 spring:
   messages:

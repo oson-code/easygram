@@ -51,10 +51,16 @@ public final class LocalizedTemplate implements MarkupAware {
     private final ReplyKeyboard keyboard;
     private final boolean removeMarkup;
     private final boolean editMessage;
+    private final boolean answerCallbackQuery;
+    private final boolean callbackAlert;
+    private final String callbackUrl;
+    private final Integer callbackCacheTime;
 
     private LocalizedTemplate(String template, Object[] args, String markupId,
                                Map<String, Object> markupParams, ReplyKeyboard keyboard,
-                               boolean removeMarkup, boolean editMessage) {
+                               boolean removeMarkup, boolean editMessage,
+                               boolean answerCallbackQuery, boolean callbackAlert,
+                               String callbackUrl, Integer callbackCacheTime) {
         this.template = template;
         this.args = args;
         this.markupId = markupId;
@@ -62,6 +68,10 @@ public final class LocalizedTemplate implements MarkupAware {
         this.keyboard = keyboard;
         this.removeMarkup = removeMarkup;
         this.editMessage = editMessage;
+        this.answerCallbackQuery = answerCallbackQuery;
+        this.callbackAlert = callbackAlert;
+        this.callbackUrl = callbackUrl;
+        this.callbackCacheTime = callbackCacheTime;
     }
 
     /**
@@ -93,6 +103,10 @@ public final class LocalizedTemplate implements MarkupAware {
         private ReplyKeyboard keyboard;
         private boolean removeMarkup;
         private boolean editMessage;
+        private boolean answerCallbackQuery;
+        private boolean callbackAlert;
+        private String callbackUrl;
+        private Integer callbackCacheTime;
 
         private Builder() {}
 
@@ -175,13 +189,70 @@ public final class LocalizedTemplate implements MarkupAware {
         }
 
         /**
+         * Sets whether to answer the callback query using this template's resolved text as
+         * the popup notification. Setting this to {@code true} is equivalent to calling
+         * {@link LocalizedTemplate#asAnswerCallbackQuery()} on the built instance.
+         *
+         * @param answerCallbackQuery {@code true} to answer the callback query
+         * @return this builder
+         * @since 0.0.5
+         */
+        public Builder answerCallbackQuery(boolean answerCallbackQuery) {
+            this.answerCallbackQuery = answerCallbackQuery;
+            return this;
+        }
+
+        /**
+         * Instructs the framework to show the callback answer as an alert dialog instead of a
+         * toast. Implicitly enables {@code answerCallbackQuery}.
+         *
+         * @param callbackAlert {@code true} for an alert dialog
+         * @return this builder
+         * @since 0.0.5
+         */
+        public Builder callbackAlert(boolean callbackAlert) {
+            if (callbackAlert) this.answerCallbackQuery = true;
+            this.callbackAlert = callbackAlert;
+            return this;
+        }
+
+        /**
+         * Sets an optional URL to open when the callback answer notification is tapped.
+         * Implicitly enables {@code answerCallbackQuery}.
+         *
+         * @param callbackUrl the URL; may be {@code null}
+         * @return this builder
+         * @since 0.0.5
+         */
+        public Builder callbackUrl(String callbackUrl) {
+            if (callbackUrl != null) this.answerCallbackQuery = true;
+            this.callbackUrl = callbackUrl;
+            return this;
+        }
+
+        /**
+         * Sets the client-side cache duration in seconds for the callback answer.
+         * Implicitly enables {@code answerCallbackQuery}.
+         *
+         * @param callbackCacheTime cache duration in seconds; may be {@code null}
+         * @return this builder
+         * @since 0.0.5
+         */
+        public Builder callbackCacheTime(Integer callbackCacheTime) {
+            if (callbackCacheTime != null) this.answerCallbackQuery = true;
+            this.callbackCacheTime = callbackCacheTime;
+            return this;
+        }
+
+        /**
          * Builds and returns the immutable {@link LocalizedTemplate}.
          *
          * @return a new {@code LocalizedTemplate} instance
          */
         public LocalizedTemplate build() {
             Objects.requireNonNull(template, "template must not be null");
-            return new LocalizedTemplate(template, args, markupId, markupParams, keyboard, removeMarkup, editMessage);
+            return new LocalizedTemplate(template, args, markupId, markupParams, keyboard, removeMarkup, editMessage,
+                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime);
         }
     }
 
@@ -193,7 +264,7 @@ public final class LocalizedTemplate implements MarkupAware {
      * @return a new {@code LocalizedTemplate} instance
      */
     public static LocalizedTemplate of(String template, Object... args) {
-        return new LocalizedTemplate(template, args, null, null, null, false, false);
+        return new LocalizedTemplate(template, args, null, null, null, false, false, false, false, null, null);
     }
 
     /**
@@ -204,7 +275,8 @@ public final class LocalizedTemplate implements MarkupAware {
      */
     @Override
     public LocalizedTemplate withMarkup(String markupId) {
-        return new LocalizedTemplate(this.template, this.args, markupId, null, null, false, this.editMessage);
+        return new LocalizedTemplate(this.template, this.args, markupId, null, null, false, this.editMessage,
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
     }
 
     /**
@@ -216,7 +288,8 @@ public final class LocalizedTemplate implements MarkupAware {
      */
     @Override
     public LocalizedTemplate withMarkup(String markupId, Map<String, Object> params) {
-        return new LocalizedTemplate(this.template, this.args, markupId, params, null, false, this.editMessage);
+        return new LocalizedTemplate(this.template, this.args, markupId, params, null, false, this.editMessage,
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
     }
 
     /**
@@ -227,7 +300,8 @@ public final class LocalizedTemplate implements MarkupAware {
      */
     @Override
     public LocalizedTemplate withKeyboard(ReplyKeyboard keyboard) {
-        return new LocalizedTemplate(this.template, this.args, null, null, keyboard, false, this.editMessage);
+        return new LocalizedTemplate(this.template, this.args, null, null, keyboard, false, this.editMessage,
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
     }
 
     /**
@@ -237,7 +311,8 @@ public final class LocalizedTemplate implements MarkupAware {
      */
     @Override
     public LocalizedTemplate removeMarkup() {
-        return new LocalizedTemplate(this.template, this.args, null, null, null, true, this.editMessage);
+        return new LocalizedTemplate(this.template, this.args, null, null, null, true, this.editMessage,
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
     }
 
     /**
@@ -250,7 +325,60 @@ public final class LocalizedTemplate implements MarkupAware {
      * @since 0.0.2
      */
     public LocalizedTemplate withEditMessage() {
-        return new LocalizedTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup, true);
+        return new LocalizedTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, true, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+    }
+
+    /**
+     * Returns a new {@code LocalizedTemplate} that will also send an {@link org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery}
+     * using the resolved template text as the popup notification text.
+     *
+     * <p>This method is a no-op when the originating update is not a callback query.</p>
+     *
+     * @return a new {@code LocalizedTemplate} with {@code answerCallbackQuery = true}
+     * @since 0.0.5
+     */
+    public LocalizedTemplate asAnswerCallbackQuery() {
+        return new LocalizedTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+    }
+
+    /**
+     * Returns a new {@code LocalizedTemplate} that shows the callback answer as an alert
+     * dialog instead of a toast. Implicitly enables {@code answerCallbackQuery}.
+     *
+     * @return a new {@code LocalizedTemplate} with {@code callbackAlert = true}
+     * @since 0.0.5
+     */
+    public LocalizedTemplate withCallbackAlert() {
+        return new LocalizedTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime);
+    }
+
+    /**
+     * Returns a new {@code LocalizedTemplate} with the given URL to open when the
+     * callback answer notification is tapped. Implicitly enables {@code answerCallbackQuery}.
+     *
+     * @param url the URL; must not be {@code null}
+     * @return a new {@code LocalizedTemplate} with the callback URL set
+     * @since 0.0.5
+     */
+    public LocalizedTemplate withCallbackUrl(String url) {
+        return new LocalizedTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime);
+    }
+
+    /**
+     * Returns a new {@code LocalizedTemplate} with the given client-side cache duration
+     * for the callback answer. Implicitly enables {@code answerCallbackQuery}.
+     *
+     * @param cacheTime cache duration in seconds
+     * @return a new {@code LocalizedTemplate} with the callback cache time set
+     * @since 0.0.5
+     */
+    public LocalizedTemplate withCallbackCacheTime(int cacheTime) {
+        return new LocalizedTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime);
     }
 
     /**
@@ -311,5 +439,46 @@ public final class LocalizedTemplate implements MarkupAware {
     @Override
     public boolean isEditMessage() {
         return editMessage;
+    }
+
+    /**
+     * Returns {@code true} if an {@link org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery}
+     * should be sent alongside this reply.
+     *
+     * @return {@code true} to answer the callback query
+     * @since 0.0.5
+     */
+    public boolean isAnswerCallbackQuery() {
+        return answerCallbackQuery;
+    }
+
+    /**
+     * Returns {@code true} if the callback answer should be shown as an alert dialog.
+     *
+     * @return {@code true} for alert dialog; {@code false} for toast notification
+     * @since 0.0.5
+     */
+    public boolean isCallbackAlert() {
+        return callbackAlert;
+    }
+
+    /**
+     * Returns the optional URL to open when the callback answer notification is tapped.
+     *
+     * @return the callback URL, or {@code null} if not set
+     * @since 0.0.5
+     */
+    public String getCallbackUrl() {
+        return callbackUrl;
+    }
+
+    /**
+     * Returns the client-side cache duration in seconds for the callback answer.
+     *
+     * @return the cache time in seconds, or {@code null} to use the Telegram default
+     * @since 0.0.5
+     */
+    public Integer getCallbackCacheTime() {
+        return callbackCacheTime;
     }
 }

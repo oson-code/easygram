@@ -1,10 +1,10 @@
-telegram:
-  bot:
-    # Required: your Telegram Bot API token from @BotFather
-    token: "BOT_TOKEN"
+easygram:
+  # Required: your Telegram Bot API token from @BotFather.
+  # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
+  token: "${BOT_TOKEN}"
 
+  update:
     transport: WEBHOOK
-
     webhook:
       # Required: the public HTTPS URL Telegram will POST updates to
       url: "https://example.com/webhook"
@@ -31,6 +31,3 @@ spring:
   application:
     name: webhook-bot
 
-logging:
-  level:
-    uz.osoncode: DEBUG

@@ -5,7 +5,7 @@
 
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>parent</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
 
     <packaging>pom</packaging>
 
@@ -51,12 +51,6 @@
         <module>longpolling</module>
         <module>webhook</module>
         <module>messaging-api</module>
-        <module>messaging-kafka</module>
-        <module>messaging-rabbit</module>
-        <module>messaging-producer</module>
-        <module>messaging-kafka-consumer</module>
-        <module>messaging-rabbit-consumer</module>
-        <module>messaging-consumer</module>
         <module>core-i18n</module>
         <module>spring-boot-starter</module>
     </modules>

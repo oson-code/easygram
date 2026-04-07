@@ -109,10 +109,9 @@ spring:
 ### Set the Default Locale
 
 ```yaml
-telegram:
-  bot:
-    i18n:
-      default-locale: en # used when user has no language_code set
+easygram:
+  i18n:
+    default-locale: en # used when user has no language_code set
 ```
 
 ---
@@ -422,10 +421,9 @@ The `BotLocaleResolver` bean is picked up automatically — no additional regist
 ## 8. Full Configuration Reference
 
 ```yaml
-telegram:
-  bot:
-    i18n:
-      default-locale: en # Fallback locale when language_code is absent
+easygram:
+  i18n:
+    default-locale: en # Fallback locale when language_code is absent
 
 spring:
   messages:
@@ -439,7 +437,7 @@ spring:
 
 1. `BotLocaleResolver` bean (if declared — overrides everything)
 2. Telegram user's `language_code` BCP 47 tag (`"ru"`, `"en"`, `"en-US"`)
-3. `telegram.bot.i18n.default-locale` property
+3. `easygram.i18n.default-locale` property
 4. `"en"` hard fallback
 
 Both `"en"` and `"en-US"` resolve to `bot_en.properties`. Completely unknown codes fall back to

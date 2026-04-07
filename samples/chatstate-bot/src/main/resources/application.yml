@@ -1,15 +1,11 @@
-telegram:
-  bot:
-    # Required: your Telegram Bot API token from @BotFather
-    token: "BOT_TOKEN"
+easygram:
+  # Required: your Telegram Bot API token from @BotFather.
+  # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
+  token: "${BOT_TOKEN}"
 
-    # Transport is LONG_POLLING by default — no need to set it explicitly.
-    # transport: LONG_POLLING
+  # update.transport defaults to LONG_POLLING — no need to set it explicitly.
 
 spring:
   application:
     name: chatstate-bot
 
-logging:
-  level:
-    uz.osoncode: DEBUG

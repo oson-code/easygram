@@ -8,7 +8,7 @@ import org.telegram.telegrambots.longpolling.BotSession;
 import org.telegram.telegrambots.longpolling.interfaces.BackOff;
 import org.telegram.telegrambots.meta.api.methods.updates.GetUpdates;
 import uz.osoncode.easygram.core.bot.Bot;
-import uz.osoncode.easygram.core.bot.BotProperties;
+import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
@@ -57,7 +57,7 @@ public class LongPollingBot extends Bot implements InitializingBean, DisposableB
     private final BotTelegramUrlProvider telegramUrlProvider;
     private final BotBackOffProvider backOffProvider;
     private final Function<Integer, GetUpdates> getUpdatesGenerator;
-    private final BotProperties botProperties;
+    private final EasygramProperties botProperties;
     private final ScheduledExecutorService scheduledExecutorService;
 
     private BotSession botSession;
@@ -80,7 +80,7 @@ public class LongPollingBot extends Bot implements InitializingBean, DisposableB
      * @param getUpdatesGeneratorProvider        provider for the {@code GetUpdates} factory function
      */
     public LongPollingBot(
-            BotProperties botProperties,
+            EasygramProperties botProperties,
             List<BotStartTrigger> triggers,
             List<BotFilter> filters,
             BotDispatcher botDispatcher,

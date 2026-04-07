@@ -1,18 +1,20 @@
-telegram:
-  bot:
-    # Required: your Telegram Bot API token from @BotFather
-    token: "BOT_TOKEN"
+easygram:
+  # Required: your Telegram Bot API token from @BotFather.
+  # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
+  token: "${BOT_TOKEN}"
 
-    transport: RABBIT_CONSUMER
-
-    rabbit-consumer:
+  messaging:
+    # Declare this bot as a CONSUMER: it receives updates from RabbitMQ, not from Telegram directly.
+    type: CONSUMER
+    consumer:
+      # Broker type to consume from: KAFKA | RABBIT
+      type: RABBIT
+    rabbit:
       # RabbitMQ queue to consume Telegram updates from
-      queue: telegram-updates
-
+      queue: easygram-updates
       # Exchange and routing key used when auto-creating the binding
-      exchange: telegram-exchange
-      routing-key: telegram.updates
-
+      exchange: easygram-exchange
+      routing-key: easygram.updates
       # Auto-create the exchange, queue and binding on startup (default: true)
       create-if-absent: true
 
@@ -21,12 +23,9 @@ spring:
     name: rabbit-consumer-bot
 
   rabbitmq:
-    host: 10.0.0.2
-    port: 5675
+    # Run: docker compose up -d  (see docker-compose.yml)
+    host: localhost
+    port: 5672
     username: rabbit
     password: rabbit
 
-logging:
-  level:
-    uz.osoncode: DEBUG
-    org.springframework.amqp: WARN
