@@ -22,11 +22,17 @@
     </properties>
 
     <dependencies>
-        <!-- RabbitMQ consumer transport (includes spring-amqp and core transitively) -->
+        <!-- Easygram messaging SPI (kafka + amqp are optional there; add them explicitly) -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
             <artifactId>messaging-api</artifactId>
             <version>${library.version}</version>
+        </dependency>
+
+        <!-- Required: RabbitMQ driver — not transitively inherited because it is optional in messaging-api -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
     </dependencies>
 

@@ -22,11 +22,17 @@
     </properties>
 
     <dependencies>
-        <!-- Kafka consumer transport (includes spring-kafka and core transitively) -->
+        <!-- Easygram messaging SPI (kafka + amqp are optional there; add them explicitly) -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
             <artifactId>messaging-api</artifactId>
             <version>${library.version}</version>
+        </dependency>
+
+        <!-- Required: Kafka driver — not transitively inherited because it is optional in messaging-api -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
         </dependency>
     </dependencies>
 

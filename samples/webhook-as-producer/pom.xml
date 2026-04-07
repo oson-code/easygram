@@ -29,11 +29,23 @@
             <version>${library.version}</version>
         </dependency>
 
-        <!-- Smart broker router — bundles both messaging-kafka and messaging-rabbit -->
+        <!-- Easygram messaging SPI (kafka + amqp are optional there; add them explicitly) -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>messaging-producer</artifactId>
+            <artifactId>messaging-api</artifactId>
             <version>${library.version}</version>
+        </dependency>
+
+        <!-- Kafka driver — switch producer.type to KAFKA to use this -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <!-- RabbitMQ driver — switch producer.type to RABBIT to use this -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
     </dependencies>
 
