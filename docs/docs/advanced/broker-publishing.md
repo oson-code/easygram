@@ -54,39 +54,38 @@ BotUpdatePublishingFilter ← messaging-api (producer auto-config)
 
 ```yaml
 easygram:
+  token: ${BOT_TOKEN}
   messaging:
-    forward-only: true # Skip local handlers; updates go to Kafka only
+    type: PRODUCER
+    forward-only: true    # Skip local handlers; updates go to Kafka only
     producer:
-      producer-type: kafka
+      type: KAFKA
     kafka:
       topic: easygram-updates
-      create-if-absent: true # Auto-create topic on startup
+      create-if-absent: true
       partitions: 1
       replication-factor: 1
 
 spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-      acks: all
-      retries: 3
 ```
 
 ## RabbitMQ Producer Configuration
 
 ```yaml
 easygram:
+  token: ${BOT_TOKEN}
   messaging:
+    type: PRODUCER
     forward-only: true
     producer:
-      producer-type: rabbit
+      type: RABBIT
     rabbit:
       exchange: easygram-exchange
       routing-key: easygram.updates
       queue: easygram-updates
-      create-if-absent: true # Auto-create exchange, queue, and binding
+      create-if-absent: true
 
 spring:
   rabbitmq:
@@ -164,13 +163,17 @@ public BotUpdatePublisher pubSubPublisher(PubSubTemplate pubSub,
 
 ## Consuming Updates from the Broker
 
-Use the consumer transport modules to process updates through the full bot pipeline:
+Use the consumer transport to process updates through the full bot pipeline. A consumer bot
+does **not** poll Telegram directly — it reads from the broker topic/queue:
 
 ```yaml
-# Consumer application.yml
+# Consumer application.yml (Kafka)
 easygram:
-  transport: KAFKA_CONSUMER # or RABBIT_CONSUMER
+  token: ${BOT_TOKEN}
   messaging:
+    type: CONSUMER
+    consumer:
+      type: KAFKA
     kafka:
       topic: easygram-updates
       group-id: my-bot-consumer-group
@@ -178,10 +181,23 @@ easygram:
 spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+```
+
+```yaml
+# Consumer application.yml (RabbitMQ)
+easygram:
+  token: ${BOT_TOKEN}
+  messaging:
+    type: CONSUMER
     consumer:
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      auto-offset-reset: earliest
+      type: RABBIT
+    rabbit:
+      exchange: easygram-exchange
+      queue: easygram-updates
+
+spring:
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
 ```
 
 See the [Kafka Consumer Guide](../transports/kafka-consumer-guide) and

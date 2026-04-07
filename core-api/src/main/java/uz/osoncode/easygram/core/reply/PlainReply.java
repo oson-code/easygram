@@ -53,15 +53,25 @@ public final class PlainReply implements MarkupAware {
     private final ReplyKeyboard keyboard;
     private final boolean removeMarkup;
     private final boolean editMessage;
+    private final boolean answerCallbackQuery;
+    private final boolean callbackAlert;
+    private final String callbackUrl;
+    private final Integer callbackCacheTime;
 
     private PlainReply(String text, String markupId, Map<String, Object> markupParams,
-                       ReplyKeyboard keyboard, boolean removeMarkup, boolean editMessage) {
+                       ReplyKeyboard keyboard, boolean removeMarkup, boolean editMessage,
+                       boolean answerCallbackQuery, boolean callbackAlert,
+                       String callbackUrl, Integer callbackCacheTime) {
         this.text = text;
         this.markupId = markupId;
         this.markupParams = markupParams;
         this.keyboard = keyboard;
         this.removeMarkup = removeMarkup;
         this.editMessage = editMessage;
+        this.answerCallbackQuery = answerCallbackQuery;
+        this.callbackAlert = callbackAlert;
+        this.callbackUrl = callbackUrl;
+        this.callbackCacheTime = callbackCacheTime;
     }
 
     /**
@@ -91,6 +101,10 @@ public final class PlainReply implements MarkupAware {
         private ReplyKeyboard keyboard;
         private boolean removeMarkup;
         private boolean editMessage;
+        private boolean answerCallbackQuery;
+        private boolean callbackAlert;
+        private String callbackUrl;
+        private Integer callbackCacheTime;
 
         private Builder() {}
 
@@ -162,12 +176,68 @@ public final class PlainReply implements MarkupAware {
         }
 
         /**
+         * Activates {@code AnswerCallbackQuery} emission. The reply text is used as the
+         * popup text. Has no effect when the update is not a callback query.
+         *
+         * @param answerCallbackQuery {@code true} to answer the callback query
+         * @return this builder
+         * @since 0.0.5
+         */
+        public Builder answerCallbackQuery(boolean answerCallbackQuery) {
+            this.answerCallbackQuery = answerCallbackQuery;
+            return this;
+        }
+
+        /**
+         * Sets {@code showAlert = true} on the {@code AnswerCallbackQuery} call, displaying
+         * an alert dialog instead of a toast notification. Implicitly sets
+         * {@code answerCallbackQuery = true}.
+         *
+         * @return this builder
+         * @since 0.0.5
+         */
+        public Builder callbackAlert(boolean callbackAlert) {
+            if (callbackAlert) this.answerCallbackQuery = true;
+            this.callbackAlert = callbackAlert;
+            return this;
+        }
+
+        /**
+         * Sets the {@code url} parameter on the {@code AnswerCallbackQuery} call. Used for
+         * opening a URL or launching a game. Implicitly sets {@code answerCallbackQuery = true}.
+         *
+         * @param callbackUrl the URL to open; may be {@code null}
+         * @return this builder
+         * @since 0.0.5
+         */
+        public Builder callbackUrl(String callbackUrl) {
+            if (callbackUrl != null) this.answerCallbackQuery = true;
+            this.callbackUrl = callbackUrl;
+            return this;
+        }
+
+        /**
+         * Sets the {@code cache_time} parameter on the {@code AnswerCallbackQuery} call.
+         * Implicitly sets {@code answerCallbackQuery = true}.
+         *
+         * @param callbackCacheTime cache duration in seconds; must be non-negative
+         * @return this builder
+         * @since 0.0.5
+         */
+        public Builder callbackCacheTime(Integer callbackCacheTime) {
+            if (callbackCacheTime != null) this.answerCallbackQuery = true;
+            this.callbackCacheTime = callbackCacheTime;
+            return this;
+        }
+
+        /**
          * Builds and returns the immutable {@link PlainReply}.
          *
          * @return a new {@code PlainReply} instance
          */
         public PlainReply build() {
-            return new PlainReply(text, markupId, markupParams, keyboard, removeMarkup, editMessage);
+            return new PlainReply(text, markupId, markupParams, keyboard, removeMarkup, editMessage,
+                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime);
         }
     }
 
@@ -179,7 +249,7 @@ public final class PlainReply implements MarkupAware {
      */
     public static PlainReply of(String text) {
         java.util.Objects.requireNonNull(text, "text must not be null");
-        return new PlainReply(text, null, null, null, false, false);
+        return new PlainReply(text, null, null, null, false, false, false, false, null, null);
     }
 
     /**
@@ -190,7 +260,8 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withMarkup(String markupId) {
-        return new PlainReply(this.text, markupId, null, null, false, this.editMessage);
+        return new PlainReply(this.text, markupId, null, null, false, this.editMessage,
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
     }
 
     /**
@@ -206,7 +277,8 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withMarkup(String markupId, Map<String, Object> params) {
-        return new PlainReply(this.text, markupId, params, null, false, this.editMessage);
+        return new PlainReply(this.text, markupId, params, null, false, this.editMessage,
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
     }
 
     /**
@@ -220,7 +292,8 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withKeyboard(ReplyKeyboard keyboard) {
-        return new PlainReply(this.text, null, null, keyboard, false, this.editMessage);
+        return new PlainReply(this.text, null, null, keyboard, false, this.editMessage,
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
     }
 
     /**
@@ -230,7 +303,8 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply removeMarkup() {
-        return new PlainReply(this.text, null, null, null, true, this.editMessage);
+        return new PlainReply(this.text, null, null, null, true, this.editMessage,
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
     }
 
     /**
@@ -243,7 +317,63 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.2
      */
     public PlainReply withEditMessage() {
-        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup, true);
+        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup, true,
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+    }
+
+    /**
+     * Returns a new {@code PlainReply} that will answer the originating callback query using
+     * this reply's text as the popup notification text. If the update is not a callback query
+     * the instruction is silently ignored.
+     *
+     * <p>Chain {@link #withCallbackAlert()}, {@link #withCallbackUrl(String)}, or
+     * {@link #withCallbackCacheTime(int)} to further configure the answer.</p>
+     *
+     * @return a new {@code PlainReply} with {@code answerCallbackQuery = true}
+     * @since 0.0.5
+     */
+    public PlainReply asAnswerCallbackQuery() {
+        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+                this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+    }
+
+    /**
+     * Returns a new {@code PlainReply} with {@code showAlert = true} on the
+     * {@code AnswerCallbackQuery} call, displaying an alert dialog instead of a toast.
+     * Implicitly activates {@code answerCallbackQuery}.
+     *
+     * @return a new {@code PlainReply} with the alert flag set
+     * @since 0.0.5
+     */
+    public PlainReply withCallbackAlert() {
+        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+                this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime);
+    }
+
+    /**
+     * Returns a new {@code PlainReply} with the given URL set on the
+     * {@code AnswerCallbackQuery} call. Implicitly activates {@code answerCallbackQuery}.
+     *
+     * @param url the URL to open; must not be {@code null}
+     * @return a new {@code PlainReply} with the callback URL set
+     * @since 0.0.5
+     */
+    public PlainReply withCallbackUrl(String url) {
+        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+                this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime);
+    }
+
+    /**
+     * Returns a new {@code PlainReply} with the given cache time set on the
+     * {@code AnswerCallbackQuery} call. Implicitly activates {@code answerCallbackQuery}.
+     *
+     * @param cacheTime cache duration in seconds; must be non-negative
+     * @return a new {@code PlainReply} with the cache time set
+     * @since 0.0.5
+     */
+    public PlainReply withCallbackCacheTime(int cacheTime) {
+        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+                this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime);
     }
 
     /**
@@ -305,6 +435,50 @@ public final class PlainReply implements MarkupAware {
     @Override
     public boolean isEditMessage() {
         return editMessage;
+    }
+
+    /**
+     * Returns {@code true} if the framework should send an {@code AnswerCallbackQuery} for the
+     * originating callback query using this reply's text as the popup notification text.
+     *
+     * @return {@code true} to answer the originating callback query
+     * @since 0.0.5
+     */
+    public boolean isAnswerCallbackQuery() {
+        return answerCallbackQuery;
+    }
+
+    /**
+     * Returns {@code true} if the {@code AnswerCallbackQuery} call should display an alert dialog
+     * instead of a toast notification ({@code showAlert = true}).
+     *
+     * @return {@code true} for alert mode
+     * @since 0.0.5
+     */
+    public boolean isCallbackAlert() {
+        return callbackAlert;
+    }
+
+    /**
+     * Returns the URL to be opened by the Telegram client when answering the callback query,
+     * or {@code null} if none was set.
+     *
+     * @return the callback URL; may be {@code null}
+     * @since 0.0.5
+     */
+    public String getCallbackUrl() {
+        return callbackUrl;
+    }
+
+    /**
+     * Returns the client-side cache duration in seconds for the {@code AnswerCallbackQuery}
+     * response, or {@code null} if no cache time was specified.
+     *
+     * @return the cache time in seconds; may be {@code null}
+     * @since 0.0.5
+     */
+    public Integer getCallbackCacheTime() {
+        return callbackCacheTime;
     }
 }
 

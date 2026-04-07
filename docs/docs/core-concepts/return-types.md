@@ -487,6 +487,75 @@ framework edits the original message instead of sending a new one:
 return PlainReply.of("Updated!").withEditMessage();
 ```
 
+### Answering Callback Queries {#callback-answer}
+
+Every Telegram callback query (inline keyboard button press) must be acknowledged, otherwise
+the user sees a loading spinner indefinitely. Call `.asAnswerCallbackQuery()` to send an
+`AnswerCallbackQuery` alongside your reply. The reply's own text is used as the popup
+notification text. If the update is **not** a callback query, the call is silently ignored.
+
+```java
+// Toast popup using the reply text
+@BotCallbackQuery("confirm")
+public PlainReply onConfirm() {
+    return PlainReply.of("Confirmed! ✅").asAnswerCallbackQuery();
+}
+
+// Alert dialog (showAlert = true)
+@BotCallbackQuery("delete")
+public PlainReply onDelete() {
+    return PlainReply.of("Item deleted.").asAnswerCallbackQuery().withCallbackAlert();
+}
+
+// Full control: alert + URL + cache time
+@BotCallbackQuery("premium")
+public PlainReply onPremium() {
+    return PlainReply.of("Opening premium page…")
+            .asAnswerCallbackQuery()
+            .withCallbackAlert()
+            .withCallbackUrl("https://example.com/premium")
+            .withCallbackCacheTime(10);
+}
+
+// Combine with edit-message: edit the original message AND answer the callback
+@BotCallbackQuery("approve")
+public PlainReply onApprove() {
+    return PlainReply.of("✅ Approved").withEditMessage().asAnswerCallbackQuery();
+}
+```
+
+Builder equivalent:
+
+```java
+PlainReply.builder()
+        .text("Saved!")
+        .answerCallbackQuery(true)
+        .callbackAlert(true)
+        .callbackCacheTime(5)
+        .build();
+```
+
+`LocalizedReply` has identical methods — the resolved i18n message is used as the popup text:
+
+```java
+@BotCallbackQuery("confirm")
+public LocalizedReply onConfirm() {
+    return LocalizedReply.of("action.confirmed").asAnswerCallbackQuery();
+}
+
+@BotCallbackQuery("delete")
+public LocalizedReply onDelete() {
+    return LocalizedReply.of("item.deleted").asAnswerCallbackQuery().withCallbackAlert();
+}
+```
+
+| Method | Effect |
+|---|---|
+| `.asAnswerCallbackQuery()` | Activates `AnswerCallbackQuery` — toast popup with reply text |
+| `.withCallbackAlert()` | Sets `showAlert=true` — alert dialog instead of toast |
+| `.withCallbackUrl(String)` | Sets the URL to open (deep link or game URL) |
+| `.withCallbackCacheTime(int)` | Sets the client-side cache duration in seconds |
+
 ---
 
 ## Markup Precedence

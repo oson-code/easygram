@@ -5,9 +5,12 @@ import uz.osoncode.easygram.core.argumentresolver.BotArgumentResolverFactory;
 import uz.osoncode.easygram.core.chatstate.BotChatState;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 import uz.osoncode.easygram.core.exception.BotHandlerException;
+import uz.osoncode.easygram.core.handler.invocation.BotHandlerInvocationContext;
+import uz.osoncode.easygram.core.markup.MarkupAware;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandlerFactory;
+import uz.osoncode.easygram.core.handler.invocation.MarkupApplicationFilter;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
@@ -61,6 +64,13 @@ public class BotExceptionMethodHandler<T extends Throwable> {
     private final BotReturnTypeHandlerFactory botReturnTypeHandlerFactory;
 
     /**
+     * Markup application filter used to apply {@code @BotReplyMarkup}, {@code @BotClearMarkup},
+     * and state-bound keyboards to the exception handler's return value — identical to how
+     * regular handler methods have markup applied via the invocation filter chain.
+     */
+    private final MarkupApplicationFilter markupApplicationFilter;
+
+    /**
      * Optional chat-state service used to check the current state of the chat.
      * {@code null} when the chat-state module is not present.
      */
@@ -91,7 +101,8 @@ public class BotExceptionMethodHandler<T extends Throwable> {
                                      BotArgumentResolverFactory botArgumentResolverFactory,
                                      BotReturnTypeHandlerFactory botReturnTypeHandlerFactory,
                                      BotChatStateService botChatStateService,
-                                     BotChatState chatState) {
+                                     BotChatState chatState,
+                                     MarkupApplicationFilter markupApplicationFilter) {
         this.exceptionType = exceptionType;
         this.priority = priority;
         this.method = method;
@@ -100,6 +111,7 @@ public class BotExceptionMethodHandler<T extends Throwable> {
         this.botReturnTypeHandlerFactory = botReturnTypeHandlerFactory;
         this.botChatStateService = botChatStateService;
         this.chatState = chatState;
+        this.markupApplicationFilter = markupApplicationFilter;
     }
 
     /**
@@ -173,9 +185,22 @@ public class BotExceptionMethodHandler<T extends Throwable> {
         try {
             botRequest.setThrowable(throwable);
             Object[] objects = botArgumentResolverFactory.resolveArguments(method.getParameters(), botRequest, botResponse);
-            Object invoke = method.invoke(bean, objects);
-            botReturnTypeHandlerFactory.getReturnTypeHandler(method)
-                    .handleReturnType(botRequest, botResponse, invoke);
+            Object returnValue = method.invoke(bean, objects);
+
+            // Apply markup annotations (@BotReplyMarkup, @BotClearMarkup, state-bound keyboards)
+            // so that exception handler methods participate in the same markup pipeline as regular handlers.
+            BotHandlerInvocationContext ctx = new BotHandlerInvocationContext(botRequest, botResponse, method, bean);
+            ctx.setReturnValue(returnValue);
+            markupApplicationFilter.invoke(ctx, noopCtx -> {});
+            returnValue = ctx.getReturnValue();
+
+            if (returnValue instanceof MarkupAware) {
+                botReturnTypeHandlerFactory.getReturnTypeHandler(returnValue)
+                        .handleReturnType(botRequest, botResponse, returnValue);
+            } else {
+                botReturnTypeHandlerFactory.getReturnTypeHandler(method)
+                        .handleReturnType(botRequest, botResponse, returnValue);
+            }
         } catch (Exception e) {
             throw new BotHandlerException("Failed to invoke exception handler method: " + method, e);
         }

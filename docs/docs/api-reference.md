@@ -1142,11 +1142,21 @@ PlainReply.of("Pick:").withKeyboard(myKeyboard)  // attach ReplyKeyboard directl
 PlainReply.of("Done.").removeMarkup()            // send ReplyKeyboardRemove
 PlainReply.of("Updated!").withEditMessage()      // edit originating callback-query message (since 0.0.2)
 
+// Answer callback query — reply text used as popup notification (since 0.0.5)
+PlainReply.of("Confirmed!").asAnswerCallbackQuery()              // toast popup
+PlainReply.of("Deleted.").asAnswerCallbackQuery().withCallbackAlert()  // alert dialog
+PlainReply.of("Open page").asAnswerCallbackQuery().withCallbackUrl("https://example.com")
+PlainReply.of("OK").asAnswerCallbackQuery().withCallbackCacheTime(10)
+
 // Builder
 PlainReply.builder()
     .text("Choose:")
     .markupId("main_menu")
-    .editMessage(true)          // edit instead of send (since 0.0.2)
+    .editMessage(true)            // edit instead of send (since 0.0.2)
+    .answerCallbackQuery(true)    // send AnswerCallbackQuery (since 0.0.5)
+    .callbackAlert(true)          // showAlert=true (since 0.0.5)
+    .callbackUrl("https://...")   // optional URL (since 0.0.5)
+    .callbackCacheTime(10)        // cache seconds (since 0.0.5)
     .build()
 ```
 
@@ -1176,12 +1186,21 @@ LocalizedReply.of("choose.option").withMarkup("main_menu")
 LocalizedReply.of("confirm.prompt").withMarkup("confirm_kb", Map.of("id", itemId))
 LocalizedReply.of("updated.text").withEditMessage()  // edit callback-query message (since 0.0.2)
 
+// Answer callback query — resolved i18n message used as popup text (since 0.0.5)
+LocalizedReply.of("action.confirmed").asAnswerCallbackQuery()
+LocalizedReply.of("item.deleted").asAnswerCallbackQuery().withCallbackAlert()
+LocalizedReply.of("opening.page").asAnswerCallbackQuery().withCallbackUrl("https://example.com")
+
 // Builder
 LocalizedReply.builder()
     .key("welcome.message")
     .args(user.getFirstName())
     .markupId("main_menu")
-    .editMessage(true)   // since 0.0.2
+    .editMessage(true)            // since 0.0.2
+    .answerCallbackQuery(true)    // since 0.0.5
+    .callbackAlert(true)          // showAlert=true (since 0.0.5)
+    .callbackUrl("https://...")   // optional URL (since 0.0.5)
+    .callbackCacheTime(10)        // cache seconds (since 0.0.5)
     .build()
 ```
 
@@ -2221,14 +2240,12 @@ public class MyComponent {
 
 **Package:** `uz.osoncode.easygram.core.bot`
 
-Enumerates the supported update-delivery transports.
+Enumerates the supported update-delivery transports. Set via `easygram.update.transport`.
 
 | Constant | Description |
 |---|---|
-| `LONG_POLLING` | Bot repeatedly calls `getUpdates` |
+| `LONG_POLLING` | Bot repeatedly calls `getUpdates` (default — omit `update` block entirely) |
 | `WEBHOOK` | Telegram pushes updates to an HTTPS endpoint |
-| `KAFKA_CONSUMER` | Updates arrive via a Kafka topic |
-| `RABBIT_CONSUMER` | Updates arrive via a RabbitMQ queue |
 
 ---
 
@@ -2254,10 +2271,11 @@ All three beans are `@ConditionalOnMissingBean` — replace any with a custom `@
 
 | Constant | Value | Built-in filter |
 |---|---|---|
-| `CONTEXT_SETTER` | `Integer.MIN_VALUE` | Sets `User` and `Chat` on `BotRequest` |
-| `OBSERVATION` | `MIN_VALUE + 1` | Micrometer observation span (core-observability) |
-| `API_SENDER` | `MIN_VALUE + 2` | Executes queued `BotApiMethod` calls via `TelegramClient` |
-| `PUBLISHING` | `MIN_VALUE + 1000` | Forwards update to message broker (messaging-*) |
+| `MDC_CONTEXT` | `Integer.MIN_VALUE` | Sets `bot.update.id` and `bot.transport` MDC keys |
+| `CONTEXT_SETTER` | `MIN_VALUE + 1` | Sets `User` and `Chat` on `BotRequest`; enriches MDC |
+| `OBSERVATION` | `MIN_VALUE + 2` | Micrometer observation span (core-observability) |
+| `API_SENDER` | `MIN_VALUE + 3` | Executes queued `BotApiMethod` calls via `TelegramClient` |
+| `PUBLISHING` | `MIN_VALUE + 1000` | Forwards update to message broker (messaging-api) |
 | *(custom default)* | `MAX_VALUE` | Default for user-defined filters — runs last |
 
 Custom filters that need to run **after** context is set but **before** the handler should use a value between `API_SENDER` and `PUBLISHING` (e.g. `0` or `100`).
@@ -2290,25 +2308,28 @@ easygram:
 
 ```yaml
 easygram:
-  transport: LONG_POLLING # Default
-                            # Options: LONG_POLLING | WEBHOOK | KAFKA_CONSUMER | RABBIT_CONSUMER
+  update:
+    transport: LONG_POLLING   # Default — omit block entirely for long-polling
+                              # Options: LONG_POLLING | WEBHOOK
 ```
 
 ### Long-Polling
 
-Long-polling has no additional configurable properties. The polling behaviour (timeout, batch size, back-off) is handled internally by the telegrambots library and cannot be overridden via `application.yml`.
+Long-polling has no additional configurable properties. The polling behaviour (timeout, batch size, back-off) is handled internally by the telegrambots library.
 
 ### Webhook
 
 ```yaml
 easygram:
-  webhook:
-    url: https://my-bot.example.com/webhook # Required — publicly reachable HTTPS URL
-    path: /webhook # Local handler path (default: /webhook)
-    secret-token: ${WEBHOOK_SECRET} # Recommended — validates Telegram requests
-    max-connections: 40
-    drop-pending-updates: false
-    unregister-on-shutdown: false
+  update:
+    transport: WEBHOOK
+    webhook:
+      url: https://my-bot.example.com/webhook # Required — publicly reachable HTTPS URL
+      path: /webhook                           # Local handler path (default: /webhook)
+      secret-token: ${WEBHOOK_SECRET}          # Recommended — validates Telegram requests
+      max-connections: 40
+      drop-pending-updates: false
+      unregister-on-shutdown: false
 ```
 
 ### Broker Publishing
@@ -2316,9 +2337,10 @@ easygram:
 ```yaml
 easygram:
   messaging:
-    forward-only: false # true = publish to broker only, skip local handler dispatch
+    type: PRODUCER            # Required: PRODUCER or CONSUMER
+    forward-only: false       # true = publish to broker only, skip local handler dispatch
     producer:
-      producer-type: kafka # kafka | rabbit
+      type: KAFKA             # KAFKA | RABBIT
     kafka:
       topic: easygram-updates
       create-if-absent: true
@@ -2336,10 +2358,14 @@ easygram:
 ```yaml
 easygram:
   messaging:
+    type: CONSUMER            # Required: PRODUCER or CONSUMER
+    consumer:
+      type: KAFKA             # KAFKA | RABBIT
     kafka:
       topic: easygram-updates
-      group-id: my-bot-consumer
+      group-id: my-bot-consumer   # consumer group ID (default: easygram-bot)
     rabbit:
+      exchange: easygram-exchange
       queue: easygram-updates
 ```
 

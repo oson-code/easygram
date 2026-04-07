@@ -302,14 +302,36 @@ easygram:
 
 ### Optional Properties
 ```yaml
+# Update delivery transport (defaults to LONG_POLLING — omit block entirely for long-polling bots)
 easygram:
-  transport: LONG_POLLING # LONG_POLLING, WEBHOOK, KAFKA_CONSUMER, RABBIT_CONSUMER
+  update:
+    transport: LONG_POLLING   # LONG_POLLING | WEBHOOK
+    webhook:                  # only needed when transport: WEBHOOK
+      url: https://example.com/webhook
+      path: /webhook
+      secret-token: ${WEBHOOK_SECRET}
+
+# Internationalisation (core-i18n module)
+easygram:
   i18n:
     default-locale: en
 
-# Transport-specific (see module READMEs)
-# Long-polling has no additional configurable properties — it uses the defaults from
-# the underlying telegrambots library. Use spring.kafka.* / spring.rabbitmq.* for broker transports.
+# Broker integration (messaging-api module — omit block for standalone bots)
+easygram:
+  messaging:
+    type: PRODUCER   # PRODUCER | CONSUMER
+    forward-only: false
+    producer:
+      type: KAFKA    # KAFKA | RABBIT
+    consumer:
+      type: KAFKA    # KAFKA | RABBIT
+    kafka:
+      topic: easygram-updates
+      group-id: easygram-bot   # consumer group ID (consumer mode)
+    rabbit:
+      exchange: easygram-exchange
+      queue: easygram-updates
+      routing-key: easygram.updates
 ```
 
 ## Request/Response Model

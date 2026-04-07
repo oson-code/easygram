@@ -47,26 +47,26 @@ Webhook requires a **publicly accessible HTTPS URL**:
 ```yaml
 easygram:
   token: "${BOT_TOKEN}"
-  transport: WEBHOOK
+  update:
+    transport: WEBHOOK
+    webhook:
+      # Public HTTPS URL Telegram will POST updates to
+      url: "https://my-bot.example.com/webhook"
 
-  webhook:
-    # Public HTTPS URL Telegram will POST updates to
-    url: "https://my-bot.example.com/webhook"
+      # Local path that accepts incoming requests (default: /webhook)
+      path: /webhook
 
-    # Local path that accepts incoming requests (default: /webhook)
-    path: /webhook
+      # Recommended: validate X-Telegram-Bot-Api-Secret-Token header
+      # secret-token: "${WEBHOOK_SECRET}"
 
-    # Recommended: validate X-Telegram-Bot-Api-Secret-Token header
-    # secret-token: "${WEBHOOK_SECRET}"
+      # Max simultaneous connections from Telegram (1–100, default: 40)
+      max-connections: 40
 
-    # Max simultaneous connections from Telegram (1–100, default: 40)
-    max-connections: 40
+      # Drop queued updates when registering (default: false)
+      drop-pending-updates: false
 
-    # Drop queued updates when registering (default: false)
-    drop-pending-updates: false
-
-    # Call deleteWebhook on application shutdown (default: false)
-    unregister-on-shutdown: true
+      # Call deleteWebhook on application shutdown (default: false)
+      unregister-on-shutdown: true
 
 server:
   port: 8080
@@ -186,8 +186,9 @@ Prevent spoofed webhook requests by configuring a secret token:
 
 ```yaml
 easygram:
-  webhook:
-    secret-token: "${WEBHOOK_SECRET}"
+  update:
+    webhook:
+      secret-token: "${WEBHOOK_SECRET}"
 ```
 
 Telegram sends the token in the `X-Telegram-Bot-Api-Secret-Token` header with every POST.
@@ -204,7 +205,7 @@ mvn spring-boot:run
 ngrok http 8080
 
 # 3. Update application.yml with the ngrok URL
-#    easygram.webhook.url: https://abc123.ngrok-free.app/webhook
+#    easygram.update.webhook.url: https://abc123.ngrok-free.app/webhook
 
 # 4. Restart the bot — it registers the new URL automatically
 ```
@@ -216,7 +217,7 @@ ngrok http 8080
 jprq http 8080
 
 # 2. Copy the *.jprq.live URL and update application.yml
-#    easygram.webhook.url: https://my-session.jprq.live/webhook
+#    easygram.update.webhook.url: https://my-session.jprq.live/webhook
 
 # 3. Restart the bot
 ```
@@ -230,7 +231,7 @@ jprq http 8080
 | **Internet** | Outbound only | Inbound HTTPS required |
 | **Best for** | Development, small bots | Production, high traffic |
 | **Horizontal scaling** | Limited | Yes (multiple instances) |
-| **Property** | *(default)* | `transport: WEBHOOK` |
+| **Property** | *(default)* | `easygram.update.transport: WEBHOOK` |
 
 ## Running in Production with Docker
 
@@ -248,9 +249,10 @@ services:
   bot:
     build: .
     environment:
-      BOT_TOKEN: "${BOT_TOKEN}"
-      WEBHOOK_SECRET: "${WEBHOOK_SECRET}"
-      TELEGRAM_BOT_WEBHOOK_URL: "https://my-bot.example.com/webhook"
+      easygram.token: "${BOT_TOKEN}"
+      easygram.update.transport: WEBHOOK
+      easygram.update.webhook.url: "https://my-bot.example.com/webhook"
+      easygram.update.webhook.secret-token: "${WEBHOOK_SECRET}"
     ports: ["8080:8080"]
 ```
 

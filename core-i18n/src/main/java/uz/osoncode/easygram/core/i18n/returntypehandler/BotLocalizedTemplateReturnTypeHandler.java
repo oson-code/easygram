@@ -69,6 +69,10 @@ public class BotLocalizedTemplateReturnTypeHandler implements BotReturnTypeHandl
                 botMarkupRegistry,
                 reply.getMarkupId(),
                 reply.getMarkupParams());
+        if (reply.isAnswerCallbackQuery()) {
+            BotReplyMessageHelper.addCallbackAnswer(botResponse, botRequest, resolved,
+                    reply.isCallbackAlert(), reply.getCallbackUrl(), reply.getCallbackCacheTime());
+        }
     }
 
     /**

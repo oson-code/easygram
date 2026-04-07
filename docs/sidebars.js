@@ -55,6 +55,7 @@ module.exports = {
         'examples/registration-wizard',
         'examples/i18n-registration-bot',
         'examples/kafka-producer-bot',
+        'examples/producer-bot',
         'examples/webhook-bot',
       ],
     },

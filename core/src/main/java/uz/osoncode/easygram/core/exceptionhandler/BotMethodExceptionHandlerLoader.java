@@ -12,6 +12,7 @@ import uz.osoncode.easygram.core.stereotype.BotController;
 import uz.osoncode.easygram.core.stereotype.BotControllerAdvice;
 import uz.osoncode.easygram.core.argumentresolver.BotArgumentResolverFactory;
 import uz.osoncode.easygram.core.bind.annotation.BotExceptionHandler;
+import uz.osoncode.easygram.core.handler.invocation.MarkupApplicationFilter;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandlerFactory;
 
 import java.util.Arrays;
@@ -64,6 +65,13 @@ public class BotMethodExceptionHandlerLoader implements ApplicationRunner {
     private final Optional<BotChatStateService> botChatStateService;
 
     /**
+     * Markup application filter injected into every {@link BotExceptionMethodHandler} so that
+     * {@code @BotReplyMarkup}, {@code @BotClearMarkup}, and state-bound keyboards are applied
+     * to exception-handler return values exactly as they are for regular handler methods.
+     */
+    private final MarkupApplicationFilter markupApplicationFilter;
+
+    /**
      * Scans {@link BotController} and {@link BotControllerAdvice} beans and registers
      * their {@link BotExceptionHandler} methods, respecting any {@link BotChatState} declared
      * at method or class level.
@@ -87,7 +95,7 @@ public class BotMethodExceptionHandlerLoader implements ApplicationRunner {
                             botExceptionHandlerRegistry.register(new BotExceptionMethodHandler<>(
                                     aClass, 0, method, bean,
                                     botArgumentResolverFactory, botReturnTypeHandlerFactory,
-                                    stateService, effectiveChatState));
+                                    stateService, effectiveChatState, markupApplicationFilter));
                         }
                     });
         });
@@ -105,7 +113,7 @@ public class BotMethodExceptionHandlerLoader implements ApplicationRunner {
                             botExceptionHandlerRegistry.register(new BotExceptionMethodHandler<>(
                                     aClass, 1, method, bean,
                                     botArgumentResolverFactory, botReturnTypeHandlerFactory,
-                                    stateService, effectiveChatState));
+                                    stateService, effectiveChatState, markupApplicationFilter));
                         }
                     });
         });

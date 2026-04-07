@@ -1159,9 +1159,10 @@ public class CoreAutoConfiguration {
             BotArgumentResolverFactory botArgumentResolverFactory,
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
             BotReturnTypeHandlerFactory botReturnTypeHandlerFactory,
-            Optional<BotChatStateService> chatStateService) {
+            Optional<BotChatStateService> chatStateService,
+            MarkupApplicationFilter markupApplicationFilter) {
         return new BotMethodExceptionHandlerLoader(applicationContext, botArgumentResolverFactory,
-                botExceptionHandlerRegistry, botReturnTypeHandlerFactory, chatStateService);
+                botExceptionHandlerRegistry, botReturnTypeHandlerFactory, chatStateService, markupApplicationFilter);
     }
 
 

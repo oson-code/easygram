@@ -35,10 +35,16 @@ public final class LocalizedReply implements MarkupAware {
     private final ReplyKeyboard keyboard;
     private final boolean removeMarkup;
     private final boolean editMessage;
+    private final boolean answerCallbackQuery;
+    private final boolean callbackAlert;
+    private final String callbackUrl;
+    private final Integer callbackCacheTime;
 
     private LocalizedReply(String key, Object[] args, String markupId,
                             Map<String, Object> markupParams, ReplyKeyboard keyboard,
-                            boolean removeMarkup, boolean editMessage) {
+                            boolean removeMarkup, boolean editMessage,
+                            boolean answerCallbackQuery, boolean callbackAlert,
+                            String callbackUrl, Integer callbackCacheTime) {
         this.key = key;
         this.args = args;
         this.markupId = markupId;
@@ -46,6 +52,10 @@ public final class LocalizedReply implements MarkupAware {
         this.keyboard = keyboard;
         this.removeMarkup = removeMarkup;
         this.editMessage = editMessage;
+        this.answerCallbackQuery = answerCallbackQuery;
+        this.callbackAlert = callbackAlert;
+        this.callbackUrl = callbackUrl;
+        this.callbackCacheTime = callbackCacheTime;
     }
 
     /**
@@ -77,6 +87,10 @@ public final class LocalizedReply implements MarkupAware {
         private ReplyKeyboard keyboard;
         private boolean removeMarkup;
         private boolean editMessage;
+        private boolean answerCallbackQuery;
+        private boolean callbackAlert;
+        private String callbackUrl;
+        private Integer callbackCacheTime;
 
         private Builder() {}
 
@@ -159,13 +173,68 @@ public final class LocalizedReply implements MarkupAware {
         }
 
         /**
+         * Activates {@code AnswerCallbackQuery} emission. The resolved i18n message is used as
+         * the popup text. Has no effect when the update is not a callback query.
+         *
+         * @param answerCallbackQuery {@code true} to answer the callback query
+         * @return this builder
+         * @since 0.0.5
+         */
+        public Builder answerCallbackQuery(boolean answerCallbackQuery) {
+            this.answerCallbackQuery = answerCallbackQuery;
+            return this;
+        }
+
+        /**
+         * Sets {@code showAlert = true} on the {@code AnswerCallbackQuery} call. Implicitly
+         * sets {@code answerCallbackQuery = true}.
+         *
+         * @return this builder
+         * @since 0.0.5
+         */
+        public Builder callbackAlert(boolean callbackAlert) {
+            if (callbackAlert) this.answerCallbackQuery = true;
+            this.callbackAlert = callbackAlert;
+            return this;
+        }
+
+        /**
+         * Sets the {@code url} parameter on the {@code AnswerCallbackQuery} call. Implicitly
+         * sets {@code answerCallbackQuery = true}.
+         *
+         * @param callbackUrl the URL to open; may be {@code null}
+         * @return this builder
+         * @since 0.0.5
+         */
+        public Builder callbackUrl(String callbackUrl) {
+            if (callbackUrl != null) this.answerCallbackQuery = true;
+            this.callbackUrl = callbackUrl;
+            return this;
+        }
+
+        /**
+         * Sets the {@code cache_time} parameter on the {@code AnswerCallbackQuery} call.
+         * Implicitly sets {@code answerCallbackQuery = true}.
+         *
+         * @param callbackCacheTime cache duration in seconds
+         * @return this builder
+         * @since 0.0.5
+         */
+        public Builder callbackCacheTime(Integer callbackCacheTime) {
+            if (callbackCacheTime != null) this.answerCallbackQuery = true;
+            this.callbackCacheTime = callbackCacheTime;
+            return this;
+        }
+
+        /**
          * Builds and returns the immutable {@link LocalizedReply}.
          *
          * @return a new {@code LocalizedReply} instance
          */
         public LocalizedReply build() {
             Objects.requireNonNull(key, "key must not be null");
-            return new LocalizedReply(key, args, markupId, markupParams, keyboard, removeMarkup, editMessage);
+            return new LocalizedReply(key, args, markupId, markupParams, keyboard, removeMarkup, editMessage,
+                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime);
         }
     }
 
@@ -177,12 +246,13 @@ public final class LocalizedReply implements MarkupAware {
      * @return a new {@code LocalizedReply} instance
      */
     public static LocalizedReply of(String key, Object... args) {
-        return new LocalizedReply(key, args, null, null, null, false, false);
+        return new LocalizedReply(key, args, null, null, null, false, false, false, false, null, null);
     }
 
     @Override
     public LocalizedReply withMarkup(String markupId) {
-        return new LocalizedReply(this.key, this.args, markupId, null, null, false, this.editMessage);
+        return new LocalizedReply(this.key, this.args, markupId, null, null, false, this.editMessage,
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
     }
 
     /**
@@ -194,7 +264,8 @@ public final class LocalizedReply implements MarkupAware {
      */
     @Override
     public LocalizedReply withMarkup(String markupId, Map<String, Object> params) {
-        return new LocalizedReply(this.key, this.args, markupId, params, null, false, this.editMessage);
+        return new LocalizedReply(this.key, this.args, markupId, params, null, false, this.editMessage,
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
     }
 
     /**
@@ -205,12 +276,14 @@ public final class LocalizedReply implements MarkupAware {
      */
     @Override
     public LocalizedReply withKeyboard(ReplyKeyboard keyboard) {
-        return new LocalizedReply(this.key, this.args, null, null, keyboard, false, this.editMessage);
+        return new LocalizedReply(this.key, this.args, null, null, keyboard, false, this.editMessage,
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
     }
 
     @Override
     public LocalizedReply removeMarkup() {
-        return new LocalizedReply(this.key, this.args, null, null, null, true, this.editMessage);
+        return new LocalizedReply(this.key, this.args, null, null, null, true, this.editMessage,
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
     }
 
     /**
@@ -223,7 +296,63 @@ public final class LocalizedReply implements MarkupAware {
      * @since 0.0.2
      */
     public LocalizedReply withEditMessage() {
-        return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup, true);
+        return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, true, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+    }
+
+    /**
+     * Returns a new {@code LocalizedReply} that will answer the originating callback query
+     * using the resolved i18n message as the popup notification text. If the update is not a
+     * callback query the instruction is silently ignored.
+     *
+     * <p>Chain {@link #withCallbackAlert()}, {@link #withCallbackUrl(String)}, or
+     * {@link #withCallbackCacheTime(int)} to further configure the answer.</p>
+     *
+     * @return a new {@code LocalizedReply} with {@code answerCallbackQuery = true}
+     * @since 0.0.5
+     */
+    public LocalizedReply asAnswerCallbackQuery() {
+        return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+    }
+
+    /**
+     * Returns a new {@code LocalizedReply} with {@code showAlert = true} on the
+     * {@code AnswerCallbackQuery} call, displaying an alert dialog instead of a toast.
+     * Implicitly activates {@code answerCallbackQuery}.
+     *
+     * @return a new {@code LocalizedReply} with the alert flag set
+     * @since 0.0.5
+     */
+    public LocalizedReply withCallbackAlert() {
+        return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime);
+    }
+
+    /**
+     * Returns a new {@code LocalizedReply} with the given URL set on the
+     * {@code AnswerCallbackQuery} call. Implicitly activates {@code answerCallbackQuery}.
+     *
+     * @param url the URL to open; must not be {@code null}
+     * @return a new {@code LocalizedReply} with the callback URL set
+     * @since 0.0.5
+     */
+    public LocalizedReply withCallbackUrl(String url) {
+        return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime);
+    }
+
+    /**
+     * Returns a new {@code LocalizedReply} with the given cache time set on the
+     * {@code AnswerCallbackQuery} call. Implicitly activates {@code answerCallbackQuery}.
+     *
+     * @param cacheTime cache duration in seconds; must be non-negative
+     * @return a new {@code LocalizedReply} with the cache time set
+     * @since 0.0.5
+     */
+    public LocalizedReply withCallbackCacheTime(int cacheTime) {
+        return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime);
     }
 
     public String getKey() {
@@ -264,6 +393,50 @@ public final class LocalizedReply implements MarkupAware {
     @Override
     public boolean isEditMessage() {
         return editMessage;
+    }
+
+    /**
+     * Returns {@code true} if the framework should send an {@code AnswerCallbackQuery} for the
+     * originating callback query using the resolved i18n message as the popup text.
+     *
+     * @return {@code true} to answer the originating callback query
+     * @since 0.0.5
+     */
+    public boolean isAnswerCallbackQuery() {
+        return answerCallbackQuery;
+    }
+
+    /**
+     * Returns {@code true} if the {@code AnswerCallbackQuery} call should display an alert
+     * dialog instead of a toast notification ({@code showAlert = true}).
+     *
+     * @return {@code true} for alert mode
+     * @since 0.0.5
+     */
+    public boolean isCallbackAlert() {
+        return callbackAlert;
+    }
+
+    /**
+     * Returns the URL to be opened by the Telegram client when answering the callback query,
+     * or {@code null} if none was set.
+     *
+     * @return the callback URL; may be {@code null}
+     * @since 0.0.5
+     */
+    public String getCallbackUrl() {
+        return callbackUrl;
+    }
+
+    /**
+     * Returns the client-side cache duration in seconds for the {@code AnswerCallbackQuery}
+     * response, or {@code null} if no cache time was specified.
+     *
+     * @return the cache time in seconds; may be {@code null}
+     * @since 0.0.5
+     */
+    public Integer getCallbackCacheTime() {
+        return callbackCacheTime;
     }
 }
 

@@ -55,7 +55,7 @@ easygram:
     forward-only: true
 
     producer:
-      producer-type: kafka
+      type: KAFKA
 
     kafka:
       topic: easygram-updates
@@ -160,27 +160,24 @@ when using a custom key-based partitioner.
 
 ## Downstream Consumer
 
-Use `messaging-kafka-consumer` transport to consume updates through the full bot pipeline
+Use the consumer transport to process updates through the full bot pipeline
 in a separate application:
 
 ```yaml
 # consumer/application.yml
 easygram:
   token: "${BOT_TOKEN}"
-  transport: KAFKA_CONSUMER
   messaging:
+    type: CONSUMER
+    consumer:
+      type: KAFKA
     kafka:
-      topic:    easygram-updates
+      topic: easygram-updates
       group-id: my-bot-consumer-group
 
 spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    consumer:
-      key-deserializer:   org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      group-id: my-bot-consumer-group
-      auto-offset-reset: earliest
 ```
 
 See the [Kafka Consumer Guide](../transports/kafka-consumer-guide) for full configuration.
@@ -192,8 +189,9 @@ Switch to RabbitMQ by changing two properties:
 ```yaml
 easygram:
   messaging:
+    type: PRODUCER
     producer:
-      producer-type: rabbit    # was: kafka
+      type: RABBIT    # was: KAFKA
     rabbit:
       exchange:     easygram-exchange
       routing-key:  easygram.updates
@@ -210,31 +208,36 @@ spring:
 
 ## Running with Docker Compose
 
-```yaml
-version: '3.8'
-services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+The `samples/producer-bot` module provides ready-to-use compose files with Bitnami KRaft
+(no ZooKeeper). For a minimal custom setup:
 
+```yaml
+services:
   kafka:
-    image: confluentinc/cp-kafka:7.4.0
-    depends_on: [zookeeper]
-    ports: ["9092:9092"]
+    image: bitnami/kafka:latest
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CFG_NODE_ID: "1"
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+    ports: ["9092:9092"]
 
   bot:
     image: my-kafka-producer-bot:latest
     depends_on: [kafka]
     environment:
-      BOT_TOKEN: "${BOT_TOKEN}"
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      easygram.token: "${BOT_TOKEN}"
+      easygram.messaging.type: PRODUCER
+      easygram.messaging.forward-only: "true"
+      easygram.messaging.producer.type: KAFKA
+      easygram.messaging.kafka.topic: easygram-updates
+      spring.kafka.bootstrap-servers: kafka:9092
 ```
+
+See [Docker Producer Bot](./producer-bot) for the full production-ready module.
 
 ## Error Handling
 

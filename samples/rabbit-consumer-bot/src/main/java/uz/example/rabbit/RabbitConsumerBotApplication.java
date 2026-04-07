@@ -23,13 +23,4 @@ public class RabbitConsumerBotApplication {
     public static void main(String[] args) {
         SpringApplication.run(RabbitConsumerBotApplication.class, args);
     }
-
-    @Bean
-    public BotTelegramUrlProvider  botTelegramUrlProvider() {
-        return () -> TelegramUrl.builder()
-                .schema("https")
-                .host("tg.imirsaburov.uz")
-                .port(443)
-                .build();
-    }
 }

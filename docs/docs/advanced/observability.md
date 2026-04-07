@@ -119,7 +119,7 @@ tracing bridge is on the classpath, traced.
 | Tag | Values | Description |
 |---|---|---|
 | `update_type` | `message`, `callback_query`, `inline_query`, `edited_message`, `channel_post`, `poll`, `poll_answer`, `my_chat_member`, `chat_member`, `chat_join_request`, `business_connection`, `business_message`, `edited_business_message`, `deleted_business_message`, `paid_media_purchased`, … | Type of the incoming Telegram Update |
-| `transport_type` | `LONG_POLLING`, `WEBHOOK`, `KAFKA_CONSUMER`, `RABBIT_CONSUMER` | Active transport |
+| `transport_type` | `LONG_POLLING`, `WEBHOOK` | Active transport (broker consumer bots emit the broker type via MDC) |
 
 **High-cardinality** (present in spans/traces only — not in Prometheus labels):
 
@@ -328,7 +328,7 @@ methods — carry these keys automatically.
 | Key | Type | Description |
 |-----|------|-------------|
 | `bot.update.id` | String (integer) | Telegram update ID |
-| `bot.transport` | String (enum name) | Active transport: `LONG_POLLING`, `WEBHOOK`, `KAFKA_CONSUMER`, `RABBIT_CONSUMER` |
+| `bot.transport` | String (enum name) | Active transport: `LONG_POLLING`, `WEBHOOK`, or broker type (`KAFKA`, `RABBIT`) for consumer bots |
 | `bot.user.id` | String (long) | Telegram user ID (set after `BotContextSetterFilter`) |
 | `bot.chat.id` | String (long) | Telegram chat ID (set after `BotContextSetterFilter`) |
 

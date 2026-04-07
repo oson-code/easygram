@@ -63,16 +63,17 @@ Easygram includes these filters, executed in this order:
 
 | Filter | Order constant | Value | Purpose |
 |---|---|---|---|
-| `BotContextSetterFilter` | `CONTEXT_SETTER` | `Integer.MIN_VALUE` | Resolves `User` and `Chat` from the update |
-| `BotObservabilityFilter` | `OBSERVATION` | `MIN_VALUE + 1` | Wraps the chain in a Micrometer `Observation` |
-| `BotApiMethodsSenderFilter` | `API_SENDER` | `MIN_VALUE + 2` | Executes queued `BotApiMethod` calls after the chain |
-| `BotUpdatePublishingFilter` | `PUBLISHING` | `MIN_VALUE + 1000` | Forwards update to Kafka / RabbitMQ (optional) |
+| `BotMdcFilter` | `MDC_CONTEXT` | `Integer.MIN_VALUE` | Sets MDC keys `bot.update.id` and `bot.transport` for correlated logging |
+| `BotContextSetterFilter` | `CONTEXT_SETTER` | `MIN_VALUE + 1` | Resolves `User` and `Chat` from the update; enriches MDC with `bot.chat.id` / `bot.user.id` |
+| `BotObservabilityFilter` | `OBSERVATION` | `MIN_VALUE + 2` | Wraps the chain in a Micrometer `Observation` (timer + distributed trace span) |
+| `BotApiMethodsSenderFilter` | `API_SENDER` | `MIN_VALUE + 3` | Calls the downstream chain, then executes all queued `BotApiMethod` calls via `TelegramClient` |
+| `BotUpdatePublishingFilter` | `PUBLISHING` | `MIN_VALUE + 1000` | Forwards the raw update to Kafka / RabbitMQ (active only when `messaging-api` is configured) |
 | *(your custom filters)* | — | `MAX_VALUE` (default) | Runs after all built-in filters |
 
 :::tip
-Custom filters default to `Integer.MAX_VALUE` — they run after built-in filters.
-Use `BotFilterOrder.CONTEXT_SETTER + N` to insert before the dispatcher but after
-`User`/`Chat` are resolved.
+Custom filters default to `Integer.MAX_VALUE` — they run after all built-in filters.
+Use `BotFilterOrder.CONTEXT_SETTER + N` to insert your filter just after `User`/`Chat` are resolved.
+Use `BotFilterOrder.OBSERVATION - 1` to wrap your logic inside the Micrometer trace span.
 :::
 
 ## Creating Custom Filters
