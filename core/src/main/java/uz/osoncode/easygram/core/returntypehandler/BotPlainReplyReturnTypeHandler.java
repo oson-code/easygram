@@ -43,16 +43,18 @@ public class BotPlainReplyReturnTypeHandler implements BotReturnTypeHandler {
             return;
         }
         PlainReply reply = (PlainReply) returnValue;
-        BotReplyMessageHelper.addReply(
-                botResponse,
-                botRequest,
-                reply.getText(),
-                reply.isEditMessage(),
-                reply.getKeyboard(),
-                reply.isRemoveMarkup(),
-                markupRegistry,
-                reply.getMarkupId(),
-                reply.getMarkupParams());
+        if (!reply.isCallbackAlert()) {
+            BotReplyMessageHelper.addReply(
+                    botResponse,
+                    botRequest,
+                    reply.getText(),
+                    reply.isEditMessage(),
+                    reply.getKeyboard(),
+                    reply.isRemoveMarkup(),
+                    markupRegistry,
+                    reply.getMarkupId(),
+                    reply.getMarkupParams());
+        }
         if (reply.isAnswerCallbackQuery()) {
             BotReplyMessageHelper.addCallbackAnswer(
                     botResponse,

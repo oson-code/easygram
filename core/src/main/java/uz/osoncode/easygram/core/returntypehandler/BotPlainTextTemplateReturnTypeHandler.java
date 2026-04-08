@@ -47,16 +47,18 @@ public class BotPlainTextTemplateReturnTypeHandler implements BotReturnTypeHandl
         }
         PlainTextTemplate reply = (PlainTextTemplate) returnValue;
         String text = resolveArgs(reply.getTemplate(), reply.getArgs());
-        BotReplyMessageHelper.addReply(
-                botResponse,
-                botRequest,
-                text,
-                reply.isEditMessage(),
-                reply.getKeyboard(),
-                reply.isRemoveMarkup(),
-                botMarkupRegistry,
-                reply.getMarkupId(),
-                reply.getMarkupParams());
+        if (!reply.isCallbackAlert()) {
+            BotReplyMessageHelper.addReply(
+                    botResponse,
+                    botRequest,
+                    text,
+                    reply.isEditMessage(),
+                    reply.getKeyboard(),
+                    reply.isRemoveMarkup(),
+                    botMarkupRegistry,
+                    reply.getMarkupId(),
+                    reply.getMarkupParams());
+        }
         if (reply.isAnswerCallbackQuery()) {
             BotReplyMessageHelper.addCallbackAnswer(botResponse, botRequest, text,
                     reply.isCallbackAlert(), reply.getCallbackUrl(), reply.getCallbackCacheTime());
