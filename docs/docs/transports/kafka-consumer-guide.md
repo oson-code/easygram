@@ -1,6 +1,8 @@
 ---
 id: kafka-consumer-guide
 title: Kafka Consumer Transport
+description: Run a Kafka consumer bot with Easygram — configure easygram.messaging.type=CONSUMER, consumer type KAFKA, topic, group-id, bootstrap-servers, and Docker Compose with KRaft.
+keywords: [telegram bot kafka consumer, easygram kafka consumer, spring boot telegram kafka transport, kafka consumer telegram bot java, easygram messaging.type consumer]
 ---
 
 # Kafka Consumer Transport

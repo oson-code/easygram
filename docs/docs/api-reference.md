@@ -1,6 +1,8 @@
 ---
 id: api-reference
 title: API Reference
+description: Complete API reference for all Easygram annotations, SPI interfaces, reply types, configuration properties, and extension points for the Spring Boot Telegram bot framework.
+keywords: [easygram api reference, telegram bot annotations java, BotController, BotCommand, PlainReply, BotFilter, spring boot telegram properties]
 ---
 
 # API Reference

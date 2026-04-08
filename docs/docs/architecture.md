@@ -1,6 +1,8 @@
 ---
 id: architecture
 title: System Architecture
+description: Explore Easygram's layered architecture — filter chain, dispatcher, argument resolvers, return-type handlers, and pluggable transports. Understand how each module fits together.
+keywords: [easygram architecture, spring boot bot framework internals, telegram bot filter chain, bot dispatcher java, bot module structure]
 ---
 
 # Easygram Architecture

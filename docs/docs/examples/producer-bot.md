@@ -1,6 +1,8 @@
 ---
 id: producer-bot
 title: Docker Producer Bot
+description: Docker-ready Easygram producer bot image — run with environment variables to forward Telegram updates to Kafka or RabbitMQ. Long-polling and webhook options with Docker Compose.
+keywords: [easygram docker producer bot, telegram bot docker kafka, telegram bot docker rabbitmq, easygram docker image, telegram bot container spring boot]
 ---
 
 # Docker-Ready Producer Bot

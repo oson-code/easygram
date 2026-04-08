@@ -1,6 +1,8 @@
 ---
 id: chat-state-backends
 title: Chat State Backends
+description: Replace the default in-memory chat state with Redis, JDBC, or a custom BotChatStateService bean for distributed, persistent multi-step conversation state in Telegram bots.
+keywords: [telegram bot redis chat state, BotChatStateService custom, spring boot telegram persistent state, distributed telegram bot state, easygram state backend]
 ---
 
 # Chat State Backends

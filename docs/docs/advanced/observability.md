@@ -1,6 +1,8 @@
 ---
 id: observability
 title: Observability
+description: Add Micrometer metrics, distributed tracing with MDC, and Spring Boot Actuator health indicators to your Telegram bot using the Easygram core-observability module.
+keywords: [telegram bot observability, spring boot bot micrometer, MDC tracing telegram bot, telegram bot health indicator, easygram metrics, actuator telegram]
 ---
 
 # Observability

@@ -1,6 +1,8 @@
 ---
 id: exception-handling
 title: Exception Handling
+description: Handle exceptions in Telegram bot handlers using @BotExceptionHandler. Learn exception propagation, markup support in exception responses, and global vs per-controller handler scoping.
+keywords: [BotExceptionHandler, telegram bot exception handling java, spring boot bot error handler, @BotReplyMarkup exception, easygram exception]
 ---
 
 # Exception Handling

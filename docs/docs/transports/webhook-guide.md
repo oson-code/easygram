@@ -1,6 +1,8 @@
 ---
 id: webhook-guide
 title: Webhook Transport
+description: Configure Telegram webhook transport in Easygram — HTTPS URL, secret-token, easygram.update.webhook.* properties, automatic setWebhook registration, and nginx/Docker deployment.
+keywords: [telegram webhook spring boot, easygram webhook transport, spring boot bot webhook configuration, setWebhook java, telegram bot nginx docker]
 ---
 
 # Webhook Transport Guide

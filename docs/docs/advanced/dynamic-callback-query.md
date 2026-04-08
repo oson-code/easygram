@@ -1,6 +1,8 @@
 ---
 id: dynamic-callback-query
 title: Dynamic Callback Queries
+description: Handle dynamic inline keyboard callbacks in Easygram — @BotCallbackQuery with runtime data extraction, AnswerCallbackQuery toast/alert support, URL payloads, and cache time.
+keywords: [BotCallbackQuery, telegram inline keyboard java, AnswerCallbackQuery spring boot, dynamic callback data telegram, easygram callback query]
 ---
 
 # Dynamic Callback Queries

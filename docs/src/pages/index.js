@@ -28,12 +28,39 @@ function HomepageHeader() {
   );
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Easygram',
+  url: 'https://easygram.osoncode.uz',
+  downloadUrl: 'https://central.sonatype.com/artifact/uz.osoncode.easygram/spring-boot-starter',
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'JVM',
+  programmingLanguage: 'Java',
+  runtimePlatform: 'Spring Boot 3',
+  description:
+    'Easygram is a Spring Boot framework for building Telegram bots with annotation-driven routing, pluggable transports (long-polling, webhook, Kafka, RabbitMQ), chat state management, i18n, and Micrometer observability.',
+  keywords:
+    'telegram bot, spring boot, java, annotation-driven, webhook, long-polling, kafka, rabbitmq, chatbot framework',
+  softwareVersion: '0.0.5',
+  license: 'https://opensource.org/licenses/MIT',
+  author: {
+    '@type': 'Organization',
+    name: 'OSONCODE',
+    url: 'https://osoncode.uz',
+  },
+};
+
 export default function Home() {
   return (
     <Layout
-      title="Welcome to Easygram"
-      description="A Spring Boot framework for building Telegram bots with zero boilerplate"
+      title="Spring Boot Telegram Bot Framework"
+      description="Easygram is a Spring Boot framework for building Telegram bots with annotation-driven routing, pluggable transports, chat state management, and zero boilerplate."
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <HomepageHeader />
       <main>
         <HomepageFeatures />

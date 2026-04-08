@@ -1,6 +1,8 @@
 ---
 id: faq
 title: Frequently Asked Questions
+description: Frequently asked questions about Easygram — transport configuration, missing beans, property key changes, consumer startup issues, and general Spring Boot Telegram bot troubleshooting.
+keywords: [easygram faq, telegram bot troubleshooting spring boot, telegram bot not starting, easygram properties help]
 ---
 
 # Frequently Asked Questions
