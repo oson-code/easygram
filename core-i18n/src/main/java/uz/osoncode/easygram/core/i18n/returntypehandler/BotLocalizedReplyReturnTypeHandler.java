@@ -47,16 +47,18 @@ public class BotLocalizedReplyReturnTypeHandler implements BotReturnTypeHandler 
         }
         LocalizedReply reply = (LocalizedReply) returnValue;
         String resolved = botMessageSource.getMessage(reply.getKey(), botRequest, reply.getArgs());
-        BotReplyMessageHelper.addReply(
-                botResponse,
-                botRequest,
-                resolved,
-                reply.isEditMessage(),
-                reply.getKeyboard(),
-                reply.isRemoveMarkup(),
-                botMarkupRegistry,
-                reply.getMarkupId(),
-                reply.getMarkupParams());
+        if (!reply.isCallbackAlert()) {
+            BotReplyMessageHelper.addReply(
+                    botResponse,
+                    botRequest,
+                    resolved,
+                    reply.isEditMessage(),
+                    reply.getKeyboard(),
+                    reply.isRemoveMarkup(),
+                    botMarkupRegistry,
+                    reply.getMarkupId(),
+                    reply.getMarkupParams());
+        }
         if (reply.isAnswerCallbackQuery()) {
             BotReplyMessageHelper.addCallbackAnswer(
                     botResponse,
