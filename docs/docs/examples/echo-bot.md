@@ -2,7 +2,7 @@
 id: echo-bot
 title: Echo Bot Example
 description: Complete echo bot example using Easygram and Spring Boot — @BotCommand, @BotDefaultHandler, PlainReply usage, and full project structure walkthrough to get started quickly.
-keywords: [telegram echo bot java, spring boot telegram bot example, easygram hello world, @BotCommand example, simple telegram bot spring]
+keywords: [telegram echo bot java, spring boot telegram bot example, easygram hello world, '@BotCommand example', simple telegram bot spring]
 ---
 
 # Echo Bot Example
