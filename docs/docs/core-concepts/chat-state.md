@@ -1,6 +1,8 @@
 ---
 id: chat-state
 title: Chat State Management
+description: Manage multi-step conversation flows in Telegram bots using Easygram chat state — @BotChatState, @BotForwardChatState, BotChatStateService, and pluggable state backends.
+keywords: [telegram bot chat state java, BotChatState, multi-step telegram bot, spring boot conversation state, BotForwardChatState, easygram state management]
 ---
 
 # Chat State Management

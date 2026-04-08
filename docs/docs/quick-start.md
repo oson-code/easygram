@@ -1,6 +1,8 @@
 ---
 id: quick-start
 title: Quick Start
+description: Build your first Telegram bot with Spring Boot in under five minutes using Easygram. Step-by-step guide from dependency setup to a running bot with minimal code.
+keywords: [telegram bot quick start, spring boot telegram bot tutorial, easygram getting started, telegram bot java example]
 ---
 
 # Quick Start Guide

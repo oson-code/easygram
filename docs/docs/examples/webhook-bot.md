@@ -1,6 +1,8 @@
 ---
 id: webhook-bot
 title: Webhook Bot Example
+description: Telegram webhook bot example with Easygram and Spring Boot — webhook transport configuration, secret-token validation, HTTPS reverse proxy setup, and Docker deployment.
+keywords: [telegram webhook bot java, spring boot webhook telegram, easygram webhook example, telegram bot https docker, setWebhook spring boot]
 ---
 
 # Webhook Bot Example

@@ -1,6 +1,8 @@
 ---
 id: broker-publishing
 title: Broker Publishing
+description: Publish Telegram bot updates to Apache Kafka or RabbitMQ using Easygram's messaging API — BotUpdatePublisher, producer configuration, forward-only mode, and multi-transport setup.
+keywords: [telegram bot kafka rabbitmq, spring boot telegram message broker, BotUpdatePublisher, easygram messaging, forward telegram updates broker]
 ---
 
 # Broker Publishing

@@ -1,6 +1,8 @@
 ---
 id: rabbitmq-consumer-guide
 title: RabbitMQ Consumer Transport
+description: Run a RabbitMQ consumer bot with Easygram — configure easygram.messaging.consumer.type=RABBIT, exchange, queue, routing-key, spring.rabbitmq, and Docker Compose setup.
+keywords: [telegram bot rabbitmq consumer, easygram rabbitmq transport, spring boot telegram rabbitmq, AMQP telegram bot java, easygram rabbit consumer]
 ---
 
 # RabbitMQ Consumer Transport

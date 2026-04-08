@@ -1,6 +1,8 @@
 ---
 id: parameter-injection
 title: Parameter Injection
+description: Inject Update, Chat, User, Message, and custom types into Telegram bot handler methods using Easygram's extensible BotArgumentResolver SPI with zero boilerplate.
+keywords: [BotArgumentResolver, telegram bot parameter injection java, inject user telegram spring boot, easygram method arguments, custom resolver]
 ---
 
 # Parameter Injection

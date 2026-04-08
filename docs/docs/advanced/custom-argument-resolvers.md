@@ -1,6 +1,8 @@
 ---
 id: custom-argument-resolvers
 title: Custom Argument Resolvers
+description: Inject custom types into Telegram bot handler parameters by implementing BotArgumentResolver — resolve session data, user profiles, and domain objects directly from context.
+keywords: [BotArgumentResolver, custom parameter injection telegram bot, spring boot bot custom resolver, easygram argument resolver, inject domain object telegram]
 ---
 
 # Custom Argument Resolvers

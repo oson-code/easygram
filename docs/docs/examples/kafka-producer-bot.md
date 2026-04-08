@@ -1,6 +1,8 @@
 ---
 id: kafka-producer-bot
 title: Kafka Producer Bot Example
+description: Configure an Easygram producer bot to forward Telegram updates to Apache Kafka — spring-kafka setup, topic auto-creation, consumer group pairing, and Docker Compose example.
+keywords: [telegram bot kafka producer, spring boot telegram kafka, easygram kafka example, forward telegram updates kafka, spring kafka telegram bot]
 ---
 
 # Kafka Producer Bot Example

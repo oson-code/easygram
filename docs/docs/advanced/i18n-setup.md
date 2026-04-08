@@ -1,6 +1,8 @@
 ---
 id: i18n-setup
 title: Internationalization (i18n)
+description: Set up i18n in your Spring Boot Telegram bot with Easygram — BotMessageSource, YAML message files, LocalizedReply locale resolution, and locale-aware keyboard factories.
+keywords: [telegram bot i18n setup, spring boot telegram internationalization, BotMessageSource, LocalizedReply, BotKeyboardFactory, multi-language bot setup]
 ---
 
 # Internationalization Setup

@@ -1,6 +1,8 @@
 ---
 id: custom-filters
 title: Custom Filters
+description: Intercept every Telegram update with a custom BotFilter — implement doFilter(), set execution priority with getOrder(), and use BotFilterOrder constants for precise pipeline ordering.
+keywords: [BotFilter custom, telegram bot interceptor java, spring boot bot filter chain, BotFilterOrder, easygram custom filter, update interceptor]
 ---
 
 # Custom Filters

@@ -1,6 +1,8 @@
 ---
 id: return-types
 title: Return Types
+description: Supported return types in Easygram — String, PlainReply, LocalizedReply, PlainTextTemplate, LocalizedTemplate — with fluent builder API, wither methods, and AnswerCallbackQuery support.
+keywords: [PlainReply, LocalizedReply, PlainTextTemplate, telegram bot return type java, AnswerCallbackQuery spring boot, easygram reply types]
 ---
 
 # Return Types

@@ -1,6 +1,8 @@
 ---
 id: custom-return-handlers
 title: Custom Return-Type Handlers
+description: Add support for custom return types in Easygram by implementing BotReturnTypeHandler — handle domain objects, CompletableFuture, and specialized Telegram API responses from handlers.
+keywords: [BotReturnTypeHandler, custom return type telegram bot, spring boot bot response handler, easygram return type extension, custom Telegram API call]
 ---
 
 # Custom Return-Type Handlers

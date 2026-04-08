@@ -1,6 +1,8 @@
 ---
 id: i18n-registration-bot
 title: i18n Registration Bot
+description: Internationalized Telegram bot example using Easygram i18n — BotMessageSource, LocalizedReply, locale detection, multi-language YAML messages, and user registration flow.
+keywords: [telegram bot i18n java, spring boot telegram internationalization, LocalizedReply example, easygram i18n, multi-language telegram bot]
 ---
 
 # i18n Registration Bot

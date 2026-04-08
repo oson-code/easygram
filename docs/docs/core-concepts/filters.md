@@ -1,6 +1,8 @@
 ---
 id: filters
 title: Filter Pipeline
+description: The Easygram filter pipeline — BotFilter SPI, built-in filters (MDC, observability, API sender, publishing), BotFilterOrder constants, and how to write custom pre/post filters.
+keywords: [BotFilter, telegram bot filter java, spring boot bot middleware, BotFilterOrder, MDC tracing telegram, easygram filter pipeline]
 ---
 
 # Filter Pipeline

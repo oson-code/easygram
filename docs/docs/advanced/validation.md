@@ -1,6 +1,8 @@
 ---
 id: validation
 title: Jakarta Bean Validation
+description: Validate Telegram bot handler parameters with Jakarta Bean Validation in Easygram — @NotNull, @Size, custom constraints on injected types, and global exception handling for violations.
+keywords: [telegram bot validation java, spring boot bot bean validation, jakarta validation telegram, '@NotNull telegram handler', easygram validation]
 ---
 
 # Jakarta Bean Validation

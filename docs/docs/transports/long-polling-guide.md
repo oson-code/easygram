@@ -1,6 +1,8 @@
 ---
 id: long-polling-guide
 title: Long-Polling Transport
+description: Configure Telegram long-polling transport in Easygram — required dependency, easygram.update.transport property, polling interval tuning, and Docker deployment with environment variables.
+keywords: [telegram long polling spring boot, easygram long polling, telegram bot polling java, spring boot bot transport, easygram.update.transport]
 ---
 
 # Long-Polling Transport Guide

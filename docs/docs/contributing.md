@@ -1,6 +1,8 @@
 ---
 id: contributing
 title: Contributing
+description: Learn how to contribute to Easygram — code conventions, module structure, build commands, pull request guidelines, and how to test your changes locally on the framework.
+keywords: [contribute easygram, telegram bot framework open source, easygram development, spring boot telegram bot github]
 ---
 
 # Contributing to Easygram

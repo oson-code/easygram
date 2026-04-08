@@ -1,6 +1,8 @@
 ---
 id: handlers
 title: Handler Annotations
+description: Reference for all Easygram handler annotations — @BotCommand, @BotText, @BotTextPattern, @BotCallbackQuery, @BotDefaultHandler, @BotController, and @BotExceptionHandler — with examples.
+keywords: [BotCommand, BotText, BotController, telegram bot handler java, spring boot telegram annotations, '@BotCallbackQuery', '@BotDefaultHandler']
 ---
 
 # Handler Annotations

@@ -1,6 +1,8 @@
 ---
 id: registration-wizard
 title: Registration Wizard Example
+description: Multi-step user registration wizard with Easygram chat state — @BotChatState, @BotForwardChatState, stateful conversation flows, and data collection across multiple messages.
+keywords: [telegram bot registration wizard, spring boot chatbot multi-step, BotChatState example, stateful telegram bot java, easygram wizard]
 ---
 
 # Registration Wizard Example

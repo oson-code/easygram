@@ -1,6 +1,8 @@
 ---
 id: intro
 title: Introduction to Easygram
+description: Easygram is an annotation-driven Spring Boot framework for building Telegram bots. Learn how it simplifies routing, transports, and chat state management with zero boilerplate.
+keywords: [telegram bot framework, spring boot telegram, java telegram bot, annotation-driven bot, easygram]
 ---
 
 # Welcome to Easygram

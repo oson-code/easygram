@@ -1,6 +1,8 @@
 ---
 id: markup-system
 title: Keyboard & Markup System
+description: Manage Telegram keyboards in Easygram — @BotMarkup, @BotReplyMarkup, @BotConfiguration registry, chat-state-bound keyboards, ReplyKeyboardMarkup, and InlineKeyboardMarkup.
+keywords: [telegram keyboard spring boot, '@BotMarkup', '@BotReplyMarkup', telegram inline keyboard java, BotMarkupRegistry, easygram keyboard system]
 ---
 
 # Keyboard & Markup System
