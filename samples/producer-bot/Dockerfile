@@ -1,32 +1,30 @@
-# ── Stage 1: build ─────────────────────────────────────────────────────────
-FROM eclipse-temurin:17-jdk-alpine AS build
+FROM imirsaburov/spring-builder:21-jdk-alpine as builder
 
-WORKDIR /workspace
+ENV HOME=/app
 
-# Cache dependency downloads before copying source
+RUN mkdir -p $HOME
+WORKDIR $HOME
+
 COPY pom.xml .
-RUN apk add --no-cache maven && \
-    mvn dependency:go-offline -q
+RUN mvn dependency:go-offline -B
 
-COPY src ./src
-RUN mvn package -DskipTests -q
+COPY ./ ./
 
-# ── Stage 2: runtime ────────────────────────────────────────────────────────
-FROM eclipse-temurin:17-jre-alpine
+RUN mvn -f $HOME/pom.xml package -DskipTests
+RUN mv ./target/*.jar /app/app.jar
 
-# Non-root user for security
-RUN addgroup -S bot && adduser -S bot -G bot
+RUN ls -la
 
-WORKDIR /app
+FROM imirsaburov/spring-runner:21-jre-alpine
 
-COPY --from=build /workspace/target/*.jar app.jar
+ENV HOME=/app
 
-RUN chown bot:bot app.jar
+RUN mkdir -p $HOME
+WORKDIR $HOME
 
-USER bot
+COPY --from=builder /app/app.jar /app/app.jar
 
-# Webhook port (only needed when easygram.update.transport=WEBHOOK)
-EXPOSE 8080
+RUN ls -la
 
 ENTRYPOINT ["java", \
   "-XX:+UseContainerSupport", \

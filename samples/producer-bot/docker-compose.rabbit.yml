@@ -32,6 +32,7 @@ services:
 
   # ── Easygram producer bot ─────────────────────────────────────────────────
   bot:
+    image: osoncode/easygram-producer-bot:0.0.5
     build: .
     environment:
       # ── Required — provide in .env file ───────────────────────────────────
