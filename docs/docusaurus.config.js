@@ -7,10 +7,15 @@ const config = {
   baseUrl: '/',
   trailingSlash: false,
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'oson-code',
   projectName: 'easygram',
+
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   headTags: [
     {
@@ -36,22 +41,6 @@ const config = {
             current: {
               label: '0.0.5',
               path: '/',
-            },
-            '0.0.4': {
-              label: '0.0.4',
-              path: '/0.0.4',
-            },
-            '0.0.3': {
-              label: '0.0.3',
-              path: '/0.0.3',
-            },
-            '0.0.2': {
-              label: '0.0.2',
-              path: '/0.0.2',
-            },
-            '0.0.1': {
-              label: '0.0.1',
-              path: '/0.0.1',
             },
           },
         },
