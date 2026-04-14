@@ -22,10 +22,9 @@
     </properties>
 
     <dependencies>
-        <!-- Webhook transport (pulls in core, core-chatstate, spring-web) -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>webhook</artifactId>
+            <artifactId>spring-boot-starter</artifactId>
             <version>${library.version}</version>
         </dependency>
     </dependencies>

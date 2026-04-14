@@ -22,13 +22,9 @@
     </properties>
 
     <dependencies>
-        <!--
-            Long-polling transport pulls in: core, core-api, core-chatstate.
-            core-chatstate provides InMemoryBotChatStateService automatically.
-        -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>longpolling</artifactId>
+            <artifactId>spring-boot-starter</artifactId>
             <version>${library.version}</version>
         </dependency>
 

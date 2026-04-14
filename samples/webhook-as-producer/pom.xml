@@ -22,17 +22,10 @@
     </properties>
 
     <dependencies>
-        <!-- Webhook transport (includes spring-web) -->
+        <!-- spring-boot-starter pulls in longpolling, webhook, messaging-api and more -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>webhook</artifactId>
-            <version>${library.version}</version>
-        </dependency>
-
-        <!-- Easygram messaging SPI (kafka + amqp are optional there; add them explicitly) -->
-        <dependency>
-            <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>messaging-api</artifactId>
+            <artifactId>spring-boot-starter</artifactId>
             <version>${library.version}</version>
         </dependency>
 

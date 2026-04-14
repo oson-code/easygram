@@ -28,26 +28,11 @@
     <dependencies>
 
         <!-- ── Easygram transports ────────────────────────────────────────────── -->
-        <!-- Long-polling transport (default) -->
+        <!-- spring-boot-starter pulls in longpolling, webhook, messaging-api, core-i18n,
+             core-observability and transitively: core, core-api, core-chatstate. -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>longpolling</artifactId>
-            <version>${library.version}</version>
-        </dependency>
-
-        <!-- Webhook transport (active when easygram.update.transport=WEBHOOK) -->
-        <dependency>
-            <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>webhook</artifactId>
-            <version>${library.version}</version>
-        </dependency>
-
-        <!-- Messaging SPI — contains producer + consumer code for both brokers.
-             spring-kafka and spring-boot-starter-amqp are optional there,
-             so they must be declared explicitly below. -->
-        <dependency>
-            <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>messaging-api</artifactId>
+            <artifactId>spring-boot-starter</artifactId>
             <version>${library.version}</version>
         </dependency>
 

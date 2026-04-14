@@ -22,10 +22,10 @@
     </properties>
 
     <dependencies>
-        <!-- Easygram messaging SPI (kafka + amqp are optional there; add them explicitly) -->
+        <!-- spring-boot-starter pulls in messaging-api (and core, core-api, etc.) -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>messaging-api</artifactId>
+            <artifactId>spring-boot-starter</artifactId>
             <version>${library.version}</version>
         </dependency>
 

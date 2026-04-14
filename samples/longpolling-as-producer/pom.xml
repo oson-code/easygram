@@ -22,17 +22,10 @@
     </properties>
 
     <dependencies>
-        <!-- Long-polling transport -->
+        <!-- spring-boot-starter pulls in longpolling, webhook, messaging-api and more -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>longpolling</artifactId>
-            <version>${library.version}</version>
-        </dependency>
-
-        <!-- Easygram messaging SPI (kafka + amqp are optional there; add them explicitly) -->
-        <dependency>
-            <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>messaging-api</artifactId>
+            <artifactId>spring-boot-starter</artifactId>
             <version>${library.version}</version>
         </dependency>
 

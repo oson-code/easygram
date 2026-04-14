@@ -29,19 +29,12 @@
 
     <dependencies>
         <!--
-            longpolling pulls in: core, core-api, core-chatstate, spring-boot-starter-validation.
-            core-chatstate provides InMemoryBotChatStateService automatically.
+            spring-boot-starter pulls in: longpolling, webhook, messaging-api, core-i18n,
+            core-observability (and transitively: core, core-api, core-chatstate).
         -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>${library.version}</version>
-        </dependency>
-
-        <!-- i18n support: BotMessageSource, BotKeyboardFactory, LocalizedReply, LocalizedTemplate -->
-        <dependency>
-            <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>core-i18n</artifactId>
             <version>${library.version}</version>
         </dependency>
 

@@ -22,10 +22,9 @@
     </properties>
 
     <dependencies>
-        <!-- Long-polling transport (pulls in core, core-chatstate, core-api) -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>longpolling</artifactId>
+            <artifactId>spring-boot-starter</artifactId>
             <version>${library.version}</version>
         </dependency>
     </dependencies>

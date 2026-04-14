@@ -1,6 +1,5 @@
 package uz.example.i18n.markup;
 
-import lombok.RequiredArgsConstructor;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import uz.osoncode.easygram.core.annotation.BotConfiguration;
@@ -35,11 +34,13 @@ import uz.osoncode.easygram.core.model.BotRequest;
  * @since 0.0.1
  */
 @BotConfiguration
-@RequiredArgsConstructor
 public class RegistrationMarkups {
 
     private final BotKeyboardFactory keyboardFactory;
 
+    public RegistrationMarkups(BotKeyboardFactory keyboardFactory) {
+        this.keyboardFactory = keyboardFactory;
+    }
     /**
      * Returns a reply keyboard with a single localised "Cancel" button.
      *

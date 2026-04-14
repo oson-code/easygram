@@ -1,7 +1,5 @@
 package uz.example.i18n;
 
-import lombok.RequiredArgsConstructor;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.User;
 import uz.osoncode.easygram.core.bind.annotation.BotClearChatState;
 import uz.osoncode.easygram.core.bind.annotation.BotCommand;
@@ -26,19 +24,21 @@ import java.util.Locale;
  *       ({@code #{0}} substituted with the user's first name)</li>
  *   <li>{@link #onStatus} — {@link LocalizedReply} for simple key lookup</li>
  *   <li>{@link #onCancel} — explicit {@link Locale} injection to show locale info in the reply</li>
- *   <li>{@link #onUnknown} — raw {@link SendMessage} using {@link BotRequest} for chat ID</li>
+ *   <li>{@link #onUnknown} — {@link LocalizedReply} for the catch-all fallback</li>
  * </ul>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
 @BotController
-@RequiredArgsConstructor
 public class GlobalController {
 
     private final BotChatStateService chatStateService;
 
-    // ── /start ───────────────────────────────────────────────────────────────
+    public GlobalController(BotChatStateService chatStateService) {
+        this.chatStateService = chatStateService;
+    }
+
 
     /**
      * Sends a localised welcome message using {@link LocalizedTemplate}.
@@ -113,10 +113,8 @@ public class GlobalController {
     /**
      * Catch-all handler for any update that was not matched by a more specific handler.
      *
-     * <p>Uses a raw {@link SendMessage} to demonstrate that non-i18n return types
-     * can still be used alongside localised ones. The error text is kept hardcoded here
-     * for brevity; in production, use {@link uz.osoncode.easygram.core.i18n.BotMessageSource}
-     * or return a {@link LocalizedReply} instead.</p>
+     * <p>Returns a {@link LocalizedReply} with the generic error message key
+     * {@code "error.unknown"}, resolved in the user's locale.</p>
      *
      * @param request the current bot request
      * @return a {@link LocalizedReply} with the generic error message
