@@ -5,6 +5,11 @@ easygram:
 
   # update.transport defaults to LONG_POLLING — no need to set it explicitly.
 
+  i18n:
+    # Activate locale-aware matchers, BotMessageSource, and BotKeyboardFactory.
+    # Required for bots that use message bundles (messages/bot.properties, etc.).
+    enabled: true
+
 spring:
   application:
     name: i18n-registration-bot

@@ -2,6 +2,7 @@ package uz.osoncode.easygram.core.i18n.autoconfigure;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.MessageSource;
@@ -50,6 +51,7 @@ import java.util.Optional;
  */
 @AutoConfiguration(after = MessageSourceAutoConfiguration.class,
         beforeName = "uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration")
+@ConditionalOnProperty(prefix = "easygram.i18n", name = "enabled", havingValue = "true", matchIfMissing = false)
 @EnableConfigurationProperties(EasygramI18nProperties.class)
 public class BotI18nAutoConfiguration {
 
