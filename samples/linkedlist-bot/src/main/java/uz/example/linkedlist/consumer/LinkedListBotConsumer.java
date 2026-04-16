@@ -10,12 +10,14 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
+import uz.osoncode.easygram.core.filter.BotFilter;
 import uz.osoncode.easygram.core.filter.DefaultBotFilterChain;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
+import uz.osoncode.easygram.messaging.BotUpdatePublishingFilter;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
@@ -24,14 +26,23 @@ import java.util.concurrent.TimeUnit;
  * {@link Update} to the bot handler pipeline.
  *
  * <p>A single daemon thread is started in {@link #afterPropertiesSet()} and stopped
- * cleanly in {@link #destroy()}.  The consumer runs the update directly through a
- * {@link DefaultBotFilterChain} with <em>no filters</em> (to avoid re-triggering the
- * {@code BotUpdatePublishingFilter} that put the update into the queue in the first
- * place).</p>
+ * cleanly in {@link #destroy()}.  The consumer runs each update through a
+ * {@link DefaultBotFilterChain} containing all framework filters <em>except</em>
+ * {@link BotUpdatePublishingFilter} — which would otherwise re-enqueue the update
+ * and create an infinite loop.</p>
  *
- * <p>This is intentional: in a real distributed setup the consumer runs in a <em>separate
- * process</em> that has no publishing filter at all.  The empty filter list here mirrors
- * that topology within a single JVM.</p>
+ * <p>Keeping the remaining filters active (particularly {@code BotContextSetterFilter}
+ * and {@code BotApiMethodsSenderFilter}) is essential:</p>
+ * <ul>
+ *   <li>{@code BotContextSetterFilter} — populates {@link BotRequest#getUser()} and
+ *       {@link BotRequest#getChat()} so that argument resolvers
+ *       ({@code @BotUserArgumentResolver}, {@code @BotChatArgumentResolver}, etc.) work.</li>
+ *   <li>{@code BotApiMethodsSenderFilter} — flushes the {@link BotResponse} to
+ *       Telegram after the handler returns, so bot replies are actually delivered.</li>
+ * </ul>
+ *
+ * <p>This mirrors the topology of a real distributed consumer: it runs in a separate
+ * process that naturally has no publishing filter.</p>
  *
  * @since 0.0.6
  */
@@ -45,6 +56,7 @@ public class LinkedListBotConsumer implements InitializingBean, DisposableBean {
     private final BotExceptionHandlerRegistry botExceptionHandlerRegistry;
     private final BotTelegramClientProvider telegramClientProvider;
     private final EasygramProperties botProperties;
+    private final List<BotFilter> allFilters;
 
     private TelegramClient telegramClient;
     private volatile boolean running = true;
@@ -55,12 +67,14 @@ public class LinkedListBotConsumer implements InitializingBean, DisposableBean {
             BotDispatcher botDispatcher,
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
             BotTelegramClientProvider telegramClientProvider,
-            EasygramProperties botProperties) {
+            EasygramProperties botProperties,
+            List<BotFilter> allFilters) {
         this.botUpdateQueue = botUpdateQueue;
         this.botDispatcher = botDispatcher;
         this.botExceptionHandlerRegistry = botExceptionHandlerRegistry;
         this.telegramClientProvider = telegramClientProvider;
         this.botProperties = botProperties;
+        this.allFilters = allFilters;
     }
 
     /**
@@ -109,9 +123,15 @@ public class LinkedListBotConsumer implements InitializingBean, DisposableBean {
         request.setUpdate(update);
         request.setTelegramClient(telegramClient);
 
-        // Run through the filter chain with no filters so updates are passed directly
-        // to the dispatcher — no risk of re-triggering BotUpdatePublishingFilter.
-        new DefaultBotFilterChain(Collections.emptyList(), botDispatcher, botExceptionHandlerRegistry)
+        // Run through all framework filters EXCEPT BotUpdatePublishingFilter.
+        // BotContextSetterFilter populates request.user/chat so argument resolvers work.
+        // BotApiMethodsSenderFilter flushes the BotResponse so replies reach Telegram.
+        // Excluding BotUpdatePublishingFilter prevents re-enqueueing the same update.
+        List<BotFilter> consumerFilters = allFilters.stream()
+                .filter(f -> !(f instanceof BotUpdatePublishingFilter))
+                .toList();
+
+        new DefaultBotFilterChain(consumerFilters, botDispatcher, botExceptionHandlerRegistry)
                 .doFilter(request, new BotResponse());
     }
 }
