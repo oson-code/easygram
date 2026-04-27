@@ -57,7 +57,8 @@ public class BotPlainTextTemplateReturnTypeHandler implements BotReturnTypeHandl
                     reply.isRemoveMarkup(),
                     botMarkupRegistry,
                     reply.getMarkupId(),
-                    reply.getMarkupParams());
+                    reply.getMarkupParams(),
+                    reply.getParseMode());
         }
         if (reply.isAnswerCallbackQuery()) {
             BotReplyMessageHelper.addCallbackAnswer(botResponse, botRequest, text,

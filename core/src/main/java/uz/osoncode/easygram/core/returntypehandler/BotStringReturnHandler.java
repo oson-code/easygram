@@ -54,6 +54,37 @@ public class BotStringReturnHandler implements BotReturnTypeHandler {
     /**
      * Wraps the returned string in a {@link SendMessage} and adds it to the {@link BotResponse}.
      *
+     * <p>When {@link uz.osoncode.easygram.core.bind.annotation.BotParseMode} is present on
+     * {@code method}, the resolved parse mode string is set on the outgoing message.</p>
+     *
+     * @param botRequest  the current bot request used to determine the target chat; must not be {@code null}
+     * @param botResponse the mutable response object to which the {@link SendMessage} is added; must not be {@code null}
+     * @param returnValue the {@link String} value returned by the handler method; may be {@code null}
+     * @param method      the handler method that produced the return value; must not be {@code null}
+     */
+    @Override
+    public void handleReturnType(BotRequest botRequest, BotResponse botResponse, Object returnValue, Method method) {
+        if (Objects.isNull(returnValue)) return;
+        if (Objects.isNull(botRequest.getChat())) {
+            Integer updateId = Objects.nonNull(botRequest.getUpdate()) ? botRequest.getUpdate().getUpdateId() : null;
+            log.warn("Cannot send String reply — no chat context in request for update: {}", updateId);
+            return;
+        }
+        uz.osoncode.easygram.core.bind.annotation.BotParseMode parseModeAnnotation =
+                org.springframework.core.annotation.AnnotationUtils.findAnnotation(
+                        method, uz.osoncode.easygram.core.bind.annotation.BotParseMode.class);
+        SendMessage.SendMessageBuilder<?, ?> builder = SendMessage.builder()
+                .chatId(botRequest.getChat().getId())
+                .text((String) returnValue);
+        if (Objects.nonNull(parseModeAnnotation)) {
+            builder.parseMode(parseModeAnnotation.value());
+        }
+        botResponse.addBotApiMethod(builder.build());
+    }
+
+    /**
+     * Wraps the returned string in a {@link SendMessage} and adds it to the {@link BotResponse}.
+     *
      * @param botRequest  the current bot request used to determine the target chat; must not be {@code null}
      * @param botResponse the mutable response object to which the {@link SendMessage} is added; must not be {@code null}
      * @param returnValue the {@link String} value returned by the handler method; may be {@code null}
@@ -62,8 +93,8 @@ public class BotStringReturnHandler implements BotReturnTypeHandler {
     public void handleReturnType(BotRequest botRequest, BotResponse botResponse, Object returnValue) {
         if (Objects.isNull(returnValue)) return;
         if (Objects.isNull(botRequest.getChat())) {
-            log.warn("Cannot send String reply — no chat context in request for update: {}",
-                    botRequest.getUpdate().getUpdateId());
+            Integer updateId = Objects.nonNull(botRequest.getUpdate()) ? botRequest.getUpdate().getUpdateId() : null;
+            log.warn("Cannot send String reply — no chat context in request for update: {}", updateId);
             return;
         }
         botResponse.addBotApiMethod(
