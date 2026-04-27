@@ -27,6 +27,52 @@ the method's declared return type wins.
 
 ---
 
+## `@BotParseMode` {#bot-parse-mode}
+
+Annotate a handler method with `@BotParseMode` to set Telegram's `parse_mode` field on the
+outgoing `SendMessage` or `EditMessageText`. Valid values are `"HTML"`, `"MarkdownV2"`, and
+`"Markdown"` (legacy).
+
+Works with **all** return types that produce a `SendMessage` — `String`, `PlainReply`,
+`PlainTextTemplate`, `LocalizedReply`, and `LocalizedTemplate`.
+
+```java
+@BotParseMode("HTML")
+@BotCommand("/start")
+public String start(User user) {
+    return "<b>Hello, " + user.getFirstName() + "!</b>";
+}
+
+@BotParseMode("MarkdownV2")
+@BotCommand("/help")
+public PlainReply help() {
+    return PlainReply.of("*Bold* and _italic_");
+}
+```
+
+`@BotParseMode` and `@BotReplyMarkup` can appear together in any order:
+
+```java
+@BotParseMode("HTML")
+@BotReplyMarkup("main_menu")
+@BotCommand("/menu")
+public String menu() {
+    return "<b>Choose an option:</b>";
+}
+```
+
+All four `MarkupAware` reply types also expose `.withParseMode(String)` for runtime control
+(see [MarkupAware — `.withParseMode()`](#with-parse-mode)):
+
+```java
+String mode = richText ? "HTML" : null;
+return PlainReply.of(text).withParseMode(mode);
+```
+
+*Since 0.0.6*
+
+---
+
 ## `void`
 
 No response is sent. Use when you only need a side effect:
@@ -43,8 +89,9 @@ public void subscribe(User user) {
 
 ## `String`
 
-The simplest way to send a text message. Supports `@BotReplyMarkup` and `@BotClearMarkup`
-annotations on the method for attaching or removing a keyboard:
+The simplest way to send a text message. Supports `@BotReplyMarkup`, `@BotClearMarkup`, and
+`@BotParseMode` annotations on the method for attaching or removing a keyboard or setting
+parse mode:
 
 ```java
 @BotCommand("/hello")
@@ -62,6 +109,12 @@ public String start() {
 @BotCommand("/cancel")
 public String cancel() {
     return "Cancelled.";  // ReplyKeyboardRemove sent automatically
+}
+
+@BotParseMode("HTML")
+@BotCommand("/bold")
+public String bold() {
+    return "<b>Hello!</b>";
 }
 ```
 
@@ -561,6 +614,23 @@ framework edits the original message instead of sending a new one:
 ```java
 return PlainReply.of("Updated!").withEditMessage();
 ```
+
+### `.withParseMode(String mode)` {#with-parse-mode}
+
+Returns a copy with the Telegram `parse_mode` field set. Valid values: `"HTML"`,
+`"MarkdownV2"`, `"Markdown"`. Pass `null` to clear an existing parse mode.
+
+```java
+return PlainReply.of("<b>bold</b>").withParseMode("HTML");
+return PlainTextTemplate.of("<i>#{0}</i>", name).withParseMode("HTML");
+return LocalizedReply.of("greeting.html").withParseMode("HTML");
+return LocalizedTemplate.of("${title}\n<i>#{0}</i>", arg).withParseMode("HTML");
+```
+
+Prefer `@BotParseMode` on the method for the common case where all responses from a
+handler use the same mode. Use `.withParseMode()` when the mode depends on runtime state.
+
+*Since 0.0.6*
 
 ### Answering Callback Queries {#callback-answer}
 

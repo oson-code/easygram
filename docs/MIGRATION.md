@@ -1,5 +1,63 @@
 # Easygram — Migration Guide
 
+## 0.0.5 → 0.0.6
+
+Feature release — **no breaking changes**. All existing 0.0.5 code and configuration works unchanged.
+
+### New: `@BotParseMode` annotation
+
+Attach `@BotParseMode("HTML")`, `@BotParseMode("MarkdownV2")`, or `@BotParseMode("Markdown")`
+to any handler method. Works with all return types: `String`, `PlainReply`,
+`PlainTextTemplate`, `LocalizedReply`, `LocalizedTemplate`.
+
+```java
+@BotParseMode("HTML")
+@BotCommand("/start")
+public String start(User user) {
+    return "<b>Hello, " + user.getFirstName() + "!</b>";
+}
+```
+
+All `MarkupAware` reply types also gained `.withParseMode(String)` for runtime control:
+
+```java
+return PlainReply.of("<b>text</b>").withParseMode("HTML");
+```
+
+### New: Configurable Telegram API URL (`easygram.telegram-url.*`)
+
+Use a local or self-hosted Bot API server:
+
+```yaml
+easygram:
+  telegram-url:
+    host: my-local-bot-api.example.com
+    port: 8443
+    schema: https
+    test-server: false
+```
+
+All fields are optional. When `host` is absent, the standard `api.telegram.org` is used.
+
+### New: Messaging factory provider SPI
+
+Register a bean of any of the three new interfaces to supply a custom factory:
+
+| Interface | Replaces |
+|---|---|
+| `BotKafkaProducerFactoryProvider` | Kafka `ProducerFactory` |
+| `BotKafkaConsumerFactoryProvider` | Kafka `ConsumerFactory` |
+| `BotRabbitConnectionFactoryProvider` | RabbitMQ `ConnectionFactory` |
+
+All three are `@ConditionalOnMissingBean` — declare only the ones you need.
+
+Topic and exchange properties are now fully optional (defaults: `easygram-updates`,
+`easygram-exchange`).
+
+**Full details:** [Migrating from 0.0.5 to 0.0.6](../docs/migration/0.0.5-to-0.0.6)
+
+---
+
 ## 0.0.4 → 0.0.5
 
 ### Property namespace rename (`telegram.bot` → `easygram`)

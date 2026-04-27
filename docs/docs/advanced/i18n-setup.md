@@ -155,6 +155,26 @@ public LocalizedReply onDone() {
 }
 ```
 
+Use `@BotParseMode` on the method when the message bundle produces formatted text, or call
+`.withParseMode(String)` on the `LocalizedReply` instance for runtime control:
+
+```java
+// Annotation — all responses from this handler use HTML
+@BotParseMode("HTML")
+@BotCommand("/profile")
+public LocalizedReply onProfile() {
+    // messages/bot_en.properties: profile.text=<b>Your profile</b>
+    return LocalizedReply.of("profile.text");
+}
+
+// Fluent — parse mode set at runtime
+public LocalizedReply replyWithMode(String key, boolean useHtml) {
+    return LocalizedReply.of(key).withParseMode(useHtml ? "HTML" : null);
+}
+```
+
+*`@BotParseMode` and `.withParseMode()` — since 0.0.6*
+
 ### LocalizedTemplate
 
 `LocalizedTemplate` resolves a **template string** that can mix two token types:
@@ -188,6 +208,28 @@ public LocalizedTemplate onStats(User user) {
     );
 }
 ```
+
+`LocalizedTemplate` also supports `@BotParseMode` and `.withParseMode(String)` — the parse
+mode is applied after all `${key}` and `#{index}` tokens are resolved:
+
+```java
+// Annotation — all responses from this handler use HTML
+@BotParseMode("HTML")
+@BotCommand("/welcome")
+public LocalizedTemplate onWelcome(User user) {
+    // messages/bot_en.properties:
+    //   welcome.title=<b>Welcome!</b>
+    //   welcome.body=Here is what you can do.
+    return LocalizedTemplate.of("${welcome.title}\n\n${welcome.body}\n\nHello, #{0}!", user.getFirstName());
+}
+
+// Fluent — parse mode set at runtime
+public LocalizedTemplate replyWithMode(String template, boolean useHtml, Object... args) {
+    return LocalizedTemplate.of(template, args).withParseMode(useHtml ? "HTML" : null);
+}
+```
+
+*`@BotParseMode` and `.withParseMode()` — since 0.0.6*
 
 ---
 
