@@ -57,7 +57,8 @@ public class BotLocalizedReplyReturnTypeHandler implements BotReturnTypeHandler 
                     reply.isRemoveMarkup(),
                     botMarkupRegistry,
                     reply.getMarkupId(),
-                    reply.getMarkupParams());
+                    reply.getMarkupParams(),
+                    reply.getParseMode());
         }
         if (reply.isAnswerCallbackQuery()) {
             BotReplyMessageHelper.addCallbackAnswer(

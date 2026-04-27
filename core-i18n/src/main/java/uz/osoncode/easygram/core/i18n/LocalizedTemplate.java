@@ -55,12 +55,13 @@ public final class LocalizedTemplate implements MarkupAware {
     private final boolean callbackAlert;
     private final String callbackUrl;
     private final Integer callbackCacheTime;
+    private final String parseMode;
 
     private LocalizedTemplate(String template, Object[] args, String markupId,
                                Map<String, Object> markupParams, ReplyKeyboard keyboard,
                                boolean removeMarkup, boolean editMessage,
                                boolean answerCallbackQuery, boolean callbackAlert,
-                               String callbackUrl, Integer callbackCacheTime) {
+                               String callbackUrl, Integer callbackCacheTime, String parseMode) {
         this.template = template;
         this.args = args;
         this.markupId = markupId;
@@ -72,6 +73,7 @@ public final class LocalizedTemplate implements MarkupAware {
         this.callbackAlert = callbackAlert;
         this.callbackUrl = callbackUrl;
         this.callbackCacheTime = callbackCacheTime;
+        this.parseMode = parseMode;
     }
 
     /**
@@ -107,6 +109,7 @@ public final class LocalizedTemplate implements MarkupAware {
         private boolean callbackAlert;
         private String callbackUrl;
         private Integer callbackCacheTime;
+        private String parseMode;
 
         private Builder() {}
 
@@ -245,6 +248,18 @@ public final class LocalizedTemplate implements MarkupAware {
         }
 
         /**
+         * Sets the Telegram parse mode (e.g. {@code "HTML"}, {@code "MarkdownV2"}).
+         *
+         * @param parseMode the parse mode string; may be {@code null}
+         * @return this builder
+         * @since 0.0.6
+         */
+        public Builder parseMode(String parseMode) {
+            this.parseMode = parseMode;
+            return this;
+        }
+
+        /**
          * Builds and returns the immutable {@link LocalizedTemplate}.
          *
          * @return a new {@code LocalizedTemplate} instance
@@ -252,7 +267,7 @@ public final class LocalizedTemplate implements MarkupAware {
         public LocalizedTemplate build() {
             Objects.requireNonNull(template, "template must not be null");
             return new LocalizedTemplate(template, args, markupId, markupParams, keyboard, removeMarkup, editMessage,
-                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime);
+                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime, parseMode);
         }
     }
 
@@ -264,7 +279,7 @@ public final class LocalizedTemplate implements MarkupAware {
      * @return a new {@code LocalizedTemplate} instance
      */
     public static LocalizedTemplate of(String template, Object... args) {
-        return new LocalizedTemplate(template, args, null, null, null, false, false, false, false, null, null);
+        return new LocalizedTemplate(template, args, null, null, null, false, false, false, false, null, null, null);
     }
 
     /**
@@ -276,7 +291,7 @@ public final class LocalizedTemplate implements MarkupAware {
     @Override
     public LocalizedTemplate withMarkup(String markupId) {
         return new LocalizedTemplate(this.template, this.args, markupId, null, null, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -289,7 +304,7 @@ public final class LocalizedTemplate implements MarkupAware {
     @Override
     public LocalizedTemplate withMarkup(String markupId, Map<String, Object> params) {
         return new LocalizedTemplate(this.template, this.args, markupId, params, null, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -301,7 +316,7 @@ public final class LocalizedTemplate implements MarkupAware {
     @Override
     public LocalizedTemplate withKeyboard(ReplyKeyboard keyboard) {
         return new LocalizedTemplate(this.template, this.args, null, null, keyboard, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -312,7 +327,7 @@ public final class LocalizedTemplate implements MarkupAware {
     @Override
     public LocalizedTemplate removeMarkup() {
         return new LocalizedTemplate(this.template, this.args, null, null, null, true, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -326,7 +341,7 @@ public final class LocalizedTemplate implements MarkupAware {
      */
     public LocalizedTemplate withEditMessage() {
         return new LocalizedTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, true, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.removeMarkup, true, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -340,7 +355,7 @@ public final class LocalizedTemplate implements MarkupAware {
      */
     public LocalizedTemplate asAnswerCallbackQuery() {
         return new LocalizedTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -352,7 +367,7 @@ public final class LocalizedTemplate implements MarkupAware {
      */
     public LocalizedTemplate withCallbackAlert() {
         return new LocalizedTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime);
+                this.removeMarkup, this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -365,7 +380,7 @@ public final class LocalizedTemplate implements MarkupAware {
      */
     public LocalizedTemplate withCallbackUrl(String url) {
         return new LocalizedTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime);
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -378,7 +393,23 @@ public final class LocalizedTemplate implements MarkupAware {
      */
     public LocalizedTemplate withCallbackCacheTime(int cacheTime) {
         return new LocalizedTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime);
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime, this.parseMode);
+    }
+
+    /**
+     * Returns a new {@code LocalizedTemplate} with the Telegram parse mode set.
+     *
+     * <p>Typical values: {@code "HTML"}, {@code "MarkdownV2"}, {@code "Markdown"}.</p>
+     *
+     * @param parseMode the parse mode string; may be {@code null}
+     * @return a new {@code LocalizedTemplate} with the parse mode set
+     * @since 0.0.6
+     */
+    @Override
+    public LocalizedTemplate withParseMode(String parseMode) {
+        return new LocalizedTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, this.answerCallbackQuery, this.callbackAlert,
+                this.callbackUrl, this.callbackCacheTime, parseMode);
     }
 
     /**
@@ -480,5 +511,18 @@ public final class LocalizedTemplate implements MarkupAware {
      */
     public Integer getCallbackCacheTime() {
         return callbackCacheTime;
+    }
+
+    /**
+     * Returns the Telegram parse mode string, or {@code null} if none was set.
+     *
+     * <p>Typical values: {@code "HTML"}, {@code "MarkdownV2"}, {@code "Markdown"}.</p>
+     *
+     * @return the parse mode; may be {@code null}
+     * @since 0.0.6
+     */
+    @Override
+    public String getParseMode() {
+        return parseMode;
     }
 }
