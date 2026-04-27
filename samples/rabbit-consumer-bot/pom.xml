@@ -4,29 +4,20 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.4</version>
-        <relativePath/>
+        <groupId>uz.osoncode.easygram.samples</groupId>
+        <artifactId>samples-parent</artifactId>
+        <version>0.0.6</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>uz.osoncode.easygram.samples</groupId>
     <artifactId>rabbit-consumer-bot</artifactId>
-    <version>0.0.5</version>
     <name>sample :: rabbit-consumer-bot</name>
     <description>Sample: Bot that receives Telegram updates from a RabbitMQ queue</description>
 
-    <properties>
-        <java.version>17</java.version>
-        <library.version>0.0.5</library.version>
-    </properties>
-
     <dependencies>
-        <!-- spring-boot-starter pulls in messaging-api (and core, core-api, etc.) -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>${library.version}</version>
         </dependency>
 
         <!-- Required: RabbitMQ driver — not transitively inherited because it is optional in messaging-api -->

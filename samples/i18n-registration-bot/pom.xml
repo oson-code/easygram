@@ -4,15 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.4</version>
-        <relativePath/>
+        <groupId>uz.osoncode.easygram.samples</groupId>
+        <artifactId>samples-parent</artifactId>
+        <version>0.0.6</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>uz.osoncode.easygram.samples</groupId>
     <artifactId>i18n-registration-bot</artifactId>
-    <version>0.0.5</version>
     <name>sample :: i18n-registration-bot</name>
     <description>
         Sample: Multi-step registration wizard with full i18n support.
@@ -22,20 +20,10 @@
         Supports English, Uzbek and Russian via Spring message bundles.
     </description>
 
-    <properties>
-        <java.version>17</java.version>
-        <library.version>0.0.5</library.version>
-    </properties>
-
     <dependencies>
-        <!--
-            spring-boot-starter pulls in: longpolling, webhook, messaging-api, core-i18n,
-            core-observability (and transitively: core, core-api, core-chatstate).
-        -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>${library.version}</version>
         </dependency>
 
         <!-- Actuator: /actuator/health, /actuator/info, /actuator/prometheus -->

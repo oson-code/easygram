@@ -4,30 +4,21 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.4</version>
-        <relativePath/>
+        <groupId>uz.osoncode.easygram.samples</groupId>
+        <artifactId>samples-parent</artifactId>
+        <version>0.0.6</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>uz.osoncode.easygram.samples</groupId>
     <artifactId>chatstate-bot</artifactId>
-    <version>0.0.5</version>
     <name>sample :: chatstate-bot</name>
     <description>Sample: Multi-step registration wizard using @BotChatState and BotChatStateService</description>
-
-    <properties>
-        <java.version>17</java.version>
-        <library.version>0.0.5</library.version>
-    </properties>
 
     <dependencies>
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>${library.version}</version>
         </dependency>
-
     </dependencies>
 
     <build>
