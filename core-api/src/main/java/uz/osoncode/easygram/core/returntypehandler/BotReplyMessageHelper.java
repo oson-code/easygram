@@ -61,6 +61,9 @@ public final class BotReplyMessageHelper {
      * @param registry     optional markup registry for ID-based keyboard resolution
      * @param markupId     the pre-registered markup ID, or {@code null}
      * @param markupParams parameters forwarded to the markup factory, or {@code null}
+     * @param parseMode    the Telegram parse mode string (e.g. {@code "HTML"}, {@code "MarkdownV2"}),
+     *                     or {@code null} to use Telegram's default (no formatting)
+     * @since 0.0.6 ({@code parseMode} parameter added)
      */
     public static void addReply(
             BotResponse botResponse,
@@ -71,12 +74,13 @@ public final class BotReplyMessageHelper {
             boolean removeMarkup,
             Optional<BotMarkupRegistry> registry,
             String markupId,
-            Map<String, Object> markupParams) {
+            Map<String, Object> markupParams,
+            String parseMode) {
 
         if (editMessage && botRequest.getUpdate().hasCallbackQuery()) {
-            addEditMethods(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams);
+            addEditMethods(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams, parseMode);
         } else {
-            addSendMessage(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams);
+            addSendMessage(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams, parseMode);
         }
     }
 
@@ -88,13 +92,17 @@ public final class BotReplyMessageHelper {
             boolean removeMarkup,
             Optional<BotMarkupRegistry> registry,
             String markupId,
-            Map<String, Object> markupParams) {
+            Map<String, Object> markupParams,
+            String parseMode) {
 
         SendMessage.SendMessageBuilder<?, ?> builder = SendMessage.builder()
                 .chatId(Objects.requireNonNull(botRequest.getChat(),
                         "Cannot send reply: no chat associated with this update").getId())
                 .text(text);
 
+        if (Objects.nonNull(parseMode)) {
+            builder.parseMode(parseMode);
+        }
         if (removeMarkup) {
             builder.replyMarkup(ReplyKeyboardRemove.builder().removeKeyboard(true).build());
         } else if (Objects.nonNull(keyboard)) {
@@ -114,7 +122,8 @@ public final class BotReplyMessageHelper {
             boolean removeMarkup,
             Optional<BotMarkupRegistry> registry,
             String markupId,
-            Map<String, Object> markupParams) {
+            Map<String, Object> markupParams,
+            String parseMode) {
 
         MaybeInaccessibleMessage original =
                 botRequest.getUpdate().getCallbackQuery().getMessage();
@@ -122,11 +131,14 @@ public final class BotReplyMessageHelper {
         Integer messageId = original.getMessageId();
 
         // 1. Edit the message text
-        botResponse.addBotApiMethod(EditMessageText.builder()
+        EditMessageText.EditMessageTextBuilder<?, ?> editBuilder = EditMessageText.builder()
                 .chatId(chatId)
                 .messageId(messageId)
-                .text(text)
-                .build());
+                .text(text);
+        if (Objects.nonNull(parseMode)) {
+            editBuilder.parseMode(parseMode);
+        }
+        botResponse.addBotApiMethod(editBuilder.build());
 
         // 2. Update the inline keyboard separately via EditMessageReplyMarkup
         EditMessageReplyMarkup.EditMessageReplyMarkupBuilder markupBuilder =

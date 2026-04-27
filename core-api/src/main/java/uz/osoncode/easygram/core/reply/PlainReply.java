@@ -57,11 +57,12 @@ public final class PlainReply implements MarkupAware {
     private final boolean callbackAlert;
     private final String callbackUrl;
     private final Integer callbackCacheTime;
+    private final String parseMode;
 
     private PlainReply(String text, String markupId, Map<String, Object> markupParams,
                        ReplyKeyboard keyboard, boolean removeMarkup, boolean editMessage,
                        boolean answerCallbackQuery, boolean callbackAlert,
-                       String callbackUrl, Integer callbackCacheTime) {
+                       String callbackUrl, Integer callbackCacheTime, String parseMode) {
         this.text = text;
         this.markupId = markupId;
         this.markupParams = markupParams;
@@ -72,6 +73,7 @@ public final class PlainReply implements MarkupAware {
         this.callbackAlert = callbackAlert;
         this.callbackUrl = callbackUrl;
         this.callbackCacheTime = callbackCacheTime;
+        this.parseMode = parseMode;
     }
 
     /**
@@ -105,6 +107,7 @@ public final class PlainReply implements MarkupAware {
         private boolean callbackAlert;
         private String callbackUrl;
         private Integer callbackCacheTime;
+        private String parseMode;
 
         private Builder() {}
 
@@ -231,13 +234,27 @@ public final class PlainReply implements MarkupAware {
         }
 
         /**
+         * Sets the Telegram parse mode for the outgoing message.
+         *
+         * <p>Typical values: {@code "HTML"}, {@code "MarkdownV2"}, {@code "Markdown"}.</p>
+         *
+         * @param parseMode the Telegram parse mode string; may be {@code null} to leave unset
+         * @return this builder
+         * @since 0.0.6
+         */
+        public Builder parseMode(String parseMode) {
+            this.parseMode = parseMode;
+            return this;
+        }
+
+        /**
          * Builds and returns the immutable {@link PlainReply}.
          *
          * @return a new {@code PlainReply} instance
          */
         public PlainReply build() {
             return new PlainReply(text, markupId, markupParams, keyboard, removeMarkup, editMessage,
-                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime);
+                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime, parseMode);
         }
     }
 
@@ -249,7 +266,7 @@ public final class PlainReply implements MarkupAware {
      */
     public static PlainReply of(String text) {
         java.util.Objects.requireNonNull(text, "text must not be null");
-        return new PlainReply(text, null, null, null, false, false, false, false, null, null);
+        return new PlainReply(text, null, null, null, false, false, false, false, null, null, null);
     }
 
     /**
@@ -261,7 +278,7 @@ public final class PlainReply implements MarkupAware {
     @Override
     public PlainReply withMarkup(String markupId) {
         return new PlainReply(this.text, markupId, null, null, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -278,7 +295,7 @@ public final class PlainReply implements MarkupAware {
     @Override
     public PlainReply withMarkup(String markupId, Map<String, Object> params) {
         return new PlainReply(this.text, markupId, params, null, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -293,7 +310,7 @@ public final class PlainReply implements MarkupAware {
     @Override
     public PlainReply withKeyboard(ReplyKeyboard keyboard) {
         return new PlainReply(this.text, null, null, keyboard, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -304,7 +321,7 @@ public final class PlainReply implements MarkupAware {
     @Override
     public PlainReply removeMarkup() {
         return new PlainReply(this.text, null, null, null, true, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -318,7 +335,7 @@ public final class PlainReply implements MarkupAware {
      */
     public PlainReply withEditMessage() {
         return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup, true,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -334,7 +351,7 @@ public final class PlainReply implements MarkupAware {
      */
     public PlainReply asAnswerCallbackQuery() {
         return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -347,7 +364,7 @@ public final class PlainReply implements MarkupAware {
      */
     public PlainReply withCallbackAlert() {
         return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime);
+                this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -360,7 +377,7 @@ public final class PlainReply implements MarkupAware {
      */
     public PlainReply withCallbackUrl(String url) {
         return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime);
+                this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -373,7 +390,22 @@ public final class PlainReply implements MarkupAware {
      */
     public PlainReply withCallbackCacheTime(int cacheTime) {
         return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime);
+                this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime, this.parseMode);
+    }
+
+    /**
+     * Returns a new {@code PlainReply} with the given Telegram parse mode set.
+     *
+     * <p>Typical values: {@code "HTML"}, {@code "MarkdownV2"}, {@code "Markdown"}.</p>
+     *
+     * @param parseMode the Telegram parse mode string; must not be {@code null}
+     * @return a new {@code PlainReply} with the parse mode set
+     * @since 0.0.6
+     */
+    @Override
+    public PlainReply withParseMode(String parseMode) {
+        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, parseMode);
     }
 
     /**
@@ -479,6 +511,19 @@ public final class PlainReply implements MarkupAware {
      */
     public Integer getCallbackCacheTime() {
         return callbackCacheTime;
+    }
+
+    /**
+     * Returns the Telegram parse mode string, or {@code null} if none was set.
+     *
+     * <p>Typical values: {@code "HTML"}, {@code "MarkdownV2"}, {@code "Markdown"}.</p>
+     *
+     * @return the parse mode; may be {@code null}
+     * @since 0.0.6
+     */
+    @Override
+    public String getParseMode() {
+        return parseMode;
     }
 }
 

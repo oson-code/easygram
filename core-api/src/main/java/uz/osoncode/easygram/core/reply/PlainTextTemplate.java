@@ -59,12 +59,13 @@ public final class PlainTextTemplate implements MarkupAware {
     private final boolean callbackAlert;
     private final String callbackUrl;
     private final Integer callbackCacheTime;
+    private final String parseMode;
 
     private PlainTextTemplate(String template, Object[] args, String markupId,
                                Map<String, Object> markupParams, ReplyKeyboard keyboard,
                                boolean removeMarkup, boolean editMessage,
                                boolean answerCallbackQuery, boolean callbackAlert,
-                               String callbackUrl, Integer callbackCacheTime) {
+                               String callbackUrl, Integer callbackCacheTime, String parseMode) {
         this.template = template;
         this.args = args;
         this.markupId = markupId;
@@ -76,6 +77,7 @@ public final class PlainTextTemplate implements MarkupAware {
         this.callbackAlert = callbackAlert;
         this.callbackUrl = callbackUrl;
         this.callbackCacheTime = callbackCacheTime;
+        this.parseMode = parseMode;
     }
 
     /**
@@ -111,6 +113,7 @@ public final class PlainTextTemplate implements MarkupAware {
         private boolean callbackAlert;
         private String callbackUrl;
         private Integer callbackCacheTime;
+        private String parseMode;
 
         private Builder() {}
 
@@ -249,13 +252,27 @@ public final class PlainTextTemplate implements MarkupAware {
         }
 
         /**
+         * Sets the Telegram parse mode for the outgoing message.
+         *
+         * <p>Typical values: {@code "HTML"}, {@code "MarkdownV2"}, {@code "Markdown"}.</p>
+         *
+         * @param parseMode the Telegram parse mode string; may be {@code null} to leave unset
+         * @return this builder
+         * @since 0.0.6
+         */
+        public Builder parseMode(String parseMode) {
+            this.parseMode = parseMode;
+            return this;
+        }
+
+        /**
          * Builds and returns the immutable {@link PlainTextTemplate}.
          *
          * @return a new {@code PlainTextTemplate} instance
          */
         public PlainTextTemplate build() {
             return new PlainTextTemplate(template, args, markupId, markupParams, keyboard, removeMarkup, editMessage,
-                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime);
+                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime, parseMode);
         }
     }
 
@@ -271,31 +288,31 @@ public final class PlainTextTemplate implements MarkupAware {
      */
     public static PlainTextTemplate of(String template, Object... args) {
         java.util.Objects.requireNonNull(template, "template must not be null");
-        return new PlainTextTemplate(template, args, null, null, null, false, false, false, false, null, null);
+        return new PlainTextTemplate(template, args, null, null, null, false, false, false, false, null, null, null);
     }
 
     @Override
     public PlainTextTemplate withMarkup(String markupId) {
         return new PlainTextTemplate(this.template, this.args, markupId, null, null, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     @Override
     public PlainTextTemplate withMarkup(String markupId, Map<String, Object> params) {
         return new PlainTextTemplate(this.template, this.args, markupId, params, null, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     @Override
     public PlainTextTemplate withKeyboard(ReplyKeyboard keyboard) {
         return new PlainTextTemplate(this.template, this.args, null, null, keyboard, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     @Override
     public PlainTextTemplate removeMarkup() {
         return new PlainTextTemplate(this.template, this.args, null, null, null, true, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -309,7 +326,7 @@ public final class PlainTextTemplate implements MarkupAware {
      */
     public PlainTextTemplate withEditMessage() {
         return new PlainTextTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, true, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.removeMarkup, true, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -323,7 +340,7 @@ public final class PlainTextTemplate implements MarkupAware {
      */
     public PlainTextTemplate asAnswerCallbackQuery() {
         return new PlainTextTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime);
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -335,7 +352,7 @@ public final class PlainTextTemplate implements MarkupAware {
      */
     public PlainTextTemplate withCallbackAlert() {
         return new PlainTextTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime);
+                this.removeMarkup, this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -348,7 +365,7 @@ public final class PlainTextTemplate implements MarkupAware {
      */
     public PlainTextTemplate withCallbackUrl(String url) {
         return new PlainTextTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime);
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime, this.parseMode);
     }
 
     /**
@@ -361,7 +378,22 @@ public final class PlainTextTemplate implements MarkupAware {
      */
     public PlainTextTemplate withCallbackCacheTime(int cacheTime) {
         return new PlainTextTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime);
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime, this.parseMode);
+    }
+
+    /**
+     * Returns a new {@code PlainTextTemplate} with the given Telegram parse mode set.
+     *
+     * <p>Typical values: {@code "HTML"}, {@code "MarkdownV2"}, {@code "Markdown"}.</p>
+     *
+     * @param parseMode the Telegram parse mode string; must not be {@code null}
+     * @return a new {@code PlainTextTemplate} with the parse mode set
+     * @since 0.0.6
+     */
+    @Override
+    public PlainTextTemplate withParseMode(String parseMode) {
+        return new PlainTextTemplate(this.template, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, parseMode);
     }
 
     public String getTemplate() {
@@ -443,6 +475,19 @@ public final class PlainTextTemplate implements MarkupAware {
      */
     public Integer getCallbackCacheTime() {
         return callbackCacheTime;
+    }
+
+    /**
+     * Returns the Telegram parse mode string, or {@code null} if none was set.
+     *
+     * <p>Typical values: {@code "HTML"}, {@code "MarkdownV2"}, {@code "Markdown"}.</p>
+     *
+     * @return the parse mode; may be {@code null}
+     * @since 0.0.6
+     */
+    @Override
+    public String getParseMode() {
+        return parseMode;
     }
 }
 
