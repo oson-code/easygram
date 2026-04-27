@@ -15,7 +15,8 @@ easygram:
 
     producer:
       # Choose which broker to publish to: KAFKA | RABBIT
-      type: KAFKA
+#      type: KAFKA
+      type: RABBIT
 
     # ── Kafka settings (active when producer.type=KAFKA) ────────────────────
     kafka:
