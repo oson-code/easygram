@@ -29,6 +29,7 @@ import uz.osoncode.easygram.core.trigger.BotStartTrigger;
 import uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitBotUpdateListener;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitConsumerBot;
+import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitConnectionFactoryProvider;
 
 import java.util.List;
 
@@ -57,6 +58,22 @@ import java.util.List;
 public class RabbitConsumerAutoConfiguration {
 
     /**
+     * Registers the default {@link BotRabbitConnectionFactoryProvider} if none is defined.
+     * This simply returns Spring Boot's auto-configured {@link ConnectionFactory}.
+     *
+     * <p>Override this bean to provide a custom connection factory.</p>
+     *
+     * @param connectionFactory the auto-configured RabbitMQ connection factory
+     * @return a provider wrapping the default connection factory
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public BotRabbitConnectionFactoryProvider botRabbitConnectionFactoryProvider(
+            ConnectionFactory connectionFactory) {
+        return () -> connectionFactory;
+    }
+
+    /**
      * Provides the default {@code botRabbitListenerContainerFactory} used by
      * {@link uz.osoncode.easygram.messaging.rabbit.consumer.RabbitBotUpdateListener}.
      *
@@ -64,15 +81,15 @@ public class RabbitConsumerAutoConfiguration {
      * {@link RabbitConsumerObservationConfig} inner class registers its own observed variant
      * (i.e. when Micrometer is on the classpath and configured).</p>
      *
-     * @param connectionFactory the auto-configured RabbitMQ connection factory
+     * @param connectionFactoryProvider the provider for the RabbitMQ connection factory
      * @return a basic {@link SimpleRabbitListenerContainerFactory}
      */
     @Bean(name = "botRabbitListenerContainerFactory")
     @ConditionalOnMissingBean(name = "botRabbitListenerContainerFactory")
     public SimpleRabbitListenerContainerFactory botRabbitListenerContainerFactory(
-            ConnectionFactory connectionFactory) {
+            BotRabbitConnectionFactoryProvider connectionFactoryProvider) {
         var factory = new SimpleRabbitListenerContainerFactory();
-        factory.setConnectionFactory(connectionFactory);
+        factory.setConnectionFactory(connectionFactoryProvider.provide());
         return factory;
     }
 
@@ -94,17 +111,17 @@ public class RabbitConsumerAutoConfiguration {
         /**
          * Registers an observation-enabled {@link SimpleRabbitListenerContainerFactory}.
          *
-         * @param connectionFactory   the auto-configured RabbitMQ connection factory
-         * @param observationRegistry the active Micrometer observation registry
+         * @param connectionFactoryProvider the provider for the RabbitMQ connection factory
+         * @param observationRegistry        the active Micrometer observation registry
          * @return a factory with {@code observationEnabled=true}
          */
         @Bean(name = "botRabbitListenerContainerFactory")
         @ConditionalOnMissingBean(name = "botRabbitListenerContainerFactory")
         public SimpleRabbitListenerContainerFactory botRabbitListenerContainerFactory(
-                ConnectionFactory connectionFactory,
+                BotRabbitConnectionFactoryProvider connectionFactoryProvider,
                 ObservationRegistry observationRegistry) {
             var factory = new SimpleRabbitListenerContainerFactory();
-            factory.setConnectionFactory(connectionFactory);
+            factory.setConnectionFactory(connectionFactoryProvider.provide());
             factory.setObservationEnabled(true);
             return factory;
         }

@@ -6,6 +6,7 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import io.micrometer.observation.ObservationRegistry;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -21,6 +22,7 @@ import uz.osoncode.easygram.core.bot.BotConfigurer;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
 import uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties;
 import uz.osoncode.easygram.messaging.rabbit.RabbitBotUpdatePublisher;
+import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitConnectionFactoryProvider;
 import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitTemplateProvider;
 
 /**
@@ -47,16 +49,36 @@ import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitTemplateProvider;
 public class RabbitMessagingAutoConfiguration {
 
     /**
-     * Registers the default {@link BotRabbitTemplateProvider} if none is defined.
-     * This simply returns the auto-configured {@link RabbitTemplate}.
+     * Registers the default {@link BotRabbitConnectionFactoryProvider} if none is defined.
+     * This simply returns Spring Boot's auto-configured {@link ConnectionFactory}.
      *
-     * @param rabbitTemplate the default RabbitMQ template
-     * @return a provider returning the default template
+     * <p>Override this bean to provide a custom connection factory — for example one
+     * pointing at a different RabbitMQ cluster, vhost, or using TLS.</p>
+     *
+     * @param connectionFactory the auto-configured RabbitMQ connection factory
+     * @return a provider wrapping the default connection factory
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotRabbitTemplateProvider botRabbitTemplateProvider(RabbitTemplate rabbitTemplate) {
-        return () -> rabbitTemplate;
+    public BotRabbitConnectionFactoryProvider botRabbitConnectionFactoryProvider(
+            ConnectionFactory connectionFactory) {
+        return () -> connectionFactory;
+    }
+
+    /**
+     * Registers the default {@link BotRabbitTemplateProvider} if none is defined.
+     * The template is created from the {@link BotRabbitConnectionFactoryProvider}, so
+     * customising the connection factory automatically affects the template.
+     *
+     * @param connectionFactoryProvider the provider for the RabbitMQ connection factory
+     * @return a provider returning a {@link RabbitTemplate} built from the factory
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public BotRabbitTemplateProvider botRabbitTemplateProvider(
+            BotRabbitConnectionFactoryProvider connectionFactoryProvider) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactoryProvider.provide());
+        return () -> template;
     }
 
     /**

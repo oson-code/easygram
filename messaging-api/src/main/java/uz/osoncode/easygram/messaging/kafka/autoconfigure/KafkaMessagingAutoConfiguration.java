@@ -13,10 +13,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 import uz.osoncode.easygram.core.bot.BotConfigurer;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
 import uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties;
 import uz.osoncode.easygram.messaging.kafka.KafkaBotUpdatePublisher;
+import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaProducerFactoryProvider;
 import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
 
 /**
@@ -43,16 +45,36 @@ import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
 public class KafkaMessagingAutoConfiguration {
 
     /**
-     * Registers the default {@link BotKafkaTemplateProvider} if none is defined.
-     * This simply returns the auto-configured {@link KafkaTemplate}.
+     * Registers the default {@link BotKafkaProducerFactoryProvider} if none is defined.
+     * This simply returns Spring Boot's auto-configured {@link ProducerFactory}.
      *
-     * @param kafkaTemplate the default Kafka template
-     * @return a provider returning the default template
+     * <p>Override this bean to provide a custom producer factory — for example one
+     * pointing at a different Kafka cluster or using custom serializers.</p>
+     *
+     * @param producerFactory the auto-configured Kafka producer factory
+     * @return a provider wrapping the default producer factory
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotKafkaTemplateProvider botKafkaTemplateProvider(KafkaTemplate<String, String> kafkaTemplate) {
-        return () -> kafkaTemplate;
+    public BotKafkaProducerFactoryProvider botKafkaProducerFactoryProvider(
+            ProducerFactory<String, String> producerFactory) {
+        return () -> producerFactory;
+    }
+
+    /**
+     * Registers the default {@link BotKafkaTemplateProvider} if none is defined.
+     * The template is created from the {@link BotKafkaProducerFactoryProvider}, so
+     * customising the producer factory automatically affects the template.
+     *
+     * @param producerFactoryProvider the provider for the Kafka producer factory
+     * @return a provider returning a {@link KafkaTemplate} built from the factory
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public BotKafkaTemplateProvider botKafkaTemplateProvider(
+            BotKafkaProducerFactoryProvider producerFactoryProvider) {
+        KafkaTemplate<String, String> template = new KafkaTemplate<>(producerFactoryProvider.provide());
+        return () -> template;
     }
 
     /**

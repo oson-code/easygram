@@ -1,9 +1,7 @@
 package uz.osoncode.easygram.messaging.rabbit;
 
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
-import org.springframework.validation.annotation.Validated;
 
 /**
  * Shared RabbitMQ configuration for both producer and consumer bot integrations.
@@ -11,6 +9,10 @@ import org.springframework.validation.annotation.Validated;
  * <p>Bound from the {@code easygram.messaging.rabbit} prefix. These properties are used by
  * both {@code RabbitMessagingAutoConfiguration} (PRODUCER mode) and
  * {@code RabbitConsumerAutoConfiguration} (CONSUMER mode).</p>
+ *
+ * <p>If {@code easygram.messaging.rabbit.exchange} is not set it defaults to
+ * {@code easygram-exchange}. All other fields also have defaults, so the minimal
+ * configuration is zero additional properties.</p>
  *
  * <p>Example {@code application.yml} snippet:</p>
  * <pre>{@code
@@ -27,7 +29,8 @@ import org.springframework.validation.annotation.Validated;
  *     port: 5672
  * }</pre>
  *
- * @param exchange       the RabbitMQ exchange to publish to or bind the queue to; must not be blank
+ * @param exchange       the RabbitMQ exchange to publish to or bind the queue to;
+ *                       defaults to {@code easygram-exchange}
  * @param queue          the queue name for consuming and auto-creation;
  *                       defaults to {@code easygram-updates}
  * @param routingKey     the routing key used when publishing or binding;
@@ -37,12 +40,11 @@ import org.springframework.validation.annotation.Validated;
  * @author Islom Mirsaburov
  * @since 0.0.5
  */
-@Validated
 @ConfigurationProperties("easygram.messaging.rabbit")
 public record EasygramRabbitProperties(
 
-        /** The RabbitMQ exchange name. */
-        @NotBlank(message = "easygram.messaging.rabbit.exchange must not be blank")
+        /** The RabbitMQ exchange name. Defaults to {@code easygram-exchange}. */
+        @DefaultValue("easygram-exchange")
         String exchange,
 
         /** The queue bound to the exchange. Used for consuming and auto-creation. */

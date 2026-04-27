@@ -24,6 +24,7 @@ import uz.osoncode.easygram.core.trigger.BotStartTrigger;
 import uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties;
 import uz.osoncode.easygram.messaging.kafka.consumer.KafkaBotUpdateListener;
 import uz.osoncode.easygram.messaging.kafka.consumer.KafkaConsumerBot;
+import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaConsumerFactoryProvider;
 
 import java.util.List;
 
@@ -53,6 +54,23 @@ import java.util.List;
 public class KafkaConsumerAutoConfiguration {
 
     /**
+     * Registers the default {@link BotKafkaConsumerFactoryProvider} if none is defined.
+     * This simply returns Spring Boot's auto-configured {@link ConsumerFactory}.
+     *
+     * <p>Override this bean to provide a custom consumer factory — for example one
+     * pointing at a different Kafka cluster or using custom deserializers.</p>
+     *
+     * @param consumerFactory the auto-configured Kafka consumer factory
+     * @return a provider wrapping the default consumer factory
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public BotKafkaConsumerFactoryProvider botKafkaConsumerFactoryProvider(
+            ConsumerFactory<Object, Object> consumerFactory) {
+        return () -> consumerFactory;
+    }
+
+    /**
      * Provides the default {@code botKafkaListenerContainerFactory} used by
      * {@link uz.osoncode.easygram.messaging.kafka.consumer.KafkaBotUpdateListener}.
      *
@@ -60,15 +78,15 @@ public class KafkaConsumerAutoConfiguration {
      * {@link KafkaConsumerObservationConfig} inner class registers its own observed variant
      * (i.e. when Micrometer is on the classpath and configured).</p>
      *
-     * @param consumerFactory the auto-configured Kafka consumer factory
+     * @param consumerFactoryProvider the provider for the Kafka consumer factory
      * @return a basic {@link ConcurrentKafkaListenerContainerFactory}
      */
     @Bean(name = "botKafkaListenerContainerFactory")
     @ConditionalOnMissingBean(name = "botKafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<Object, Object> botKafkaListenerContainerFactory(
-            ConsumerFactory<Object, Object> consumerFactory) {
+            BotKafkaConsumerFactoryProvider consumerFactoryProvider) {
         var factory = new ConcurrentKafkaListenerContainerFactory<Object, Object>();
-        factory.setConsumerFactory(consumerFactory);
+        factory.setConsumerFactory(consumerFactoryProvider.provide());
         return factory;
     }
 
@@ -90,17 +108,17 @@ public class KafkaConsumerAutoConfiguration {
         /**
          * Registers an observation-enabled {@link ConcurrentKafkaListenerContainerFactory}.
          *
-         * @param consumerFactory    the auto-configured Kafka consumer factory
-         * @param observationRegistry the active Micrometer observation registry
+         * @param consumerFactoryProvider the provider for the Kafka consumer factory
+         * @param observationRegistry      the active Micrometer observation registry
          * @return a factory with {@code observationEnabled=true}
          */
         @Bean(name = "botKafkaListenerContainerFactory")
         @ConditionalOnMissingBean(name = "botKafkaListenerContainerFactory")
         public ConcurrentKafkaListenerContainerFactory<Object, Object> botKafkaListenerContainerFactory(
-                ConsumerFactory<Object, Object> consumerFactory,
+                BotKafkaConsumerFactoryProvider consumerFactoryProvider,
                 ObservationRegistry observationRegistry) {
             var factory = new ConcurrentKafkaListenerContainerFactory<Object, Object>();
-            factory.setConsumerFactory(consumerFactory);
+            factory.setConsumerFactory(consumerFactoryProvider.provide());
             factory.getContainerProperties().setObservationEnabled(true);
             return factory;
         }
