@@ -61,6 +61,7 @@ import uz.osoncode.easygram.core.argumentresolver.BotShippingPayloadArgumentReso
 import uz.osoncode.easygram.core.argumentresolver.BotPreCheckoutPayloadArgumentResolver;
 import uz.osoncode.easygram.core.bot.BotConfigurer;
 import uz.osoncode.easygram.core.bot.EasygramProperties;
+import uz.osoncode.easygram.core.bot.EasygramTelegramUrlProperties;
 import uz.osoncode.easygram.core.bot.EasygramUpdateProperties;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
@@ -163,7 +164,7 @@ import java.util.concurrent.Executors;
  * @since 0.0.1
  */
 @AutoConfiguration
-@EnableConfigurationProperties({EasygramProperties.class, EasygramUpdateProperties.class})
+@EnableConfigurationProperties({EasygramProperties.class, EasygramUpdateProperties.class, EasygramTelegramUrlProperties.class})
 public class CoreAutoConfiguration {
 
     /**
@@ -1218,15 +1219,35 @@ public class CoreAutoConfiguration {
     }
 
     /**
-     * Default {@link BotTelegramUrlProvider} pointing to {@link TelegramUrl#DEFAULT_URL}.
+     * {@link BotTelegramUrlProvider} driven by {@code easygram.telegram-url.*} properties.
      *
-     * <p>Override this bean to redirect the bot to a local Bot API server.</p>
+     * <p>When {@code easygram.telegram-url.host} is set a {@link TelegramUrl} is built from the
+     * configured {@code schema}, {@code host}, {@code port}, and {@code testServer} values.
+     * Any field left blank keeps its default value from the {@link TelegramUrl} no-arg constructor.
+     * When no host is configured the provider returns {@link TelegramUrl#DEFAULT_URL}.</p>
      *
-     * @return a {@link BotTelegramUrlProvider} that always returns the default Telegram URL
+     * <p>Declare your own {@code @Bean BotTelegramUrlProvider} to override this entirely.</p>
+     *
+     * @param telegramUrlProperties optional URL properties from {@code easygram.telegram-url}
+     * @return a {@link BotTelegramUrlProvider} pointing at the configured or default URL
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotTelegramUrlProvider botTelegramUrlProvider() {
+    public BotTelegramUrlProvider botTelegramUrlProvider(EasygramTelegramUrlProperties telegramUrlProperties) {
+        if (telegramUrlProperties.host() != null) {
+            TelegramUrl url = new TelegramUrl();
+            if (telegramUrlProperties.schema() != null) {
+                url.setSchema(telegramUrlProperties.schema());
+            }
+            url.setHost(telegramUrlProperties.host());
+            if (telegramUrlProperties.port() != null) {
+                url.setPort(telegramUrlProperties.port());
+            }
+            if (telegramUrlProperties.testServer() != null) {
+                url.setTestServer(telegramUrlProperties.testServer());
+            }
+            return () -> url;
+        }
         return () -> TelegramUrl.DEFAULT_URL;
     }
 
