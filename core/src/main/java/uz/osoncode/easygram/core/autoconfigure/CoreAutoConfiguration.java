@@ -23,7 +23,6 @@ import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.markup.DefaultBotMarkupFactory;
 import uz.osoncode.easygram.core.markup.InMemoryBotMarkupRegistry;
 import uz.osoncode.easygram.core.returntypehandler.BotPlainReplyReturnTypeHandler;
-import uz.osoncode.easygram.core.returntypehandler.BotPlainTextTemplateReturnTypeHandler;
 
 import jakarta.validation.Validator;
 
@@ -1370,21 +1369,5 @@ public class CoreAutoConfiguration {
     @ConditionalOnMissingBean(BotPlainReplyReturnTypeHandler.class)
     public BotPlainReplyReturnTypeHandler botPlainReplyReturnTypeHandler(Optional<BotMarkupRegistry> markupRegistry) {
         return new BotPlainReplyReturnTypeHandler(markupRegistry);
-    }
-
-    /**
-     * Return-type handler for {@link uz.osoncode.easygram.core.reply.PlainTextTemplate}.
-     *
-     * <p>Handles plain text templates formatted using {@link String#format} if arguments are present,
-     * and optionally attaches markups via ID.</p>
-     *
-     * @param botMarkupRegistry optional registry for resolving markup IDs
-     * @return a {@link BotPlainTextTemplateReturnTypeHandler}
-     */
-    @Bean
-    @ConditionalOnMissingBean(BotPlainTextTemplateReturnTypeHandler.class)
-    public BotPlainTextTemplateReturnTypeHandler botPlainTextTemplateReturnTypeHandler(
-            Optional<BotMarkupRegistry> botMarkupRegistry) {
-        return new BotPlainTextTemplateReturnTypeHandler(botMarkupRegistry);
     }
 }
