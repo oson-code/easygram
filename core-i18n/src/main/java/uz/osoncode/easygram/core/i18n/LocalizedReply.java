@@ -8,11 +8,11 @@ import java.util.Objects;
 
 /**
  * Immutable value object representing a localised reply where the content is a simple
- * message bundle key (without {@code ${}} syntax) and arguments.
+ * message bundle key and arguments.
  *
- * <p>Unlike {@link LocalizedTemplate}, this class does not support mixed content or
- * template tokens. The {@code key} is resolved directly against the message bundle,
- * and {@code args} are used for formatting that specific message.</p>
+ * <p>The {@code key} is resolved directly against the message bundle, and {@code args}
+ * are forwarded to {@code MessageSource.getMessage(key, args, locale)} for standard
+ * Java {@code MessageFormat} substitution ({@code {0}}, {@code {1}}, …).</p>
  *
  * <p>Keyboard markup can be attached in three ways, in order of precedence:</p>
  * <ol>

@@ -17,7 +17,6 @@ import uz.osoncode.easygram.core.i18n.keyboard.BotKeyboardFactory;
 import uz.osoncode.easygram.core.i18n.resolver.BotLocaleArgumentResolver;
 import uz.osoncode.easygram.core.i18n.resolver.UserLanguageCodeLocaleResolver;
 import uz.osoncode.easygram.core.i18n.returntypehandler.BotLocalizedReplyReturnTypeHandler;
-import uz.osoncode.easygram.core.i18n.returntypehandler.BotLocalizedTemplateReturnTypeHandler;
 import uz.osoncode.easygram.core.dynamiccallback.BotDynamicCallbackQueryService;
 import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandler;
@@ -40,8 +39,6 @@ import java.util.Optional;
  *       matcher in {@code core} for {@code @BotReplyButton} routing</li>
  *   <li>{@link BotInlineQueryMatcher} - locale-aware matcher that replaces the default exact-text
  *       matcher in {@code core} for {@code @BotInlineQuery} value routing</li>
- *   <li>{@link BotLocalizedTemplateReturnTypeHandler} - resolves {@link uz.osoncode.easygram.core.i18n.LocalizedTemplate}
- *       return values using inline {@code ${key}} / {@code #{index}} template syntax</li>
  *   <li>{@link BotLocalizedReplyReturnTypeHandler} - resolves {@link uz.osoncode.easygram.core.i18n.LocalizedReply}
  *       return values using direct key lookup</li>
  * </ul>
@@ -154,29 +151,6 @@ public class BotI18nAutoConfiguration {
         };
     }
 
-    /**
-     * Return-type handler that resolves {@link uz.osoncode.easygram.core.i18n.LocalizedTemplate}
-     * objects returned from handler methods.
-     *
-     * <p>Supports inline template syntax:</p>
-     * <ul>
-     *   <li>{@code ${key}} — resolved from the message bundle in the user's locale</li>
-     *   <li>{@code #{index}} — replaced with the corresponding positional argument</li>
-     * </ul>
-     *
-     * <p>Also attaches registered markups if a markup ID is present on the reply.</p>
-     *
-     * @param botMessageSource the locale-aware message source used to resolve {@code ${key}} tokens
-     * @param markupRegistry   registry of markup factories, used to resolve {@code .withMarkup("id")}
-     * @return a {@link BotLocalizedTemplateReturnTypeHandler} registered for use in the handler pipeline
-     */
-    @Bean
-    @ConditionalOnMissingBean(BotLocalizedTemplateReturnTypeHandler.class)
-    public BotLocalizedTemplateReturnTypeHandler botLocalizedTemplateReturnTypeHandler(
-            BotMessageSource botMessageSource,
-            Optional<BotMarkupRegistry> markupRegistry) {
-        return new BotLocalizedTemplateReturnTypeHandler(botMessageSource, markupRegistry);
-    }
 
     @Bean
     @ConditionalOnMissingBean(BotLocalizedReplyReturnTypeHandler.class)
