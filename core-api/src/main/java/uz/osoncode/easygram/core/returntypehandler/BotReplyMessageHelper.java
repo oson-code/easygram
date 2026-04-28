@@ -62,7 +62,7 @@ public final class BotReplyMessageHelper {
      * @param markupId     the pre-registered markup ID, or {@code null}
      * @param markupParams parameters forwarded to the markup factory, or {@code null}
      * @param options      delivery options (parse mode, etc.); use {@link SendReplyOptions#NONE} for defaults
-     * @since 0.0.7 ({@code options} replaces the former {@code parseMode} parameter)
+     * @since 0.0.6 ({@code options} replaces the former {@code parseMode} parameter)
      */
     public static void addReply(
             BotResponse botResponse,

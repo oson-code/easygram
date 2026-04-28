@@ -208,7 +208,7 @@ return LocalizedReply.builder()
         .build();
 ```
 
-*Since 0.0.7*
+*Since 0.0.6*
 
 ---
 

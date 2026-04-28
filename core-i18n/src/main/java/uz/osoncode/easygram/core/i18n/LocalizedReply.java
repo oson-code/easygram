@@ -265,7 +265,7 @@ public final class LocalizedReply implements MarkupAware {
          *
          * @param disableNotification {@code true} to send silently; {@code null} for default
          * @return this builder
-         * @since 0.0.7
+         * @since 0.0.6
          */
         public Builder disableNotification(Boolean disableNotification) {
             this.disableNotification = disableNotification;
@@ -277,7 +277,7 @@ public final class LocalizedReply implements MarkupAware {
          *
          * @param protectContent {@code true} to protect; {@code null} for default
          * @return this builder
-         * @since 0.0.7
+         * @since 0.0.6
          */
         public Builder protectContent(Boolean protectContent) {
             this.protectContent = protectContent;
@@ -289,7 +289,7 @@ public final class LocalizedReply implements MarkupAware {
          *
          * @param messageThreadId the thread ID; {@code null} for regular chats
          * @return this builder
-         * @since 0.0.7
+         * @since 0.0.6
          */
         public Builder messageThreadId(Integer messageThreadId) {
             this.messageThreadId = messageThreadId;
@@ -301,7 +301,7 @@ public final class LocalizedReply implements MarkupAware {
          *
          * @param replyParameters the reply parameters; {@code null} to send without replying
          * @return this builder
-         * @since 0.0.7
+         * @since 0.0.6
          */
         public Builder replyParameters(ReplyParameters replyParameters) {
             this.replyParameters = replyParameters;
@@ -313,7 +313,7 @@ public final class LocalizedReply implements MarkupAware {
          *
          * @param linkPreviewOptions the link preview options; {@code null} for default preview
          * @return this builder
-         * @since 0.0.7
+         * @since 0.0.6
          */
         public Builder linkPreviewOptions(LinkPreviewOptions linkPreviewOptions) {
             this.linkPreviewOptions = linkPreviewOptions;
@@ -577,7 +577,7 @@ public final class LocalizedReply implements MarkupAware {
      * Returns whether the message should be sent silently, or {@code null} for default.
      *
      * @return {@code true} for silent send; {@code null} for default
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public Boolean getDisableNotification() {
         return disableNotification;
@@ -588,7 +588,7 @@ public final class LocalizedReply implements MarkupAware {
      *
      * @param disableNotification {@code true} to send silently; {@code null} for default
      * @return a new {@code LocalizedReply} with the flag set
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public LocalizedReply withDisableNotification(Boolean disableNotification) {
         return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
@@ -601,7 +601,7 @@ public final class LocalizedReply implements MarkupAware {
      * Returns whether the message content is protected from forwarding and saving.
      *
      * @return {@code true} if content is protected; {@code null} for default
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public Boolean getProtectContent() {
         return protectContent;
@@ -612,7 +612,7 @@ public final class LocalizedReply implements MarkupAware {
      *
      * @param protectContent {@code true} to protect; {@code null} for default
      * @return a new {@code LocalizedReply} with the flag set
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public LocalizedReply withProtectContent(Boolean protectContent) {
         return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
@@ -625,7 +625,7 @@ public final class LocalizedReply implements MarkupAware {
      * Returns the forum topic thread ID, or {@code null} for regular chats.
      *
      * @return the thread ID; may be {@code null}
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public Integer getMessageThreadId() {
         return messageThreadId;
@@ -636,7 +636,7 @@ public final class LocalizedReply implements MarkupAware {
      *
      * @param messageThreadId the thread ID; {@code null} for regular chats
      * @return a new {@code LocalizedReply} with the thread ID set
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public LocalizedReply withMessageThreadId(Integer messageThreadId) {
         return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
@@ -649,7 +649,7 @@ public final class LocalizedReply implements MarkupAware {
      * Returns the reply-to parameters, or {@code null} if this message is not a reply.
      *
      * @return the reply parameters; may be {@code null}
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public ReplyParameters getReplyParameters() {
         return replyParameters;
@@ -660,7 +660,7 @@ public final class LocalizedReply implements MarkupAware {
      *
      * @param replyParameters the reply parameters; {@code null} to send without replying
      * @return a new {@code LocalizedReply} with reply parameters set
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public LocalizedReply withReplyParameters(ReplyParameters replyParameters) {
         return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
@@ -673,7 +673,7 @@ public final class LocalizedReply implements MarkupAware {
      * Returns the link preview options, or {@code null} for Telegram's default preview.
      *
      * @return the link preview options; may be {@code null}
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public LinkPreviewOptions getLinkPreviewOptions() {
         return linkPreviewOptions;
@@ -684,7 +684,7 @@ public final class LocalizedReply implements MarkupAware {
      *
      * @param linkPreviewOptions the link preview options; {@code null} for default preview
      * @return a new {@code LocalizedReply} with link preview options set
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public LocalizedReply withLinkPreviewOptions(LinkPreviewOptions linkPreviewOptions) {
         return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,

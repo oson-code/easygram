@@ -166,7 +166,7 @@ public final class PlainReply implements MarkupAware {
          *
          * @param args the positional arguments; may be empty
          * @return this builder
-         * @since 0.0.7
+         * @since 0.0.6
          */
         public Builder args(Object... args) {
             this.args = args;
@@ -303,7 +303,7 @@ public final class PlainReply implements MarkupAware {
          *
          * @param disableNotification {@code true} to send silently; {@code null} for default
          * @return this builder
-         * @since 0.0.7
+         * @since 0.0.6
          */
         public Builder disableNotification(Boolean disableNotification) {
             this.disableNotification = disableNotification;
@@ -315,7 +315,7 @@ public final class PlainReply implements MarkupAware {
          *
          * @param protectContent {@code true} to protect; {@code null} for default
          * @return this builder
-         * @since 0.0.7
+         * @since 0.0.6
          */
         public Builder protectContent(Boolean protectContent) {
             this.protectContent = protectContent;
@@ -327,7 +327,7 @@ public final class PlainReply implements MarkupAware {
          *
          * @param messageThreadId the thread ID; {@code null} for regular (non-threaded) chats
          * @return this builder
-         * @since 0.0.7
+         * @since 0.0.6
          */
         public Builder messageThreadId(Integer messageThreadId) {
             this.messageThreadId = messageThreadId;
@@ -339,7 +339,7 @@ public final class PlainReply implements MarkupAware {
          *
          * @param replyParameters the reply parameters; {@code null} to send without replying
          * @return this builder
-         * @since 0.0.7
+         * @since 0.0.6
          */
         public Builder replyParameters(ReplyParameters replyParameters) {
             this.replyParameters = replyParameters;
@@ -351,7 +351,7 @@ public final class PlainReply implements MarkupAware {
          *
          * @param linkPreviewOptions the link preview options; {@code null} for default preview
          * @return this builder
-         * @since 0.0.7
+         * @since 0.0.6
          */
         public Builder linkPreviewOptions(LinkPreviewOptions linkPreviewOptions) {
             this.linkPreviewOptions = linkPreviewOptions;
@@ -391,7 +391,7 @@ public final class PlainReply implements MarkupAware {
      * @param text the reply text template; must not be {@code null}
      * @param args the positional arguments
      * @return a new {@code PlainReply} instance
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public static PlainReply of(String text, Object... args) {
         Objects.requireNonNull(text, "text must not be null");
@@ -561,7 +561,7 @@ public final class PlainReply implements MarkupAware {
      * or {@code null} if no args were provided.
      *
      * @return the args array; may be {@code null}
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public Object[] getArgs() {
         return args;
@@ -575,7 +575,7 @@ public final class PlainReply implements MarkupAware {
      *
      * @param args the positional arguments
      * @return a new {@code PlainReply} with the args set
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public PlainReply withArgs(Object... args) {
         return new PlainReply(this.text, args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
@@ -697,7 +697,7 @@ public final class PlainReply implements MarkupAware {
      * to use Telegram's default.
      *
      * @return {@code true} for silent send; {@code null} for default
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public Boolean getDisableNotification() {
         return disableNotification;
@@ -708,7 +708,7 @@ public final class PlainReply implements MarkupAware {
      *
      * @param disableNotification {@code true} to send silently; {@code null} for default
      * @return a new {@code PlainReply} with the flag set
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public PlainReply withDisableNotification(Boolean disableNotification) {
         return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
@@ -721,7 +721,7 @@ public final class PlainReply implements MarkupAware {
      * to use Telegram's default.
      *
      * @return {@code true} if content is protected; {@code null} for default
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public Boolean getProtectContent() {
         return protectContent;
@@ -732,7 +732,7 @@ public final class PlainReply implements MarkupAware {
      *
      * @param protectContent {@code true} to protect; {@code null} for default
      * @return a new {@code PlainReply} with the flag set
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public PlainReply withProtectContent(Boolean protectContent) {
         return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
@@ -744,7 +744,7 @@ public final class PlainReply implements MarkupAware {
      * Returns the forum topic thread ID, or {@code null} for regular (non-threaded) chats.
      *
      * @return the thread ID; may be {@code null}
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public Integer getMessageThreadId() {
         return messageThreadId;
@@ -755,7 +755,7 @@ public final class PlainReply implements MarkupAware {
      *
      * @param messageThreadId the thread ID; {@code null} for regular chats
      * @return a new {@code PlainReply} with the thread ID set
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public PlainReply withMessageThreadId(Integer messageThreadId) {
         return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
@@ -767,7 +767,7 @@ public final class PlainReply implements MarkupAware {
      * Returns the reply-to parameters, or {@code null} if this message is not a reply.
      *
      * @return the reply parameters; may be {@code null}
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public ReplyParameters getReplyParameters() {
         return replyParameters;
@@ -778,7 +778,7 @@ public final class PlainReply implements MarkupAware {
      *
      * @param replyParameters the reply parameters; {@code null} to send without replying
      * @return a new {@code PlainReply} with reply parameters set
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public PlainReply withReplyParameters(ReplyParameters replyParameters) {
         return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
@@ -790,7 +790,7 @@ public final class PlainReply implements MarkupAware {
      * Returns the link preview options, or {@code null} to use Telegram's default preview.
      *
      * @return the link preview options; may be {@code null}
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public LinkPreviewOptions getLinkPreviewOptions() {
         return linkPreviewOptions;
@@ -801,7 +801,7 @@ public final class PlainReply implements MarkupAware {
      *
      * @param linkPreviewOptions the link preview options; {@code null} for default preview
      * @return a new {@code PlainReply} with link preview options set
-     * @since 0.0.7
+     * @since 0.0.6
      */
     public PlainReply withLinkPreviewOptions(LinkPreviewOptions linkPreviewOptions) {
         return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,

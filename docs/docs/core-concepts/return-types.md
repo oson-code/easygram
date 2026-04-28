@@ -170,7 +170,7 @@ return PlainReply.builder()
 return PlainReply.of("Hi, {0}!").withArgs(user.getFirstName());
 ```
 
-*Since 0.0.7*
+*Since 0.0.6*
 
 ### Edit-Message {#edit-message}
 
@@ -242,7 +242,7 @@ return PlainReply.builder()
         .build();
 ```
 
-*Since 0.0.7*
+*Since 0.0.6*
 
 ---
 
@@ -449,7 +449,7 @@ return LocalizedReply.builder()
         .build();
 ```
 
-*Since 0.0.7*
+*Since 0.0.6*
 
 ---
 

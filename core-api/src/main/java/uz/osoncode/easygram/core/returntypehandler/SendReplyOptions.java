@@ -29,7 +29,7 @@ import org.telegram.telegrambots.meta.api.objects.ReplyParameters;
  * @param linkPreviewOptions  link preview configuration; {@code null} means default preview
  *
  * @author Islom Mirsaburov
- * @since 0.0.7
+ * @since 0.0.6
  */
 public record SendReplyOptions(
         String parseMode,

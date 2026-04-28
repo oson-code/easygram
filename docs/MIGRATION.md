@@ -1,13 +1,13 @@
 # Easygram — Migration Guide
 
-## 0.0.6 → 0.0.7
+## 0.0.5 → 0.0.6
 
 ### BREAKING: `PlainTextTemplate` removed
 
 `PlainTextTemplate` and its handler `BotPlainTextTemplateReturnTypeHandler` have been
 removed. Migrate to `PlainReply` with built-in `MessageFormat` arg support:
 
-| Before (0.0.6) | After (0.0.7) |
+| Before (0.0.5) | After (0.0.6) |
 |---|---|
 | `PlainTextTemplate.of("Hello, #{0}!", name)` | `PlainReply.of("Hello, {0}!", name)` |
 | `PlainTextTemplate.of("#{0} msgs", count)` | `PlainReply.of("{0} msgs", count)` |
@@ -71,11 +71,11 @@ public class WelcomeController {
 **Bundle file migration** — change `#{n}` → `{n}` in all `.properties` files:
 
 ```properties
-# Before (0.0.6)
+# Before (0.0.5)
 greeting=Hello, #{0}!
 register.complete=Complete! City: #{0}
 
-# After (0.0.7)
+# After (0.0.6)
 greeting=Hello, {0}!
 register.complete=Complete! City: {0}
 ```
@@ -96,12 +96,6 @@ Five new optional fields added (additive, fully backward-compatible):
 return PlainReply.of("Quiet update.").withDisableNotification(true);
 return LocalizedReply.of("welcome").withProtectContent(true);
 ```
-
----
-
-## 0.0.5 → 0.0.6
-
-Feature release — **no breaking changes**. All existing 0.0.5 code and configuration works unchanged.
 
 ### New: `@BotParseMode` annotation
 
