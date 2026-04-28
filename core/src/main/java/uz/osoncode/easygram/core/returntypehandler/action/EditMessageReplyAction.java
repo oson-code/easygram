@@ -23,6 +23,12 @@ public class EditMessageReplyAction implements BotReplyAction {
 
     private final Optional<BotMarkupRegistry> markupRegistry;
 
+    /**
+     * Creates a new {@code EditMessageReplyAction}.
+     *
+     * @param markupRegistry the markup registry used to resolve pre-registered keyboards by ID;
+     *                       may be {@link java.util.Optional#empty()} when no registry is configured
+     */
     public EditMessageReplyAction(Optional<BotMarkupRegistry> markupRegistry) {
         this.markupRegistry = markupRegistry;
     }

@@ -24,6 +24,13 @@ public class BotReplyActionChain {
 
     private final List<BotReplyAction> actions;
 
+    /**
+     * Creates a new chain from the given list of actions.
+     * The actions are sorted by {@link BotReplyAction#getOrder()} once at construction time
+     * (lower value = higher priority) and stored in that stable order.
+     *
+     * @param actions the actions to include in this chain; must not be {@code null}
+     */
     public BotReplyActionChain(List<BotReplyAction> actions) {
         this.actions = actions.stream()
                 .sorted(Comparator.comparingInt(BotReplyAction::getOrder))

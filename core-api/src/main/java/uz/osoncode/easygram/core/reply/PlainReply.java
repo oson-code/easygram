@@ -57,6 +57,13 @@ import java.util.Objects;
  *         .build();
  * }</pre>
  *
+ * <p>Internally, all non-content fields ({@code markup}, {@code keyboard}, {@code parseMode},
+ * delivery options, and callback-query options) are stored in an immutable {@link ReplyOptions}
+ * instance. Dispatch to the actual Telegram Bot API method(s) is performed by the
+ * {@code BotReplyActionChain} — a sorted list of {@code BotReplyAction} beans each responsible
+ * for one kind of Bot API call ({@code sendMessage}, {@code editMessageText},
+ * {@code answerCallbackQuery}, or any custom action).</p>
+ *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */

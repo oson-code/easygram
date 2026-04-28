@@ -26,6 +26,11 @@ import java.util.Objects;
  *   <li>{@link #removeMarkup()} — send {@code ReplyKeyboardRemove} to clear the keyboard.</li>
  * </ol>
  *
+ * <p>Internally all non-content fields are stored in an immutable {@link uz.osoncode.easygram.core.reply.ReplyOptions}
+ * instance. Dispatch to the Telegram Bot API is performed by the {@code BotReplyActionChain}
+ * — a sorted list of {@code BotReplyAction} beans each responsible for one Bot API call
+ * ({@code sendMessage}, {@code editMessageText}, {@code answerCallbackQuery}, …).</p>
+ *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
