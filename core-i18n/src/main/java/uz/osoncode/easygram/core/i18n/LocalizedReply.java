@@ -1,5 +1,7 @@
 package uz.osoncode.easygram.core.i18n;
 
+import org.telegram.telegrambots.meta.api.objects.LinkPreviewOptions;
+import org.telegram.telegrambots.meta.api.objects.ReplyParameters;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import uz.osoncode.easygram.core.markup.MarkupAware;
 
@@ -40,12 +42,19 @@ public final class LocalizedReply implements MarkupAware {
     private final String callbackUrl;
     private final Integer callbackCacheTime;
     private final String parseMode;
+    private final Boolean disableNotification;
+    private final Boolean protectContent;
+    private final Integer messageThreadId;
+    private final ReplyParameters replyParameters;
+    private final LinkPreviewOptions linkPreviewOptions;
 
     private LocalizedReply(String key, Object[] args, String markupId,
                             Map<String, Object> markupParams, ReplyKeyboard keyboard,
                             boolean removeMarkup, boolean editMessage,
                             boolean answerCallbackQuery, boolean callbackAlert,
-                            String callbackUrl, Integer callbackCacheTime, String parseMode) {
+                            String callbackUrl, Integer callbackCacheTime, String parseMode,
+                            Boolean disableNotification, Boolean protectContent, Integer messageThreadId,
+                            ReplyParameters replyParameters, LinkPreviewOptions linkPreviewOptions) {
         this.key = key;
         this.args = args;
         this.markupId = markupId;
@@ -58,6 +67,11 @@ public final class LocalizedReply implements MarkupAware {
         this.callbackUrl = callbackUrl;
         this.callbackCacheTime = callbackCacheTime;
         this.parseMode = parseMode;
+        this.disableNotification = disableNotification;
+        this.protectContent = protectContent;
+        this.messageThreadId = messageThreadId;
+        this.replyParameters = replyParameters;
+        this.linkPreviewOptions = linkPreviewOptions;
     }
 
     /**
@@ -94,6 +108,11 @@ public final class LocalizedReply implements MarkupAware {
         private String callbackUrl;
         private Integer callbackCacheTime;
         private String parseMode;
+        private Boolean disableNotification;
+        private Boolean protectContent;
+        private Integer messageThreadId;
+        private ReplyParameters replyParameters;
+        private LinkPreviewOptions linkPreviewOptions;
 
         private Builder() {}
 
@@ -242,6 +261,66 @@ public final class LocalizedReply implements MarkupAware {
         }
 
         /**
+         * Sets whether to send the message silently (no sound or vibration).
+         *
+         * @param disableNotification {@code true} to send silently; {@code null} for default
+         * @return this builder
+         * @since 0.0.7
+         */
+        public Builder disableNotification(Boolean disableNotification) {
+            this.disableNotification = disableNotification;
+            return this;
+        }
+
+        /**
+         * Sets whether to protect the message content from forwarding and saving.
+         *
+         * @param protectContent {@code true} to protect; {@code null} for default
+         * @return this builder
+         * @since 0.0.7
+         */
+        public Builder protectContent(Boolean protectContent) {
+            this.protectContent = protectContent;
+            return this;
+        }
+
+        /**
+         * Sets the forum topic thread ID. Only applicable in supergroups with topics enabled.
+         *
+         * @param messageThreadId the thread ID; {@code null} for regular chats
+         * @return this builder
+         * @since 0.0.7
+         */
+        public Builder messageThreadId(Integer messageThreadId) {
+            this.messageThreadId = messageThreadId;
+            return this;
+        }
+
+        /**
+         * Sets the reply-to parameters so the message appears as a reply to a specific message.
+         *
+         * @param replyParameters the reply parameters; {@code null} to send without replying
+         * @return this builder
+         * @since 0.0.7
+         */
+        public Builder replyParameters(ReplyParameters replyParameters) {
+            this.replyParameters = replyParameters;
+            return this;
+        }
+
+        /**
+         * Sets the link preview options for the outgoing message.
+         *
+         * @param linkPreviewOptions the link preview options; {@code null} for default preview
+         * @return this builder
+         * @since 0.0.7
+         */
+        public Builder linkPreviewOptions(LinkPreviewOptions linkPreviewOptions) {
+            this.linkPreviewOptions = linkPreviewOptions;
+            return this;
+        }
+
+        /**
          * Builds and returns the immutable {@link LocalizedReply}.
          *
          * @return a new {@code LocalizedReply} instance
@@ -249,7 +328,8 @@ public final class LocalizedReply implements MarkupAware {
         public LocalizedReply build() {
             Objects.requireNonNull(key, "key must not be null");
             return new LocalizedReply(key, args, markupId, markupParams, keyboard, removeMarkup, editMessage,
-                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime, parseMode);
+                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime, parseMode,
+                    disableNotification, protectContent, messageThreadId, replyParameters, linkPreviewOptions);
         }
     }
 
@@ -261,13 +341,14 @@ public final class LocalizedReply implements MarkupAware {
      * @return a new {@code LocalizedReply} instance
      */
     public static LocalizedReply of(String key, Object... args) {
-        return new LocalizedReply(key, args, null, null, null, false, false, false, false, null, null, null);
+        return new LocalizedReply(key, args, null, null, null, false, false, false, false, null, null, null, null, null, null, null, null);
     }
 
     @Override
     public LocalizedReply withMarkup(String markupId) {
         return new LocalizedReply(this.key, this.args, markupId, null, null, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -280,7 +361,8 @@ public final class LocalizedReply implements MarkupAware {
     @Override
     public LocalizedReply withMarkup(String markupId, Map<String, Object> params) {
         return new LocalizedReply(this.key, this.args, markupId, params, null, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -292,13 +374,15 @@ public final class LocalizedReply implements MarkupAware {
     @Override
     public LocalizedReply withKeyboard(ReplyKeyboard keyboard) {
         return new LocalizedReply(this.key, this.args, null, null, keyboard, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     @Override
     public LocalizedReply removeMarkup() {
         return new LocalizedReply(this.key, this.args, null, null, null, true, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -312,7 +396,8 @@ public final class LocalizedReply implements MarkupAware {
      */
     public LocalizedReply withEditMessage() {
         return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, true, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.removeMarkup, true, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -328,7 +413,8 @@ public final class LocalizedReply implements MarkupAware {
      */
     public LocalizedReply asAnswerCallbackQuery() {
         return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -341,7 +427,8 @@ public final class LocalizedReply implements MarkupAware {
      */
     public LocalizedReply withCallbackAlert() {
         return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.removeMarkup, this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -354,7 +441,8 @@ public final class LocalizedReply implements MarkupAware {
      */
     public LocalizedReply withCallbackUrl(String url) {
         return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime, this.parseMode);
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -367,7 +455,8 @@ public final class LocalizedReply implements MarkupAware {
      */
     public LocalizedReply withCallbackCacheTime(int cacheTime) {
         return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
-                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime, this.parseMode);
+                this.removeMarkup, this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -383,7 +472,8 @@ public final class LocalizedReply implements MarkupAware {
     public LocalizedReply withParseMode(String parseMode) {
         return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
                 this.removeMarkup, this.editMessage, this.answerCallbackQuery, this.callbackAlert,
-                this.callbackUrl, this.callbackCacheTime, parseMode);
+                this.callbackUrl, this.callbackCacheTime, parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     public String getKey() {
@@ -481,6 +571,126 @@ public final class LocalizedReply implements MarkupAware {
     @Override
     public String getParseMode() {
         return parseMode;
+    }
+
+    /**
+     * Returns whether the message should be sent silently, or {@code null} for default.
+     *
+     * @return {@code true} for silent send; {@code null} for default
+     * @since 0.0.7
+     */
+    public Boolean getDisableNotification() {
+        return disableNotification;
+    }
+
+    /**
+     * Returns a new {@code LocalizedReply} with the given silent-send flag set.
+     *
+     * @param disableNotification {@code true} to send silently; {@code null} for default
+     * @return a new {@code LocalizedReply} with the flag set
+     * @since 0.0.7
+     */
+    public LocalizedReply withDisableNotification(Boolean disableNotification) {
+        return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, this.answerCallbackQuery, this.callbackAlert,
+                this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+    }
+
+    /**
+     * Returns whether the message content is protected from forwarding and saving.
+     *
+     * @return {@code true} if content is protected; {@code null} for default
+     * @since 0.0.7
+     */
+    public Boolean getProtectContent() {
+        return protectContent;
+    }
+
+    /**
+     * Returns a new {@code LocalizedReply} with the given protect-content flag set.
+     *
+     * @param protectContent {@code true} to protect; {@code null} for default
+     * @return a new {@code LocalizedReply} with the flag set
+     * @since 0.0.7
+     */
+    public LocalizedReply withProtectContent(Boolean protectContent) {
+        return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, this.answerCallbackQuery, this.callbackAlert,
+                this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+    }
+
+    /**
+     * Returns the forum topic thread ID, or {@code null} for regular chats.
+     *
+     * @return the thread ID; may be {@code null}
+     * @since 0.0.7
+     */
+    public Integer getMessageThreadId() {
+        return messageThreadId;
+    }
+
+    /**
+     * Returns a new {@code LocalizedReply} with the given forum topic thread ID set.
+     *
+     * @param messageThreadId the thread ID; {@code null} for regular chats
+     * @return a new {@code LocalizedReply} with the thread ID set
+     * @since 0.0.7
+     */
+    public LocalizedReply withMessageThreadId(Integer messageThreadId) {
+        return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, this.answerCallbackQuery, this.callbackAlert,
+                this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, messageThreadId, this.replyParameters, this.linkPreviewOptions);
+    }
+
+    /**
+     * Returns the reply-to parameters, or {@code null} if this message is not a reply.
+     *
+     * @return the reply parameters; may be {@code null}
+     * @since 0.0.7
+     */
+    public ReplyParameters getReplyParameters() {
+        return replyParameters;
+    }
+
+    /**
+     * Returns a new {@code LocalizedReply} configured to appear as a reply to a specific message.
+     *
+     * @param replyParameters the reply parameters; {@code null} to send without replying
+     * @return a new {@code LocalizedReply} with reply parameters set
+     * @since 0.0.7
+     */
+    public LocalizedReply withReplyParameters(ReplyParameters replyParameters) {
+        return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, this.answerCallbackQuery, this.callbackAlert,
+                this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, replyParameters, this.linkPreviewOptions);
+    }
+
+    /**
+     * Returns the link preview options, or {@code null} for Telegram's default preview.
+     *
+     * @return the link preview options; may be {@code null}
+     * @since 0.0.7
+     */
+    public LinkPreviewOptions getLinkPreviewOptions() {
+        return linkPreviewOptions;
+    }
+
+    /**
+     * Returns a new {@code LocalizedReply} with the given link preview options set.
+     *
+     * @param linkPreviewOptions the link preview options; {@code null} for default preview
+     * @return a new {@code LocalizedReply} with link preview options set
+     * @since 0.0.7
+     */
+    public LocalizedReply withLinkPreviewOptions(LinkPreviewOptions linkPreviewOptions) {
+        return new LocalizedReply(this.key, this.args, this.markupId, this.markupParams, this.keyboard,
+                this.removeMarkup, this.editMessage, this.answerCallbackQuery, this.callbackAlert,
+                this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, linkPreviewOptions);
     }
 }
 
