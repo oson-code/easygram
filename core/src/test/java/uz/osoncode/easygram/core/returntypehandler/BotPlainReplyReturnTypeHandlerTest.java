@@ -3,12 +3,17 @@ package uz.osoncode.easygram.core.returntypehandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.chat.Chat;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 import uz.osoncode.easygram.core.reply.PlainReply;
+import uz.osoncode.easygram.core.returntypehandler.action.AnswerCallbackQueryReplyAction;
+import uz.osoncode.easygram.core.returntypehandler.action.EditMessageReplyAction;
+import uz.osoncode.easygram.core.returntypehandler.action.SendMessageReplyAction;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,8 +26,14 @@ class BotPlainReplyReturnTypeHandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new BotPlainReplyReturnTypeHandler(Optional.empty());
+        BotReplyActionChain chain = new BotReplyActionChain(List.of(
+                new SendMessageReplyAction(Optional.empty()),
+                new EditMessageReplyAction(Optional.empty()),
+                new AnswerCallbackQueryReplyAction()
+        ));
+        handler = new BotPlainReplyReturnTypeHandler(chain);
         request = new BotRequest();
+        request.setUpdate(new Update());
         response = new BotResponse();
     }
 
@@ -78,3 +89,4 @@ class BotPlainReplyReturnTypeHandlerTest {
         public String stringReturn() { return "hi"; }
     }
 }
+

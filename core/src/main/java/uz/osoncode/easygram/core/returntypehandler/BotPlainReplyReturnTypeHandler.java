@@ -1,15 +1,13 @@
 package uz.osoncode.easygram.core.returntypehandler;
 
-import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 import uz.osoncode.easygram.core.reply.PlainReply;
-import uz.osoncode.easygram.core.returntypehandler.SendReplyOptions;
 
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.Objects;
-import java.util.Optional;
+
 /**
  * {@link BotReturnTypeHandler} that handles handler methods returning a {@link PlainReply}.
  *
@@ -17,24 +15,19 @@ import java.util.Optional;
  * with {@link MessageFormat#format(String, Object[])} before sending, replacing {@code {0}},
  * {@code {1}}, … placeholders with the corresponding argument values.</p>
  *
- * <p>When {@link PlainReply#isEditMessage()} is {@code true} and the request originates from a
- * callback query, the originating message is edited in-place via {@code EditMessageText} instead
- * of sending a new message.</p>
- *
- * <p>If a markup ID is set on the {@link PlainReply} (via {@link PlainReply#withMarkup(String)})
- * and a {@link BotMarkupRegistry} is present, the registered markup factory is invoked and
- * the resulting {@code ReplyKeyboard} is attached to the response. In edit context only
- * {@code InlineKeyboardMarkup} is attached; other keyboard types are silently ignored.</p>
+ * <p>Dispatch to the actual Telegram Bot API call(s) is delegated to the
+ * {@link BotReplyActionChain}, which fires each registered {@link BotReplyAction} whose
+ * {@code supports()} returns {@code true} for the current request.</p>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
 public class BotPlainReplyReturnTypeHandler implements BotReturnTypeHandler {
 
-    private final Optional<BotMarkupRegistry> markupRegistry;
+    private final BotReplyActionChain replyActionChain;
 
-    public BotPlainReplyReturnTypeHandler(Optional<BotMarkupRegistry> markupRegistry) {
-        this.markupRegistry = markupRegistry;
+    public BotPlainReplyReturnTypeHandler(BotReplyActionChain replyActionChain) {
+        this.replyActionChain = replyActionChain;
     }
 
     @Override
@@ -49,35 +42,7 @@ public class BotPlainReplyReturnTypeHandler implements BotReturnTypeHandler {
         }
         PlainReply reply = (PlainReply) returnValue;
         String text = resolveText(reply);
-        SendReplyOptions options = new SendReplyOptions(
-                reply.getParseMode(),
-                reply.getDisableNotification(),
-                reply.getProtectContent(),
-                reply.getMessageThreadId(),
-                reply.getReplyParameters(),
-                reply.getLinkPreviewOptions());
-        if (!reply.isCallbackAlert()) {
-            BotReplyMessageHelper.addReply(
-                    botResponse,
-                    botRequest,
-                    text,
-                    reply.isEditMessage(),
-                    reply.getKeyboard(),
-                    reply.isRemoveMarkup(),
-                    markupRegistry,
-                    reply.getMarkupId(),
-                    reply.getMarkupParams(),
-                    options);
-        }
-        if (reply.isAnswerCallbackQuery()) {
-            BotReplyMessageHelper.addCallbackAnswer(
-                    botResponse,
-                    botRequest,
-                    text,
-                    reply.isCallbackAlert(),
-                    reply.getCallbackUrl(),
-                    reply.getCallbackCacheTime());
-        }
+        replyActionChain.execute(botRequest, botResponse, text, reply.getOptions());
     }
 
     /**
@@ -97,3 +62,4 @@ public class BotPlainReplyReturnTypeHandler implements BotReturnTypeHandler {
         return reply.getText();
     }
 }
+

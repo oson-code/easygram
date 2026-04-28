@@ -124,7 +124,11 @@ public final class LocalizedReply implements MarkupAware {
          * @return this builder
          */
         public Builder keyboard(ReplyKeyboard keyboard) {
-            options = options.withKeyboard(keyboard);
+            options = new ReplyOptions(options.markupId(), options.markupParams(), keyboard,
+                    options.removeMarkup(), options.editMessage(), options.answerCallbackQuery(),
+                    options.callbackAlert(), options.callbackUrl(), options.callbackCacheTime(),
+                    options.parseMode(), options.disableNotification(), options.protectContent(),
+                    options.messageThreadId(), options.replyParameters(), options.linkPreviewOptions());
             return this;
         }
 

@@ -23,6 +23,8 @@ import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.markup.DefaultBotMarkupFactory;
 import uz.osoncode.easygram.core.markup.InMemoryBotMarkupRegistry;
 import uz.osoncode.easygram.core.returntypehandler.BotPlainReplyReturnTypeHandler;
+import uz.osoncode.easygram.core.returntypehandler.BotReplyAction;
+import uz.osoncode.easygram.core.returntypehandler.BotReplyActionChain;
 
 import jakarta.validation.Validator;
 
@@ -1358,16 +1360,70 @@ public class CoreAutoConfiguration {
     }
 
     /**
+     * Handles send-message dispatch for {@link uz.osoncode.easygram.core.reply.PlainReply}.
+     *
+     * @param markupRegistry optional registry for resolving markup IDs
+     * @return a {@link uz.osoncode.easygram.core.returntypehandler.action.SendMessageReplyAction}
+     * @since 0.0.6
+     */
+    @Bean
+    @ConditionalOnMissingBean(uz.osoncode.easygram.core.returntypehandler.action.SendMessageReplyAction.class)
+    public uz.osoncode.easygram.core.returntypehandler.action.SendMessageReplyAction sendMessageReplyAction(
+            Optional<BotMarkupRegistry> markupRegistry) {
+        return new uz.osoncode.easygram.core.returntypehandler.action.SendMessageReplyAction(markupRegistry);
+    }
+
+    /**
+     * Handles edit-message dispatch for {@link uz.osoncode.easygram.core.reply.PlainReply}.
+     *
+     * @param markupRegistry optional registry for resolving markup IDs
+     * @return an {@link uz.osoncode.easygram.core.returntypehandler.action.EditMessageReplyAction}
+     * @since 0.0.6
+     */
+    @Bean
+    @ConditionalOnMissingBean(uz.osoncode.easygram.core.returntypehandler.action.EditMessageReplyAction.class)
+    public uz.osoncode.easygram.core.returntypehandler.action.EditMessageReplyAction editMessageReplyAction(
+            Optional<BotMarkupRegistry> markupRegistry) {
+        return new uz.osoncode.easygram.core.returntypehandler.action.EditMessageReplyAction(markupRegistry);
+    }
+
+    /**
+     * Handles {@code answerCallbackQuery} dispatch for reply types.
+     *
+     * @return an {@link uz.osoncode.easygram.core.returntypehandler.action.AnswerCallbackQueryReplyAction}
+     * @since 0.0.6
+     */
+    @Bean
+    @ConditionalOnMissingBean(uz.osoncode.easygram.core.returntypehandler.action.AnswerCallbackQueryReplyAction.class)
+    public uz.osoncode.easygram.core.returntypehandler.action.AnswerCallbackQueryReplyAction answerCallbackQueryReplyAction() {
+        return new uz.osoncode.easygram.core.returntypehandler.action.AnswerCallbackQueryReplyAction();
+    }
+
+    /**
+     * Assembles the {@link BotReplyActionChain} from all registered {@link BotReplyAction} beans.
+     *
+     * @param actions all {@link BotReplyAction} beans registered in the context
+     * @return a {@link BotReplyActionChain} sorted by order
+     * @since 0.0.6
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public BotReplyActionChain botReplyActionChain(List<BotReplyAction> actions) {
+        return new BotReplyActionChain(actions);
+    }
+
+    /**
      * Return-type handler for {@link uz.osoncode.easygram.core.reply.PlainReply}.
      *
      * <p>Handles simple text replies and optionally attaches markups via ID.</p>
      *
-     * @param markupRegistry optional registry for resolving markup IDs
+     * @param replyActionChain the chain of reply actions to use for dispatch
      * @return a {@link BotPlainReplyReturnTypeHandler}
      */
     @Bean
     @ConditionalOnMissingBean(BotPlainReplyReturnTypeHandler.class)
-    public BotPlainReplyReturnTypeHandler botPlainReplyReturnTypeHandler(Optional<BotMarkupRegistry> markupRegistry) {
-        return new BotPlainReplyReturnTypeHandler(markupRegistry);
+    public BotPlainReplyReturnTypeHandler botPlainReplyReturnTypeHandler(BotReplyActionChain replyActionChain) {
+        return new BotPlainReplyReturnTypeHandler(replyActionChain);
     }
 }
+
