@@ -64,45 +64,23 @@ public final class PlainReply implements MarkupAware {
 
     private final String text;
     private final Object[] args;
-    private final String markupId;
-    private final Map<String, Object> markupParams;
-    private final ReplyKeyboard keyboard;
-    private final boolean removeMarkup;
-    private final boolean editMessage;
-    private final boolean answerCallbackQuery;
-    private final boolean callbackAlert;
-    private final String callbackUrl;
-    private final Integer callbackCacheTime;
-    private final String parseMode;
-    private final Boolean disableNotification;
-    private final Boolean protectContent;
-    private final Integer messageThreadId;
-    private final ReplyParameters replyParameters;
-    private final LinkPreviewOptions linkPreviewOptions;
+    private final ReplyOptions options;
 
-    private PlainReply(String text, Object[] args, String markupId, Map<String, Object> markupParams,
-                       ReplyKeyboard keyboard, boolean removeMarkup, boolean editMessage,
-                       boolean answerCallbackQuery, boolean callbackAlert,
-                       String callbackUrl, Integer callbackCacheTime, String parseMode,
-                       Boolean disableNotification, Boolean protectContent, Integer messageThreadId,
-                       ReplyParameters replyParameters, LinkPreviewOptions linkPreviewOptions) {
+    private PlainReply(String text, Object[] args, ReplyOptions options) {
         this.text = text;
         this.args = args;
-        this.markupId = markupId;
-        this.markupParams = markupParams;
-        this.keyboard = keyboard;
-        this.removeMarkup = removeMarkup;
-        this.editMessage = editMessage;
-        this.answerCallbackQuery = answerCallbackQuery;
-        this.callbackAlert = callbackAlert;
-        this.callbackUrl = callbackUrl;
-        this.callbackCacheTime = callbackCacheTime;
-        this.parseMode = parseMode;
-        this.disableNotification = disableNotification;
-        this.protectContent = protectContent;
-        this.messageThreadId = messageThreadId;
-        this.replyParameters = replyParameters;
-        this.linkPreviewOptions = linkPreviewOptions;
+        this.options = options;
+    }
+
+    /**
+     * Returns the {@link ReplyOptions} carried by this reply.
+     * Provides access to all shared options (markup, delivery, callback, behaviour).
+     *
+     * @return the options; never {@code null}
+     * @since 0.0.6
+     */
+    public ReplyOptions getOptions() {
+        return options;
     }
 
     /**
@@ -128,21 +106,7 @@ public final class PlainReply implements MarkupAware {
 
         private String text;
         private Object[] args;
-        private String markupId;
-        private Map<String, Object> markupParams;
-        private ReplyKeyboard keyboard;
-        private boolean removeMarkup;
-        private boolean editMessage;
-        private boolean answerCallbackQuery;
-        private boolean callbackAlert;
-        private String callbackUrl;
-        private Integer callbackCacheTime;
-        private String parseMode;
-        private Boolean disableNotification;
-        private Boolean protectContent;
-        private Integer messageThreadId;
-        private ReplyParameters replyParameters;
-        private LinkPreviewOptions linkPreviewOptions;
+        private ReplyOptions options = ReplyOptions.DEFAULTS;
 
         private Builder() {}
 
@@ -180,7 +144,7 @@ public final class PlainReply implements MarkupAware {
          * @return this builder
          */
         public Builder markupId(String markupId) {
-            this.markupId = markupId;
+            options = options.withMarkupId(markupId);
             return this;
         }
 
@@ -191,7 +155,11 @@ public final class PlainReply implements MarkupAware {
          * @return this builder
          */
         public Builder markupParams(Map<String, Object> markupParams) {
-            this.markupParams = markupParams;
+            options = new ReplyOptions(options.markupId(), markupParams, options.keyboard(),
+                    options.removeMarkup(), options.editMessage(), options.answerCallbackQuery(),
+                    options.callbackAlert(), options.callbackUrl(), options.callbackCacheTime(),
+                    options.parseMode(), options.disableNotification(), options.protectContent(),
+                    options.messageThreadId(), options.replyParameters(), options.linkPreviewOptions());
             return this;
         }
 
@@ -202,7 +170,7 @@ public final class PlainReply implements MarkupAware {
          * @return this builder
          */
         public Builder keyboard(ReplyKeyboard keyboard) {
-            this.keyboard = keyboard;
+            options = options.withKeyboard(keyboard);
             return this;
         }
 
@@ -212,7 +180,7 @@ public final class PlainReply implements MarkupAware {
          * @return this builder
          */
         public Builder removeMarkup() {
-            this.removeMarkup = true;
+            options = options.withRemoveMarkup();
             return this;
         }
 
@@ -225,7 +193,12 @@ public final class PlainReply implements MarkupAware {
          * @since 0.0.2
          */
         public Builder editMessage(boolean editMessage) {
-            this.editMessage = editMessage;
+            options = editMessage ? options.withEditMessage()
+                    : new ReplyOptions(options.markupId(), options.markupParams(), options.keyboard(),
+                            options.removeMarkup(), false, options.answerCallbackQuery(),
+                            options.callbackAlert(), options.callbackUrl(), options.callbackCacheTime(),
+                            options.parseMode(), options.disableNotification(), options.protectContent(),
+                            options.messageThreadId(), options.replyParameters(), options.linkPreviewOptions());
             return this;
         }
 
@@ -238,7 +211,11 @@ public final class PlainReply implements MarkupAware {
          * @since 0.0.5
          */
         public Builder answerCallbackQuery(boolean answerCallbackQuery) {
-            this.answerCallbackQuery = answerCallbackQuery;
+            options = new ReplyOptions(options.markupId(), options.markupParams(), options.keyboard(),
+                    options.removeMarkup(), options.editMessage(), answerCallbackQuery,
+                    options.callbackAlert(), options.callbackUrl(), options.callbackCacheTime(),
+                    options.parseMode(), options.disableNotification(), options.protectContent(),
+                    options.messageThreadId(), options.replyParameters(), options.linkPreviewOptions());
             return this;
         }
 
@@ -251,8 +228,15 @@ public final class PlainReply implements MarkupAware {
          * @since 0.0.5
          */
         public Builder callbackAlert(boolean callbackAlert) {
-            if (callbackAlert) this.answerCallbackQuery = true;
-            this.callbackAlert = callbackAlert;
+            if (callbackAlert) {
+                options = options.withCallbackAlert();
+            } else {
+                options = new ReplyOptions(options.markupId(), options.markupParams(), options.keyboard(),
+                        options.removeMarkup(), options.editMessage(), options.answerCallbackQuery(),
+                        false, options.callbackUrl(), options.callbackCacheTime(),
+                        options.parseMode(), options.disableNotification(), options.protectContent(),
+                        options.messageThreadId(), options.replyParameters(), options.linkPreviewOptions());
+            }
             return this;
         }
 
@@ -265,8 +249,12 @@ public final class PlainReply implements MarkupAware {
          * @since 0.0.5
          */
         public Builder callbackUrl(String callbackUrl) {
-            if (callbackUrl != null) this.answerCallbackQuery = true;
-            this.callbackUrl = callbackUrl;
+            options = callbackUrl != null ? options.withCallbackUrl(callbackUrl)
+                    : new ReplyOptions(options.markupId(), options.markupParams(), options.keyboard(),
+                            options.removeMarkup(), options.editMessage(), options.answerCallbackQuery(),
+                            options.callbackAlert(), null, options.callbackCacheTime(),
+                            options.parseMode(), options.disableNotification(), options.protectContent(),
+                            options.messageThreadId(), options.replyParameters(), options.linkPreviewOptions());
             return this;
         }
 
@@ -279,8 +267,12 @@ public final class PlainReply implements MarkupAware {
          * @since 0.0.5
          */
         public Builder callbackCacheTime(Integer callbackCacheTime) {
-            if (callbackCacheTime != null) this.answerCallbackQuery = true;
-            this.callbackCacheTime = callbackCacheTime;
+            options = callbackCacheTime != null ? options.withCallbackCacheTime(callbackCacheTime)
+                    : new ReplyOptions(options.markupId(), options.markupParams(), options.keyboard(),
+                            options.removeMarkup(), options.editMessage(), options.answerCallbackQuery(),
+                            options.callbackAlert(), options.callbackUrl(), null,
+                            options.parseMode(), options.disableNotification(), options.protectContent(),
+                            options.messageThreadId(), options.replyParameters(), options.linkPreviewOptions());
             return this;
         }
 
@@ -294,7 +286,7 @@ public final class PlainReply implements MarkupAware {
          * @since 0.0.6
          */
         public Builder parseMode(String parseMode) {
-            this.parseMode = parseMode;
+            options = options.withParseMode(parseMode);
             return this;
         }
 
@@ -306,7 +298,7 @@ public final class PlainReply implements MarkupAware {
          * @since 0.0.6
          */
         public Builder disableNotification(Boolean disableNotification) {
-            this.disableNotification = disableNotification;
+            options = options.withDisableNotification(disableNotification);
             return this;
         }
 
@@ -318,7 +310,7 @@ public final class PlainReply implements MarkupAware {
          * @since 0.0.6
          */
         public Builder protectContent(Boolean protectContent) {
-            this.protectContent = protectContent;
+            options = options.withProtectContent(protectContent);
             return this;
         }
 
@@ -330,7 +322,7 @@ public final class PlainReply implements MarkupAware {
          * @since 0.0.6
          */
         public Builder messageThreadId(Integer messageThreadId) {
-            this.messageThreadId = messageThreadId;
+            options = options.withMessageThreadId(messageThreadId);
             return this;
         }
 
@@ -342,7 +334,7 @@ public final class PlainReply implements MarkupAware {
          * @since 0.0.6
          */
         public Builder replyParameters(ReplyParameters replyParameters) {
-            this.replyParameters = replyParameters;
+            options = options.withReplyParameters(replyParameters);
             return this;
         }
 
@@ -354,7 +346,7 @@ public final class PlainReply implements MarkupAware {
          * @since 0.0.6
          */
         public Builder linkPreviewOptions(LinkPreviewOptions linkPreviewOptions) {
-            this.linkPreviewOptions = linkPreviewOptions;
+            options = options.withLinkPreviewOptions(linkPreviewOptions);
             return this;
         }
 
@@ -364,9 +356,7 @@ public final class PlainReply implements MarkupAware {
          * @return a new {@code PlainReply} instance
          */
         public PlainReply build() {
-            return new PlainReply(text, args, markupId, markupParams, keyboard, removeMarkup, editMessage,
-                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime, parseMode,
-                    disableNotification, protectContent, messageThreadId, replyParameters, linkPreviewOptions);
+            return new PlainReply(text, args, options);
         }
     }
 
@@ -378,7 +368,7 @@ public final class PlainReply implements MarkupAware {
      */
     public static PlainReply of(String text) {
         Objects.requireNonNull(text, "text must not be null");
-        return new PlainReply(text, null, null, null, null, false, false, false, false, null, null, null, null, null, null, null, null);
+        return new PlainReply(text, null, ReplyOptions.DEFAULTS);
     }
 
     /**
@@ -395,7 +385,7 @@ public final class PlainReply implements MarkupAware {
      */
     public static PlainReply of(String text, Object... args) {
         Objects.requireNonNull(text, "text must not be null");
-        return new PlainReply(text, args, null, null, null, false, false, false, false, null, null, null, null, null, null, null, null);
+        return new PlainReply(text, args, ReplyOptions.DEFAULTS);
     }
 
     /**
@@ -406,9 +396,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withMarkup(String markupId) {
-        return new PlainReply(this.text, this.args, markupId, null, null, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
-                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withMarkupId(markupId));
     }
 
     /**
@@ -424,9 +412,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withMarkup(String markupId, Map<String, Object> params) {
-        return new PlainReply(this.text, this.args, markupId, params, null, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
-                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withMarkupId(markupId, params));
     }
 
     /**
@@ -440,9 +426,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withKeyboard(ReplyKeyboard keyboard) {
-        return new PlainReply(this.text, this.args, null, null, keyboard, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
-                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withKeyboard(keyboard));
     }
 
     /**
@@ -452,9 +436,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply removeMarkup() {
-        return new PlainReply(this.text, this.args, null, null, null, true, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
-                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withRemoveMarkup());
     }
 
     /**
@@ -467,9 +449,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.2
      */
     public PlainReply withEditMessage() {
-        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup, true,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
-                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withEditMessage());
     }
 
     /**
@@ -484,9 +464,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.5
      */
     public PlainReply asAnswerCallbackQuery() {
-        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
-                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withAnswerCallbackQuery());
     }
 
     /**
@@ -498,9 +476,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.5
      */
     public PlainReply withCallbackAlert() {
-        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime, this.parseMode,
-                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withCallbackAlert());
     }
 
     /**
@@ -512,9 +488,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.5
      */
     public PlainReply withCallbackUrl(String url) {
-        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime, this.parseMode,
-                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withCallbackUrl(url));
     }
 
     /**
@@ -526,9 +500,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.5
      */
     public PlainReply withCallbackCacheTime(int cacheTime) {
-        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime, this.parseMode,
-                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withCallbackCacheTime(cacheTime));
     }
 
     /**
@@ -542,9 +514,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withParseMode(String parseMode) {
-        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, parseMode,
-                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withParseMode(parseMode));
     }
 
     /**
@@ -578,9 +548,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.6
      */
     public PlainReply withArgs(Object... args) {
-        return new PlainReply(this.text, args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
-                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, args, this.options);
     }
 
     /**
@@ -590,7 +558,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public String getMarkupId() {
-        return markupId;
+        return options.markupId();
     }
 
     /**
@@ -600,7 +568,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public Map<String, Object> getMarkupParams() {
-        return markupParams;
+        return options.markupParams();
     }
 
     /**
@@ -610,7 +578,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public ReplyKeyboard getKeyboard() {
-        return keyboard;
+        return options.keyboard();
     }
 
     /**
@@ -620,7 +588,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public boolean isRemoveMarkup() {
-        return removeMarkup;
+        return options.removeMarkup();
     }
 
     /**
@@ -632,7 +600,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public boolean isEditMessage() {
-        return editMessage;
+        return options.editMessage();
     }
 
     /**
@@ -643,7 +611,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.5
      */
     public boolean isAnswerCallbackQuery() {
-        return answerCallbackQuery;
+        return options.answerCallbackQuery();
     }
 
     /**
@@ -654,7 +622,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.5
      */
     public boolean isCallbackAlert() {
-        return callbackAlert;
+        return options.callbackAlert();
     }
 
     /**
@@ -665,7 +633,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.5
      */
     public String getCallbackUrl() {
-        return callbackUrl;
+        return options.callbackUrl();
     }
 
     /**
@@ -676,7 +644,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.5
      */
     public Integer getCallbackCacheTime() {
-        return callbackCacheTime;
+        return options.callbackCacheTime();
     }
 
     /**
@@ -689,7 +657,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public String getParseMode() {
-        return parseMode;
+        return options.parseMode();
     }
 
     /**
@@ -700,7 +668,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.6
      */
     public Boolean getDisableNotification() {
-        return disableNotification;
+        return options.disableNotification();
     }
 
     /**
@@ -711,9 +679,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.6
      */
     public PlainReply withDisableNotification(Boolean disableNotification) {
-        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
-                disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withDisableNotification(disableNotification));
     }
 
     /**
@@ -724,7 +690,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.6
      */
     public Boolean getProtectContent() {
-        return protectContent;
+        return options.protectContent();
     }
 
     /**
@@ -735,9 +701,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.6
      */
     public PlainReply withProtectContent(Boolean protectContent) {
-        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
-                this.disableNotification, protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withProtectContent(protectContent));
     }
 
     /**
@@ -747,7 +711,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.6
      */
     public Integer getMessageThreadId() {
-        return messageThreadId;
+        return options.messageThreadId();
     }
 
     /**
@@ -758,9 +722,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.6
      */
     public PlainReply withMessageThreadId(Integer messageThreadId) {
-        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
-                this.disableNotification, this.protectContent, messageThreadId, this.replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withMessageThreadId(messageThreadId));
     }
 
     /**
@@ -770,7 +732,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.6
      */
     public ReplyParameters getReplyParameters() {
-        return replyParameters;
+        return options.replyParameters();
     }
 
     /**
@@ -781,9 +743,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.6
      */
     public PlainReply withReplyParameters(ReplyParameters replyParameters) {
-        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
-                this.disableNotification, this.protectContent, this.messageThreadId, replyParameters, this.linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withReplyParameters(replyParameters));
     }
 
     /**
@@ -793,7 +753,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.6
      */
     public LinkPreviewOptions getLinkPreviewOptions() {
-        return linkPreviewOptions;
+        return options.linkPreviewOptions();
     }
 
     /**
@@ -804,9 +764,6 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.6
      */
     public PlainReply withLinkPreviewOptions(LinkPreviewOptions linkPreviewOptions) {
-        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
-                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, linkPreviewOptions);
+        return new PlainReply(this.text, this.args, options.withLinkPreviewOptions(linkPreviewOptions));
     }
 }
-
