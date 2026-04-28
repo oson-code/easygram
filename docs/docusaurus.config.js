@@ -39,7 +39,7 @@ const config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '0.0.5',
+              label: '0.0.6',
               path: '/',
             },
           },
@@ -54,7 +54,7 @@ const config = {
         sitemap: {
           changefreq: 'weekly',
           priority: 0.5,
-          ignorePatterns: ['/tags/**', '/0.0.1/**', '/0.0.2/**', '/0.0.3/**', '/0.0.4/**'],
+          ignorePatterns: ['/tags/**', '/0.0.1/**', '/0.0.2/**', '/0.0.3/**', '/0.0.4/**', '/0.0.5/**'],
           filename: 'sitemap.xml',
         },
       }),
