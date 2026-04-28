@@ -4,9 +4,9 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.telegram.telegrambots.meta.api.methods.GetMe;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
@@ -61,6 +61,11 @@ class KafkaConsumerAutoConfigurationTest {
     @Test
     void withRequiredProperties_registersKafkaListener() {
         runner.run(context -> assertThat(context).hasSingleBean(KafkaBotUpdateListener.class));
+    }
+
+    @Test
+    void withRequiredProperties_registersListenerContainer() {
+        runner.run(context -> assertThat(context).hasSingleBean(ConcurrentMessageListenerContainer.class));
     }
 
     @Test

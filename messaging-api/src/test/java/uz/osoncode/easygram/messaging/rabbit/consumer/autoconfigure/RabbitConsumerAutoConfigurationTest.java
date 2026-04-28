@@ -3,6 +3,7 @@ package uz.osoncode.easygram.messaging.rabbit.consumer.autoconfigure;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration;
@@ -47,6 +48,11 @@ class RabbitConsumerAutoConfigurationTest {
     @Test
     void withRequiredProperties_registersRabbitListener() {
         runner.run(context -> assertThat(context).hasSingleBean(RabbitBotUpdateListener.class));
+    }
+
+    @Test
+    void withRequiredProperties_registersListenerContainer() {
+        runner.run(context -> assertThat(context).hasSingleBean(SimpleMessageListenerContainer.class));
     }
 
     @Test

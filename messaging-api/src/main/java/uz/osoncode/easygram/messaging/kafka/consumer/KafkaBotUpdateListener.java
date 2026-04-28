@@ -2,7 +2,8 @@ package uz.osoncode.easygram.messaging.kafka.consumer;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.kafka.listener.MessageListener;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
 
@@ -10,20 +11,19 @@ import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
  * Spring Kafka message listener that consumes Telegram {@link Update} JSON payloads
  * from a configured Kafka topic and forwards them into the bot processing pipeline.
  *
- * <p>The topic is resolved from the {@code easygram.messaging.kafka.topic} property at
- * startup. Each received message is deserialized into an {@link Update} using
- * {@link BotObjectMapperProvider} and forwarded to
- * {@link KafkaConsumerBot#handleUpdate(Update)}.</p>
- *
- * <p>Kafka consumer settings (bootstrap servers, group ID, deserializers, etc.) are
- * configured via the standard {@code spring.kafka.consumer.*} properties.</p>
+ * <p>Registered programmatically with a
+ * {@link org.springframework.kafka.listener.ConcurrentMessageListenerContainer} in
+ * {@link uz.osoncode.easygram.messaging.kafka.consumer.autoconfigure.KafkaConsumerAutoConfiguration}.
+ * Topic, group ID, and consumer factory are resolved at startup from
+ * {@link uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties} and
+ * {@link uz.osoncode.easygram.messaging.kafka.provider.BotKafkaConsumerFactoryProvider}.</p>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
 @Slf4j
 @RequiredArgsConstructor
-public class KafkaBotUpdateListener {
+public class KafkaBotUpdateListener implements MessageListener<Object, Object> {
 
     private final KafkaConsumerBot kafkaConsumerBot;
     private final BotObjectMapperProvider objectMapperProvider;
@@ -32,14 +32,11 @@ public class KafkaBotUpdateListener {
      * Receives a raw JSON Telegram update from Kafka, deserializes it, and delegates
      * processing to {@link KafkaConsumerBot#handleUpdate(Update)}.
      *
-     * @param message the raw JSON string payload from Kafka
+     * @param record the Kafka consumer record whose value contains the JSON payload
      */
-    @KafkaListener(
-            topics = "${easygram.messaging.kafka.topic}",
-            groupId = "${easygram.messaging.kafka.group-id:easygram-bot}",
-            containerFactory = "botKafkaListenerContainerFactory"
-    )
-    public void onMessage(String message) {
+    @Override
+    public void onMessage(ConsumerRecord<Object, Object> record) {
+        String message = record.value().toString();
         log.debug("Received Kafka message: {}", message);
         try {
             Update update = objectMapperProvider.provide().readValue(message, Update.class);
