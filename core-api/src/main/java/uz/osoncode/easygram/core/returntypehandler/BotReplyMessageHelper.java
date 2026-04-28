@@ -102,6 +102,21 @@ public final class BotReplyMessageHelper {
         if (Objects.nonNull(options) && Objects.nonNull(options.parseMode())) {
             builder.parseMode(options.parseMode());
         }
+        if (Objects.nonNull(options) && Objects.nonNull(options.disableNotification())) {
+            builder.disableNotification(options.disableNotification());
+        }
+        if (Objects.nonNull(options) && Objects.nonNull(options.protectContent())) {
+            builder.protectContent(options.protectContent());
+        }
+        if (Objects.nonNull(options) && Objects.nonNull(options.messageThreadId())) {
+            builder.messageThreadId(options.messageThreadId());
+        }
+        if (Objects.nonNull(options) && Objects.nonNull(options.replyParameters())) {
+            builder.replyParameters(options.replyParameters());
+        }
+        if (Objects.nonNull(options) && Objects.nonNull(options.linkPreviewOptions())) {
+            builder.linkPreviewOptions(options.linkPreviewOptions());
+        }
         if (removeMarkup) {
             builder.replyMarkup(ReplyKeyboardRemove.builder().removeKeyboard(true).build());
         } else if (Objects.nonNull(keyboard)) {

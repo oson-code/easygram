@@ -49,7 +49,13 @@ public class BotPlainReplyReturnTypeHandler implements BotReturnTypeHandler {
         }
         PlainReply reply = (PlainReply) returnValue;
         String text = resolveText(reply);
-        SendReplyOptions options = SendReplyOptions.of(reply.getParseMode());
+        SendReplyOptions options = new SendReplyOptions(
+                reply.getParseMode(),
+                reply.getDisableNotification(),
+                reply.getProtectContent(),
+                reply.getMessageThreadId(),
+                reply.getReplyParameters(),
+                reply.getLinkPreviewOptions());
         if (!reply.isCallbackAlert()) {
             BotReplyMessageHelper.addReply(
                     botResponse,

@@ -1,5 +1,7 @@
 package uz.osoncode.easygram.core.reply;
 
+import org.telegram.telegrambots.meta.api.objects.LinkPreviewOptions;
+import org.telegram.telegrambots.meta.api.objects.ReplyParameters;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import uz.osoncode.easygram.core.markup.MarkupAware;
 
@@ -72,11 +74,18 @@ public final class PlainReply implements MarkupAware {
     private final String callbackUrl;
     private final Integer callbackCacheTime;
     private final String parseMode;
+    private final Boolean disableNotification;
+    private final Boolean protectContent;
+    private final Integer messageThreadId;
+    private final ReplyParameters replyParameters;
+    private final LinkPreviewOptions linkPreviewOptions;
 
     private PlainReply(String text, Object[] args, String markupId, Map<String, Object> markupParams,
                        ReplyKeyboard keyboard, boolean removeMarkup, boolean editMessage,
                        boolean answerCallbackQuery, boolean callbackAlert,
-                       String callbackUrl, Integer callbackCacheTime, String parseMode) {
+                       String callbackUrl, Integer callbackCacheTime, String parseMode,
+                       Boolean disableNotification, Boolean protectContent, Integer messageThreadId,
+                       ReplyParameters replyParameters, LinkPreviewOptions linkPreviewOptions) {
         this.text = text;
         this.args = args;
         this.markupId = markupId;
@@ -89,6 +98,11 @@ public final class PlainReply implements MarkupAware {
         this.callbackUrl = callbackUrl;
         this.callbackCacheTime = callbackCacheTime;
         this.parseMode = parseMode;
+        this.disableNotification = disableNotification;
+        this.protectContent = protectContent;
+        this.messageThreadId = messageThreadId;
+        this.replyParameters = replyParameters;
+        this.linkPreviewOptions = linkPreviewOptions;
     }
 
     /**
@@ -124,6 +138,11 @@ public final class PlainReply implements MarkupAware {
         private String callbackUrl;
         private Integer callbackCacheTime;
         private String parseMode;
+        private Boolean disableNotification;
+        private Boolean protectContent;
+        private Integer messageThreadId;
+        private ReplyParameters replyParameters;
+        private LinkPreviewOptions linkPreviewOptions;
 
         private Builder() {}
 
@@ -280,13 +299,74 @@ public final class PlainReply implements MarkupAware {
         }
 
         /**
+         * Sets whether to send the message silently (no sound or vibration on the receiver's device).
+         *
+         * @param disableNotification {@code true} to send silently; {@code null} for default
+         * @return this builder
+         * @since 0.0.7
+         */
+        public Builder disableNotification(Boolean disableNotification) {
+            this.disableNotification = disableNotification;
+            return this;
+        }
+
+        /**
+         * Sets whether to protect the message content from forwarding and saving.
+         *
+         * @param protectContent {@code true} to protect; {@code null} for default
+         * @return this builder
+         * @since 0.0.7
+         */
+        public Builder protectContent(Boolean protectContent) {
+            this.protectContent = protectContent;
+            return this;
+        }
+
+        /**
+         * Sets the forum topic thread ID. Only applicable in supergroups with forum topics enabled.
+         *
+         * @param messageThreadId the thread ID; {@code null} for regular (non-threaded) chats
+         * @return this builder
+         * @since 0.0.7
+         */
+        public Builder messageThreadId(Integer messageThreadId) {
+            this.messageThreadId = messageThreadId;
+            return this;
+        }
+
+        /**
+         * Sets the reply-to parameters so the message appears as a reply to a specific message.
+         *
+         * @param replyParameters the reply parameters; {@code null} to send without replying
+         * @return this builder
+         * @since 0.0.7
+         */
+        public Builder replyParameters(ReplyParameters replyParameters) {
+            this.replyParameters = replyParameters;
+            return this;
+        }
+
+        /**
+         * Sets the link preview options for the outgoing message.
+         *
+         * @param linkPreviewOptions the link preview options; {@code null} for default preview
+         * @return this builder
+         * @since 0.0.7
+         */
+        public Builder linkPreviewOptions(LinkPreviewOptions linkPreviewOptions) {
+            this.linkPreviewOptions = linkPreviewOptions;
+            return this;
+        }
+
+        /**
          * Builds and returns the immutable {@link PlainReply}.
          *
          * @return a new {@code PlainReply} instance
          */
         public PlainReply build() {
             return new PlainReply(text, args, markupId, markupParams, keyboard, removeMarkup, editMessage,
-                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime, parseMode);
+                    answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime, parseMode,
+                    disableNotification, protectContent, messageThreadId, replyParameters, linkPreviewOptions);
         }
     }
 
@@ -298,7 +378,7 @@ public final class PlainReply implements MarkupAware {
      */
     public static PlainReply of(String text) {
         Objects.requireNonNull(text, "text must not be null");
-        return new PlainReply(text, null, null, null, null, false, false, false, false, null, null, null);
+        return new PlainReply(text, null, null, null, null, false, false, false, false, null, null, null, null, null, null, null, null);
     }
 
     /**
@@ -315,7 +395,7 @@ public final class PlainReply implements MarkupAware {
      */
     public static PlainReply of(String text, Object... args) {
         Objects.requireNonNull(text, "text must not be null");
-        return new PlainReply(text, args, null, null, null, false, false, false, false, null, null, null);
+        return new PlainReply(text, args, null, null, null, false, false, false, false, null, null, null, null, null, null, null, null);
     }
 
     /**
@@ -327,7 +407,8 @@ public final class PlainReply implements MarkupAware {
     @Override
     public PlainReply withMarkup(String markupId) {
         return new PlainReply(this.text, this.args, markupId, null, null, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -344,7 +425,8 @@ public final class PlainReply implements MarkupAware {
     @Override
     public PlainReply withMarkup(String markupId, Map<String, Object> params) {
         return new PlainReply(this.text, this.args, markupId, params, null, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -359,7 +441,8 @@ public final class PlainReply implements MarkupAware {
     @Override
     public PlainReply withKeyboard(ReplyKeyboard keyboard) {
         return new PlainReply(this.text, this.args, null, null, keyboard, false, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -370,7 +453,8 @@ public final class PlainReply implements MarkupAware {
     @Override
     public PlainReply removeMarkup() {
         return new PlainReply(this.text, this.args, null, null, null, true, this.editMessage,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -384,7 +468,8 @@ public final class PlainReply implements MarkupAware {
      */
     public PlainReply withEditMessage() {
         return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup, true,
-                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -400,7 +485,8 @@ public final class PlainReply implements MarkupAware {
      */
     public PlainReply asAnswerCallbackQuery() {
         return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -413,7 +499,8 @@ public final class PlainReply implements MarkupAware {
      */
     public PlainReply withCallbackAlert() {
         return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -426,7 +513,8 @@ public final class PlainReply implements MarkupAware {
      */
     public PlainReply withCallbackUrl(String url) {
         return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime, this.parseMode);
+                this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -439,7 +527,8 @@ public final class PlainReply implements MarkupAware {
      */
     public PlainReply withCallbackCacheTime(int cacheTime) {
         return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime, this.parseMode);
+                this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -454,7 +543,8 @@ public final class PlainReply implements MarkupAware {
     @Override
     public PlainReply withParseMode(String parseMode) {
         return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, parseMode);
+                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -489,7 +579,8 @@ public final class PlainReply implements MarkupAware {
      */
     public PlainReply withArgs(Object... args) {
         return new PlainReply(this.text, args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
-                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
+                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
     }
 
     /**
@@ -599,6 +690,123 @@ public final class PlainReply implements MarkupAware {
     @Override
     public String getParseMode() {
         return parseMode;
+    }
+
+    /**
+     * Returns whether the message should be sent silently (no sound/vibration), or {@code null}
+     * to use Telegram's default.
+     *
+     * @return {@code true} for silent send; {@code null} for default
+     * @since 0.0.7
+     */
+    public Boolean getDisableNotification() {
+        return disableNotification;
+    }
+
+    /**
+     * Returns a new {@code PlainReply} with the given silent-send flag set.
+     *
+     * @param disableNotification {@code true} to send silently; {@code null} for default
+     * @return a new {@code PlainReply} with the flag set
+     * @since 0.0.7
+     */
+    public PlainReply withDisableNotification(Boolean disableNotification) {
+        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+    }
+
+    /**
+     * Returns whether the message content is protected from forwarding and saving, or {@code null}
+     * to use Telegram's default.
+     *
+     * @return {@code true} if content is protected; {@code null} for default
+     * @since 0.0.7
+     */
+    public Boolean getProtectContent() {
+        return protectContent;
+    }
+
+    /**
+     * Returns a new {@code PlainReply} with the given protect-content flag set.
+     *
+     * @param protectContent {@code true} to protect; {@code null} for default
+     * @return a new {@code PlainReply} with the flag set
+     * @since 0.0.7
+     */
+    public PlainReply withProtectContent(Boolean protectContent) {
+        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, protectContent, this.messageThreadId, this.replyParameters, this.linkPreviewOptions);
+    }
+
+    /**
+     * Returns the forum topic thread ID, or {@code null} for regular (non-threaded) chats.
+     *
+     * @return the thread ID; may be {@code null}
+     * @since 0.0.7
+     */
+    public Integer getMessageThreadId() {
+        return messageThreadId;
+    }
+
+    /**
+     * Returns a new {@code PlainReply} with the given forum topic thread ID set.
+     *
+     * @param messageThreadId the thread ID; {@code null} for regular chats
+     * @return a new {@code PlainReply} with the thread ID set
+     * @since 0.0.7
+     */
+    public PlainReply withMessageThreadId(Integer messageThreadId) {
+        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, messageThreadId, this.replyParameters, this.linkPreviewOptions);
+    }
+
+    /**
+     * Returns the reply-to parameters, or {@code null} if this message is not a reply.
+     *
+     * @return the reply parameters; may be {@code null}
+     * @since 0.0.7
+     */
+    public ReplyParameters getReplyParameters() {
+        return replyParameters;
+    }
+
+    /**
+     * Returns a new {@code PlainReply} configured to appear as a reply to a specific message.
+     *
+     * @param replyParameters the reply parameters; {@code null} to send without replying
+     * @return a new {@code PlainReply} with reply parameters set
+     * @since 0.0.7
+     */
+    public PlainReply withReplyParameters(ReplyParameters replyParameters) {
+        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, replyParameters, this.linkPreviewOptions);
+    }
+
+    /**
+     * Returns the link preview options, or {@code null} to use Telegram's default preview.
+     *
+     * @return the link preview options; may be {@code null}
+     * @since 0.0.7
+     */
+    public LinkPreviewOptions getLinkPreviewOptions() {
+        return linkPreviewOptions;
+    }
+
+    /**
+     * Returns a new {@code PlainReply} with the given link preview options set.
+     *
+     * @param linkPreviewOptions the link preview options; {@code null} for default preview
+     * @return a new {@code PlainReply} with link preview options set
+     * @since 0.0.7
+     */
+    public PlainReply withLinkPreviewOptions(LinkPreviewOptions linkPreviewOptions) {
+        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode,
+                this.disableNotification, this.protectContent, this.messageThreadId, this.replyParameters, linkPreviewOptions);
     }
 }
 
