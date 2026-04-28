@@ -18,8 +18,8 @@ import uz.osoncode.easygram.core.i18n.resolver.BotLocaleArgumentResolver;
 import uz.osoncode.easygram.core.i18n.resolver.UserLanguageCodeLocaleResolver;
 import uz.osoncode.easygram.core.i18n.returntypehandler.BotLocalizedReplyReturnTypeHandler;
 import uz.osoncode.easygram.core.dynamiccallback.BotDynamicCallbackQueryService;
-import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandler;
+import uz.osoncode.easygram.core.returntypehandler.BotReplyActionChain;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -156,7 +156,7 @@ public class BotI18nAutoConfiguration {
     @ConditionalOnMissingBean(BotLocalizedReplyReturnTypeHandler.class)
     public BotLocalizedReplyReturnTypeHandler botLocalizedReplyReturnTypeHandler(
             BotMessageSource botMessageSource,
-            Optional<BotMarkupRegistry> markupRegistry) {
-        return new BotLocalizedReplyReturnTypeHandler(botMessageSource, markupRegistry);
+            BotReplyActionChain botReplyActionChain) {
+        return new BotLocalizedReplyReturnTypeHandler(botMessageSource, botReplyActionChain);
     }
 }
