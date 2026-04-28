@@ -9,8 +9,7 @@ import java.util.Map;
  * a directly-built {@link ReplyKeyboard}, and optional parameters for the
  * {@link BotMarkupRegistry} factory method.
  *
- * <p>Implemented by {@link uz.osoncode.easygram.core.reply.PlainReply},
- * {@link uz.osoncode.easygram.core.reply.PlainTextTemplate}, and
+ * <p>Implemented by {@link uz.osoncode.easygram.core.reply.PlainReply} and
  * {@code LocalizedReply} (from {@code core-i18n}). This interface enables
  * {@code BotMethodHandler} to apply markup to any supported return type without
  * introducing module-level circular dependencies.</p>

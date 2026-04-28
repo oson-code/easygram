@@ -4,13 +4,22 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import uz.osoncode.easygram.core.markup.MarkupAware;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Immutable value object representing a plain-text reply to be sent by the framework.
  *
  * <p>Unlike {@code LocalizedReply} (in {@code core-i18n}), {@code PlainReply} sends the
- * text as-is — no template resolution or i18n lookup is performed. Use it when the
- * message text is already fully composed at the call site.</p>
+ * text as-is — no i18n lookup is performed. Use it when the message text is already
+ * fully composed at the call site.</p>
+ *
+ * <p>Optional positional arguments may be provided via {@link #of(String, Object...)} or
+ * {@link #withArgs(Object...)}. When present, the text is processed with
+ * {@link java.text.MessageFormat#format(String, Object[])} before it is sent, so standard
+ * {@code {0}}, {@code {1}}, … placeholders are substituted:</p>
+ * <pre>{@code
+ * return PlainReply.of("Hello, {0}! You have {1} messages.", user.getFirstName(), count);
+ * }</pre>
  *
  * <p>Keyboard markup can be attached in three ways, in order of precedence:</p>
  * <ol>
@@ -26,6 +35,9 @@ import java.util.Map;
  * // Plain text, no markup
  * return PlainReply.of("Hello!");
  *
+ * // With positional args (Java MessageFormat)
+ * return PlainReply.of("Hello, {0}!", user.getFirstName());
+ *
  * // Pre-registered markup by ID
  * return PlainReply.of("Choose an option:").withMarkup("main_menu");
  *
@@ -37,7 +49,8 @@ import java.util.Map;
  *
  * // Builder pattern
  * return PlainReply.builder()
- *         .text("Choose an option:")
+ *         .text("Hello, {0}!")
+ *         .args(user.getFirstName())
  *         .markupId("main_menu")
  *         .build();
  * }</pre>
@@ -48,6 +61,7 @@ import java.util.Map;
 public final class PlainReply implements MarkupAware {
 
     private final String text;
+    private final Object[] args;
     private final String markupId;
     private final Map<String, Object> markupParams;
     private final ReplyKeyboard keyboard;
@@ -59,11 +73,12 @@ public final class PlainReply implements MarkupAware {
     private final Integer callbackCacheTime;
     private final String parseMode;
 
-    private PlainReply(String text, String markupId, Map<String, Object> markupParams,
+    private PlainReply(String text, Object[] args, String markupId, Map<String, Object> markupParams,
                        ReplyKeyboard keyboard, boolean removeMarkup, boolean editMessage,
                        boolean answerCallbackQuery, boolean callbackAlert,
                        String callbackUrl, Integer callbackCacheTime, String parseMode) {
         this.text = text;
+        this.args = args;
         this.markupId = markupId;
         this.markupParams = markupParams;
         this.keyboard = keyboard;
@@ -98,6 +113,7 @@ public final class PlainReply implements MarkupAware {
     public static final class Builder {
 
         private String text;
+        private Object[] args;
         private String markupId;
         private Map<String, Object> markupParams;
         private ReplyKeyboard keyboard;
@@ -119,6 +135,22 @@ public final class PlainReply implements MarkupAware {
          */
         public Builder text(String text) {
             this.text = text;
+            return this;
+        }
+
+        /**
+         * Sets positional arguments for {@link java.text.MessageFormat} substitution.
+         *
+         * <p>When args are present the text is formatted with
+         * {@code MessageFormat.format(text, args)} before sending, so {@code {0}}, {@code {1}}, …
+         * placeholders in the text are replaced with the corresponding arguments.</p>
+         *
+         * @param args the positional arguments; may be empty
+         * @return this builder
+         * @since 0.0.7
+         */
+        public Builder args(Object... args) {
+            this.args = args;
             return this;
         }
 
@@ -253,20 +285,37 @@ public final class PlainReply implements MarkupAware {
          * @return a new {@code PlainReply} instance
          */
         public PlainReply build() {
-            return new PlainReply(text, markupId, markupParams, keyboard, removeMarkup, editMessage,
+            return new PlainReply(text, args, markupId, markupParams, keyboard, removeMarkup, editMessage,
                     answerCallbackQuery, callbackAlert, callbackUrl, callbackCacheTime, parseMode);
         }
     }
 
     /**
-     * Creates a {@code PlainReply} with the given text and no markup.
+     * Creates a {@code PlainReply} with the given text and no markup or args.
      *
      * @param text the reply text; must not be {@code null}
      * @return a new {@code PlainReply} instance
      */
     public static PlainReply of(String text) {
-        java.util.Objects.requireNonNull(text, "text must not be null");
-        return new PlainReply(text, null, null, null, false, false, false, false, null, null, null);
+        Objects.requireNonNull(text, "text must not be null");
+        return new PlainReply(text, null, null, null, null, false, false, false, false, null, null, null);
+    }
+
+    /**
+     * Creates a {@code PlainReply} with the given text and positional arguments.
+     *
+     * <p>The text is formatted with {@link java.text.MessageFormat#format(String, Object[])}
+     * before being sent, replacing {@code {0}}, {@code {1}}, … placeholders with the
+     * corresponding arguments.</p>
+     *
+     * @param text the reply text template; must not be {@code null}
+     * @param args the positional arguments
+     * @return a new {@code PlainReply} instance
+     * @since 0.0.7
+     */
+    public static PlainReply of(String text, Object... args) {
+        Objects.requireNonNull(text, "text must not be null");
+        return new PlainReply(text, args, null, null, null, false, false, false, false, null, null, null);
     }
 
     /**
@@ -277,7 +326,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withMarkup(String markupId) {
-        return new PlainReply(this.text, markupId, null, null, false, this.editMessage,
+        return new PlainReply(this.text, this.args, markupId, null, null, false, this.editMessage,
                 this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
@@ -294,7 +343,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withMarkup(String markupId, Map<String, Object> params) {
-        return new PlainReply(this.text, markupId, params, null, false, this.editMessage,
+        return new PlainReply(this.text, this.args, markupId, params, null, false, this.editMessage,
                 this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
@@ -309,7 +358,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withKeyboard(ReplyKeyboard keyboard) {
-        return new PlainReply(this.text, null, null, keyboard, false, this.editMessage,
+        return new PlainReply(this.text, this.args, null, null, keyboard, false, this.editMessage,
                 this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
@@ -320,7 +369,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply removeMarkup() {
-        return new PlainReply(this.text, null, null, null, true, this.editMessage,
+        return new PlainReply(this.text, this.args, null, null, null, true, this.editMessage,
                 this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
@@ -334,7 +383,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.2
      */
     public PlainReply withEditMessage() {
-        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup, true,
+        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup, true,
                 this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
@@ -350,7 +399,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.5
      */
     public PlainReply asAnswerCallbackQuery() {
-        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
                 this.editMessage, true, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
@@ -363,7 +412,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.5
      */
     public PlainReply withCallbackAlert() {
-        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
                 this.editMessage, true, true, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
@@ -376,7 +425,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.5
      */
     public PlainReply withCallbackUrl(String url) {
-        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
                 this.editMessage, true, this.callbackAlert, url, this.callbackCacheTime, this.parseMode);
     }
 
@@ -389,7 +438,7 @@ public final class PlainReply implements MarkupAware {
      * @since 0.0.5
      */
     public PlainReply withCallbackCacheTime(int cacheTime) {
-        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
                 this.editMessage, true, this.callbackAlert, this.callbackUrl, cacheTime, this.parseMode);
     }
 
@@ -404,7 +453,7 @@ public final class PlainReply implements MarkupAware {
      */
     @Override
     public PlainReply withParseMode(String parseMode) {
-        return new PlainReply(this.text, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+        return new PlainReply(this.text, this.args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
                 this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, parseMode);
     }
 
@@ -415,6 +464,32 @@ public final class PlainReply implements MarkupAware {
      */
     public String getText() {
         return text;
+    }
+
+    /**
+     * Returns the positional arguments for {@link java.text.MessageFormat} substitution,
+     * or {@code null} if no args were provided.
+     *
+     * @return the args array; may be {@code null}
+     * @since 0.0.7
+     */
+    public Object[] getArgs() {
+        return args;
+    }
+
+    /**
+     * Returns a new {@code PlainReply} with the given positional arguments set.
+     *
+     * <p>The text is formatted with {@link java.text.MessageFormat#format(String, Object[])}
+     * before being sent, replacing {@code {0}}, {@code {1}}, … with the corresponding args.</p>
+     *
+     * @param args the positional arguments
+     * @return a new {@code PlainReply} with the args set
+     * @since 0.0.7
+     */
+    public PlainReply withArgs(Object... args) {
+        return new PlainReply(this.text, args, this.markupId, this.markupParams, this.keyboard, this.removeMarkup,
+                this.editMessage, this.answerCallbackQuery, this.callbackAlert, this.callbackUrl, this.callbackCacheTime, this.parseMode);
     }
 
     /**

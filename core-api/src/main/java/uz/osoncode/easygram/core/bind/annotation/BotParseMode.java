@@ -19,9 +19,7 @@ import java.lang.annotation.*;
  * <ul>
  *   <li>{@link String}</li>
  *   <li>{@link uz.osoncode.easygram.core.reply.PlainReply}</li>
- *   <li>{@link uz.osoncode.easygram.core.reply.PlainTextTemplate}</li>
  *   <li>{@code LocalizedReply} (from {@code core-i18n})</li>
- *   <li>{@code LocalizedTemplate} (from {@code core-i18n})</li>
  * </ul>
  *
  * <h2>Example</h2>
