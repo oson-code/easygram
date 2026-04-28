@@ -17,8 +17,7 @@ You can find the complete source in [`samples/i18n-registration-bot`](https://gi
 
 | Feature | Where used |
 |---|---|
-| `LocalizedReply` | Every step prompt, error, and cancellation message |
-| `LocalizedTemplate` | `/start` welcome message and registration summary |
+| `LocalizedReply` | Every step prompt, error, cancellation, and summary message |
 | `BotKeyboardFactory` | Locale-aware cancel + share-phone keyboards |
 | `@BotReplyButton` with bundle key | Cancel button auto-matched in all languages |
 | `@BotTextPattern` + `@BotTextDefault` | Declarative phone-number routing without `if/else` |
@@ -91,14 +90,14 @@ The sample uses **`longpolling`** (which pulls in `core`, `core-api`, and `core-
     <dependency>
         <groupId>uz.osoncode.easygram</groupId>
         <artifactId>longpolling</artifactId>
-        <version>0.0.5</version>
+        <version>0.0.6</version>
     </dependency>
 
-    <!-- i18n: BotMessageSource, BotKeyboardFactory, LocalizedReply, LocalizedTemplate -->
+    <!-- i18n: BotMessageSource, BotKeyboardFactory, LocalizedReply -->
     <dependency>
         <groupId>uz.osoncode.easygram</groupId>
         <artifactId>core-i18n</artifactId>
-        <version>0.0.5</version>
+        <version>0.0.6</version>
     </dependency>
 </dependencies>
 ```
@@ -110,7 +109,7 @@ Alternatively, use the `spring-boot-starter` artifact to pull in all transports 
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
 </dependency>
 ```
 :::
@@ -178,13 +177,14 @@ Create one properties file per locale under `src/main/resources/messages/`.
 welcome.title= Welcome, {0}!
 welcome.body=I am a registration bot with full i18n support.\n\nI speak English, Ўзбекча and Русский — my reply language is detected from your Telegram profile.
 welcome.commands=Commands:\n /register — start the registration wizard\n /status — check wizard progress\n /cancel — cancel the wizard at any step
+welcome.full= Welcome, {0}!\n\nI am a registration bot with full i18n support. My reply language is detected automatically from your Telegram profile.\n\nCommands:\n /register — start the registration wizard\n /status — check wizard progress\n /cancel — cancel the wizard at any step
 
 # --- Registration wizard ---
 register.start= Let's get you registered!\n\nStep 1/3 — What is your full name?
 register.name.saved= Name saved: {0}\n\nStep 2/3 — Please enter your phone number.\nFormat: +XXXXXXXXXXXX (include country code)
 register.phone.invalid= Invalid phone number. Please use international format, e.g. +998901234567
 register.phone.saved= Phone saved: {0}\n\nStep 3/3 — Which city do you live in?
-register.complete= Registration complete!\n\nYour details:\n• Name: #{0}\n• Phone: #{1}\n• City: #{2}\n\nUse /register to update your profile.
+register.complete= Registration complete!\n\nYour details:\n• Name: {0}\n• Phone: {1}\n• City: {2}\n\nUse /register to update your profile.
 register.cancelled= Registration cancelled. Use /register to start again.
 
 # --- Status ---
@@ -212,13 +212,14 @@ btn.send.phone= Share phone number
 welcome.title= Добро пожаловать, {0}!
 welcome.body=Я бот регистрации с полной поддержкой i18n.\n\nЯзык ответов определяется автоматически по настройкам вашего Telegram.
 welcome.commands=Команды:\n /register — начать регистрацию\n /status — статус анкеты\n /cancel — отменить
+welcome.full= Добро пожаловать, {0}!\n\nЯ бот регистрации с полной поддержкой i18n. Язык ответов определяется автоматически по настройкам вашего Telegram.\n\nКоманды:\n /register — начать регистрацию\n /status — статус анкеты\n /cancel — отменить
 
 # --- Регистрация ---
 register.start= Начнём регистрацию!\n\nШаг 1/3 — Введите ваше полное имя:
 register.name.saved= Имя сохранено: {0}\n\nШаг 2/3 — Введите номер телефона.\nФормат: +XXXXXXXXXXXX (с кодом страны)
 register.phone.invalid= Неверный формат номера. Используйте международный формат, например: +79001234567
 register.phone.saved= Телефон сохранён: {0}\n\nШаг 3/3 — В каком городе вы живёте?
-register.complete= Регистрация завершена!\n\nВаши данные:\n• Имя: #{0}\n• Телефон: #{1}\n• Город: #{2}\n\nДля обновления используйте /register.
+register.complete= Регистрация завершена!\n\nВаши данные:\n• Имя: {0}\n• Телефон: {1}\n• Город: {2}\n\nДля обновления используйте /register.
 register.cancelled= Регистрация отменена. Для начала используйте /register.
 
 # --- Статус ---
@@ -246,13 +247,14 @@ btn.send.phone= Поделиться номером
 welcome.title= Xush kelibsiz, {0}!
 welcome.body=Men ro'yxatdan o'tkazish boti bo'lib, to'liq i18n qo'llab-quvvatlashga egaman.\n\nTil Telegram profilingizdagi til sozlamalaridan avtomatik aniqlanadi.
 welcome.commands=Buyruqlar:\n /register — ro'yxatdan o'tish\n /status — jarayon holati\n /cancel — bekor qilish
+welcome.full= Xush kelibsiz, {0}!\n\nMen ro'yxatdan o'tkazish boti bo'lib, to'liq i18n qo'llab-quvvatlashga egaman. Til Telegram profilingizdagi sozlamalardan avtomatik aniqlanadi.\n\nBuyruqlar:\n /register — ro'yxatdan o'tish\n /status — jarayon holati\n /cancel — bekor qilish
 
 # --- Ro'yxatdan o'tish ---
 register.start= Ro'yxatdan o'tamiz!\n\n1/3-qadam — To'liq ismingizni kiriting:
 register.name.saved= Ism saqlandi: {0}\n\n2/3-qadam — Telefon raqamingizni kiriting.\nFormat: +XXXXXXXXXXXX (mamlakat kodi bilan)
 register.phone.invalid= Noto'g'ri telefon raqami. Xalqaro formatdan foydalaning, masalan: +998901234567
 register.phone.saved= Telefon saqlandi: {0}\n\n3/3-qadam — Qaysi shaharda yashaysiz?
-register.complete= Ro'yxatdan o'tish yakunlandi!\n\nMa'lumotlaringiz:\n• Ism: #{0}\n• Telefon: #{1}\n• Shahar: #{2}\n\nMa'lumotlarni yangilash uchun /register buyrug'ini ishlating.
+register.complete= Ro'yxatdan o'tish yakunlandi!\n\nMa'lumotlaringiz:\n• Ism: {0}\n• Telefon: {1}\n• Shahar: {2}\n\nMa'lumotlarni yangilash uchun /register buyrug'ini ishlating.
 register.cancelled= Ro'yxatdan o'tish bekor qilindi. Qayta boshlash uchun /register.
 
 # --- Holat xabarlari ---
@@ -356,7 +358,6 @@ import uz.osoncode.easygram.core.annotation.BotOrder;
 import uz.osoncode.easygram.core.bind.annotation.*;
 import uz.osoncode.easygram.core.chatstate.BotChatState;
 import uz.osoncode.easygram.core.i18n.LocalizedReply;
-import uz.osoncode.easygram.core.i18n.LocalizedTemplate;
 import uz.osoncode.easygram.core.stereotype.BotController;
 
 @BotController
@@ -437,11 +438,7 @@ public class RegistrationController {
 
     /**
      * Receives the city name and completes the wizard.
-     *
-     * LocalizedTemplate demonstrates mixed ${key} + #{n} syntax:
-     * ${register.complete} → resolved from the bundle
-     * #{0}, #{1}, #{2} → positional args (name, phone, city)
-     *
+     * Standard MessageFormat {n} tokens in the bundle string are replaced with positional args.
      * In a real app, name and phone would come from a database or session;
      * here they are represented by placeholder strings for brevity.
      */
@@ -449,8 +446,8 @@ public class RegistrationController {
     @BotChatState("AWAITING_CITY")
     @BotClearChatState
     @BotClearMarkup
-    public LocalizedTemplate collectCity(@BotTextValue @NotBlank @Size(min = 2, max = 50) String city) {
-        return LocalizedTemplate.of("${register.complete}", "(saved)", "(saved)", city);
+    public LocalizedReply collectCity(@BotTextValue @NotBlank @Size(min = 2, max = 50) String city) {
+        return LocalizedReply.of("register.complete", "(saved)", "(saved)", city);
     }
 
     // Validation error handler
@@ -502,7 +499,6 @@ import uz.osoncode.easygram.core.bind.annotation.BotCommand;
 import uz.osoncode.easygram.core.bind.annotation.BotDefaultHandler;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 import uz.osoncode.easygram.core.i18n.LocalizedReply;
-import uz.osoncode.easygram.core.i18n.LocalizedTemplate;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.stereotype.BotController;
 
@@ -515,17 +511,14 @@ public class GlobalController {
     private final BotChatStateService chatStateService;
 
     /**
-     * /start — welcome message using LocalizedTemplate.
+     * /start — welcome message using LocalizedReply.
      *
-     * The template mixes ${key} bundle lookups with #{0} positional args.
-     * #{0} is replaced with the user's first name.
+     * The `welcome.full` bundle key contains the full welcome text with a single {0} placeholder
+     * for the user's first name, avoiding the need for LocalizedTemplate's multi-key composition.
      */
     @BotCommand("/start")
-    public LocalizedTemplate onStart(User user) {
-        return LocalizedTemplate.of(
-                "${welcome.title}\n\n${welcome.body}\n\n${welcome.commands}",
-                user.getFirstName() // #{0}
-        );
+    public LocalizedReply onStart(User user) {
+        return LocalizedReply.of("welcome.full", user.getFirstName());
     }
 
     /**
@@ -631,23 +624,24 @@ With `core-i18n` on the classpath, `@BotReplyButton` values are treated as **mes
 - ` Bekor qilish` (Uzbek)
 - ` Отмена` (Russian)
 
-### `LocalizedReply` vs `LocalizedTemplate`
+### `LocalizedReply` for all message types
 
-| Type | Syntax | Use when |
-|---|---|---|
-| `LocalizedReply` | `LocalizedReply.of("key", args...)` | The whole message is one bundle key. `{0}`, `{1}` are positional args resolved by `MessageFormat`. |
-| `LocalizedTemplate` | `LocalizedTemplate.of("${key1} text ${key2}", args...)` | You need to **compose** multiple bundle keys into one string, or mix static text with keys. `${key}` is replaced with the resolved bundle value; `#{n}` is replaced with a positional arg. |
-
-Example — `/start` uses `LocalizedTemplate` because the welcome message is assembled from three separate bundle keys:
+All replies in this example — including the wizard summary — use `LocalizedReply`. Each bundle key contains a complete, self-contained message string. Positional args use standard Java `MessageFormat` `{n}` tokens:
 
 ```java
-return LocalizedTemplate.of(
-    "${welcome.title}\n\n${welcome.body}\n\n${welcome.commands}",
-    user.getFirstName() // replaces #{0} inside any bundle value that contains it
-);
+return LocalizedReply.of("register.complete", name, phone, city);
 ```
 
-The `welcome.title` bundle value itself can contain `{0}` (standard `MessageFormat` placeholder), which gets replaced with `user.getFirstName()` passed as `#{0}`.
+```properties
+# bundle key — {0}=name, {1}=phone, {2}=city
+register.complete= Registration complete!\n\nYour details:\n• Name: {0}\n• Phone: {1}\n• City: {2}
+```
+
+:::tip Upgrading from 0.0.5?
+If you previously used `LocalizedTemplate` for multi-key composition or `#{n}` positional args,
+migrate to `LocalizedReply` with standard `{n}` tokens in your bundle strings.
+See the [0.0.5 → 0.0.6 migration guide](../migration/0.0.5-to-0.0.6.md) for step-by-step instructions.
+:::
 
 ### Locale injection
 
@@ -674,7 +668,7 @@ with Jakarta constraint annotations:
 public LocalizedReply collectName(
         @BotTextValue @NotBlank @Size(min = 2, max = 50) String name) { ... }
 
-public LocalizedTemplate collectCity(
+public LocalizedReply collectCity(
         @BotTextValue @NotBlank @Size(min = 2, max = 50) String city) { ... }
 ```
 
@@ -738,6 +732,7 @@ Once running, open a chat with your bot and try:
 
 See also:
 - [Jakarta Bean Validation](../advanced/validation) — full constraint reference and custom validator guide
-- [i18n Setup](../advanced/i18n-setup) — LocalizedReply, LocalizedTemplate, and BotKeyboardFactory
+- [i18n Setup](../advanced/i18n-setup) — LocalizedReply and BotKeyboardFactory reference
 - [Chat State](../core-concepts/chat-state) — `@BotChatState`, `@BotForwardChatState`, and state persistence
 - [Exception Handling](../core-concepts/exception-handling) — `@BotExceptionHandler` reference
+- [0.0.5 → 0.0.6 Migration](../migration/0.0.5-to-0.0.6.md) — upgrading from LocalizedTemplate
