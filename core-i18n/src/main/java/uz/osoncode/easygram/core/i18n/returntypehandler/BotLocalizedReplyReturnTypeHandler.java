@@ -7,6 +7,7 @@ import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandler;
 import uz.osoncode.easygram.core.returntypehandler.BotReplyMessageHelper;
+import uz.osoncode.easygram.core.returntypehandler.SendReplyOptions;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
@@ -47,6 +48,7 @@ public class BotLocalizedReplyReturnTypeHandler implements BotReturnTypeHandler 
         }
         LocalizedReply reply = (LocalizedReply) returnValue;
         String resolved = botMessageSource.getMessage(reply.getKey(), botRequest, reply.getArgs());
+        SendReplyOptions options = SendReplyOptions.of(reply.getParseMode());
         if (!reply.isCallbackAlert()) {
             BotReplyMessageHelper.addReply(
                     botResponse,
@@ -58,7 +60,7 @@ public class BotLocalizedReplyReturnTypeHandler implements BotReturnTypeHandler 
                     botMarkupRegistry,
                     reply.getMarkupId(),
                     reply.getMarkupParams(),
-                    reply.getParseMode());
+                    options);
         }
         if (reply.isAnswerCallbackQuery()) {
             BotReplyMessageHelper.addCallbackAnswer(

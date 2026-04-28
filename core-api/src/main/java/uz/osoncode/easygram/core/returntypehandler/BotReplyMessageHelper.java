@@ -61,9 +61,8 @@ public final class BotReplyMessageHelper {
      * @param registry     optional markup registry for ID-based keyboard resolution
      * @param markupId     the pre-registered markup ID, or {@code null}
      * @param markupParams parameters forwarded to the markup factory, or {@code null}
-     * @param parseMode    the Telegram parse mode string (e.g. {@code "HTML"}, {@code "MarkdownV2"}),
-     *                     or {@code null} to use Telegram's default (no formatting)
-     * @since 0.0.6 ({@code parseMode} parameter added)
+     * @param options      delivery options (parse mode, etc.); use {@link SendReplyOptions#NONE} for defaults
+     * @since 0.0.7 ({@code options} replaces the former {@code parseMode} parameter)
      */
     public static void addReply(
             BotResponse botResponse,
@@ -75,12 +74,12 @@ public final class BotReplyMessageHelper {
             Optional<BotMarkupRegistry> registry,
             String markupId,
             Map<String, Object> markupParams,
-            String parseMode) {
+            SendReplyOptions options) {
 
         if (editMessage && botRequest.getUpdate().hasCallbackQuery()) {
-            addEditMethods(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams, parseMode);
+            addEditMethods(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams, options);
         } else {
-            addSendMessage(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams, parseMode);
+            addSendMessage(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams, options);
         }
     }
 
@@ -93,15 +92,15 @@ public final class BotReplyMessageHelper {
             Optional<BotMarkupRegistry> registry,
             String markupId,
             Map<String, Object> markupParams,
-            String parseMode) {
+            SendReplyOptions options) {
 
         SendMessage.SendMessageBuilder<?, ?> builder = SendMessage.builder()
                 .chatId(Objects.requireNonNull(botRequest.getChat(),
                         "Cannot send reply: no chat associated with this update").getId())
                 .text(text);
 
-        if (Objects.nonNull(parseMode)) {
-            builder.parseMode(parseMode);
+        if (Objects.nonNull(options) && Objects.nonNull(options.parseMode())) {
+            builder.parseMode(options.parseMode());
         }
         if (removeMarkup) {
             builder.replyMarkup(ReplyKeyboardRemove.builder().removeKeyboard(true).build());
@@ -123,7 +122,7 @@ public final class BotReplyMessageHelper {
             Optional<BotMarkupRegistry> registry,
             String markupId,
             Map<String, Object> markupParams,
-            String parseMode) {
+            SendReplyOptions options) {
 
         MaybeInaccessibleMessage original =
                 botRequest.getUpdate().getCallbackQuery().getMessage();
@@ -135,8 +134,8 @@ public final class BotReplyMessageHelper {
                 .chatId(chatId)
                 .messageId(messageId)
                 .text(text);
-        if (Objects.nonNull(parseMode)) {
-            editBuilder.parseMode(parseMode);
+        if (Objects.nonNull(options) && Objects.nonNull(options.parseMode())) {
+            editBuilder.parseMode(options.parseMode());
         }
         botResponse.addBotApiMethod(editBuilder.build());
 

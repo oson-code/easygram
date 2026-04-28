@@ -4,12 +4,12 @@ import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 import uz.osoncode.easygram.core.reply.PlainReply;
+import uz.osoncode.easygram.core.returntypehandler.SendReplyOptions;
 
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.Objects;
 import java.util.Optional;
-
 /**
  * {@link BotReturnTypeHandler} that handles handler methods returning a {@link PlainReply}.
  *
@@ -49,6 +49,7 @@ public class BotPlainReplyReturnTypeHandler implements BotReturnTypeHandler {
         }
         PlainReply reply = (PlainReply) returnValue;
         String text = resolveText(reply);
+        SendReplyOptions options = SendReplyOptions.of(reply.getParseMode());
         if (!reply.isCallbackAlert()) {
             BotReplyMessageHelper.addReply(
                     botResponse,
@@ -60,7 +61,7 @@ public class BotPlainReplyReturnTypeHandler implements BotReturnTypeHandler {
                     markupRegistry,
                     reply.getMarkupId(),
                     reply.getMarkupParams(),
-                    reply.getParseMode());
+                    options);
         }
         if (reply.isAnswerCallbackQuery()) {
             BotReplyMessageHelper.addCallbackAnswer(
