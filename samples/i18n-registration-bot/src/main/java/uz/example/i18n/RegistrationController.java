@@ -10,7 +10,6 @@ import uz.osoncode.easygram.core.annotation.BotOrder;
 import uz.osoncode.easygram.core.bind.annotation.*;
 import uz.osoncode.easygram.core.chatstate.BotChatState;
 import uz.osoncode.easygram.core.i18n.LocalizedReply;
-import uz.osoncode.easygram.core.i18n.LocalizedTemplate;
 import uz.osoncode.easygram.core.stereotype.BotController;
 
 import java.util.List;
@@ -40,8 +39,8 @@ import java.util.List;
  *
  * <h3>i18n patterns demonstrated</h3>
  * <ul>
- *   <li>{@link LocalizedReply} — single message-bundle key (used for every step prompt)</li>
- *   <li>{@link LocalizedTemplate} — mixed template with a positional arg (registration summary)</li>
+ *   <li>{@link LocalizedReply} — used for every step prompt and the registration summary;
+ *       keys with {@code {n}} placeholders receive positional {@code MessageFormat} args</li>
  *   <li>State-bound keyboards from {@link uz.example.i18n.markup.RegistrationMarkups} —
  *       attached automatically based on the effective next state; no
  *       {@code @BotReplyMarkup} annotation needed on the handler methods.</li>
@@ -171,21 +170,19 @@ public class RegistrationController {
      * <p>{@code @BotClearChatState} resets the chat state automatically after the method
      * returns. {@code @BotClearMarkup} removes the cancel keyboard from the UI.</p>
      *
-     * <p>The registration summary uses {@link LocalizedTemplate} to demonstrate mixed
-     * {@code ${key}} bundle lookups and {@code #{n}} positional arguments in a single
-     * template string. The city is passed as argument {@code #{0}}.</p>
+     * <p>Returns a {@link LocalizedReply} using key {@code register.complete} with the city,
+     * name placeholder, and phone placeholder as {@code MessageFormat} arguments.</p>
      *
      * @param city the city the user sent
-     * @return a {@link LocalizedTemplate} with the registration complete message
+     * @return a {@link LocalizedReply} with the registration complete message
      */
     @BotTextDefault
     @BotChatState("AWAITING_CITY")
     @BotClearChatState
     @BotClearMarkup
-    public LocalizedTemplate collectCity(@BotTextValue @NotBlank @Size(min = 2, max = 50) String city) {
-        // LocalizedTemplate: ${key} → message bundle, #{0} → positional arg (city).
-        // In a real application, name and phone would be loaded from a database or session.
-        return LocalizedTemplate.of("${register.complete}", "(saved)", "(saved)", city);
+    public LocalizedReply collectCity(@BotTextValue @NotBlank @Size(min = 2, max = 50) String city) {
+        // In a real app, name and phone would come from a database or session.
+        return LocalizedReply.of("register.complete", "(saved)", "(saved)", city);
     }
 
     // ── Validation error handler ─────────────────────────────────────────────

@@ -5,8 +5,8 @@ import uz.osoncode.easygram.core.bind.annotation.BotClearChatState;
 import uz.osoncode.easygram.core.bind.annotation.BotCommand;
 import uz.osoncode.easygram.core.bind.annotation.BotDefaultHandler;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
+import uz.osoncode.easygram.core.i18n.BotMessageSource;
 import uz.osoncode.easygram.core.i18n.LocalizedReply;
-import uz.osoncode.easygram.core.i18n.LocalizedTemplate;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.stereotype.BotController;
 
@@ -20,8 +20,8 @@ import java.util.Locale;
  *
  * <p>This controller demonstrates several i18n patterns:</p>
  * <ul>
- *   <li>{@link #onStart} — {@link LocalizedTemplate} with a positional argument
- *       ({@code #{0}} substituted with the user's first name)</li>
+ *   <li>{@link #onStart} — resolves three bundle keys and concatenates them, passing the
+ *       user's first name as a {@code MessageFormat} argument for {@code welcome.title}</li>
  *   <li>{@link #onStatus} — {@link LocalizedReply} for simple key lookup</li>
  *   <li>{@link #onCancel} — explicit {@link Locale} injection to show locale info in the reply</li>
  *   <li>{@link #onUnknown} — {@link LocalizedReply} for the catch-all fallback</li>
@@ -34,27 +34,30 @@ import java.util.Locale;
 public class GlobalController {
 
     private final BotChatStateService chatStateService;
+    private final BotMessageSource messageSource;
 
-    public GlobalController(BotChatStateService chatStateService) {
+    public GlobalController(BotChatStateService chatStateService, BotMessageSource messageSource) {
         this.chatStateService = chatStateService;
+        this.messageSource = messageSource;
     }
 
-
     /**
-     * Sends a localised welcome message using {@link LocalizedTemplate}.
+     * Sends a localised welcome message by resolving three bundle keys.
      *
-     * <p>The template {@code "${welcome.title} ${welcome.body}\n\n${welcome.commands}"}
-     * is resolved against the user's locale. {@code #{0}} is replaced with the user's
-     * first name at the template level.</p>
+     * <p>{@code welcome.title} receives the user's first name as {@code {0}} argument.
+     * {@code welcome.body} and {@code welcome.commands} are resolved without arguments.</p>
      *
-     * @param user the Telegram {@link User} sending the command
-     * @return a {@link LocalizedTemplate} with the user's first name as argument
+     * @param user    the Telegram {@link User} sending the command
+     * @param request the current bot request (used for locale resolution)
+     * @return the fully composed welcome message string
      */
     @BotCommand("/start")
-    public LocalizedTemplate onStart(User user) {
-        // LocalizedTemplate supports mixed ${key} bundle lookups and #{n} positional args.
-        return LocalizedTemplate.of("${welcome.title}\n\n${welcome.body}\n\n${welcome.commands}",
-                user.getFirstName());
+    public String onStart(User user, BotRequest request) {
+        return messageSource.getMessage("welcome.title", request, user.getFirstName())
+                + "\n\n"
+                + messageSource.getMessage("welcome.body", request)
+                + "\n\n"
+                + messageSource.getMessage("welcome.commands", request);
     }
 
     // ── /status ───────────────────────────────────────────────────────────────

@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * Integration tests for the i18n-registration-bot sample.
- * Verifies LocalizedReply/LocalizedTemplate rendering and multi-step state routing
+ * Verifies LocalizedReply rendering and multi-step state routing
  * using the real English message bundle from src/main/resources.
  */
 class I18nRegistrationBotIntegrationTest {
