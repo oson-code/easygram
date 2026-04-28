@@ -123,10 +123,27 @@ emitted.
 | Return type | Handler |
 |-------------|---------|
 | `String` | `BotStringReturnTypeHandler` — sends plain text message |
-| `PlainReply` | `BotPlainReplyReturnTypeHandler` — sends with optional keyboard |
-| `LocalizedReply` | `BotLocalizedReplyReturnTypeHandler` — i18n-aware send |
+| `PlainReply` | `BotPlainReplyReturnTypeHandler` — delegates to `BotReplyActionChain` |
+| `LocalizedReply` | `BotLocalizedReplyReturnTypeHandler` — i18n-aware, delegates to `BotReplyActionChain` |
 | `void` / `null` | `BotVoidReturnTypeHandler` — no-op |
 | Custom | Register a `BotReturnTypeHandler` `@Bean` |
+
+### BotReplyActionChain
+
+`PlainReply` and `LocalizedReply` both delegate the actual Telegram API call selection to
+`BotReplyActionChain` — a sorted list of `BotReplyAction` beans. Each action independently
+decides whether to fire via `supports(options, request)`, so multiple actions can run for a
+single reply (for example, `sendMessage` at order 10 _and_ `answerCallbackQuery` at order 20).
+
+```
+BotReplyActionChain
+  ├── SendMessageReplyAction          (order=10)  → fires for normal sendMessage
+  ├── EditMessageReplyAction          (order=10)  → fires for editMessageText (callback query)
+  └── AnswerCallbackQueryReplyAction  (order=20)  → fires when answerCallbackQuery=true
+```
+
+Add new Bot API calls (forward, pin, react, etc.) by implementing `BotReplyAction` and
+registering it as a Spring bean — no existing code changes required.
 
 ---
 

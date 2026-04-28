@@ -84,6 +84,53 @@ whose `supportsParameter()` returns `true` wins.
 
 ---
 
+## Custom BotReplyAction
+
+Add a new Telegram Bot API call to the `PlainReply`/`LocalizedReply` dispatch pipeline —
+for example, forwarding every reply to an audit channel, or pinning a message automatically.
+
+```java
+import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
+import uz.osoncode.easygram.core.model.BotRequest;
+import uz.osoncode.easygram.core.model.BotResponse;
+import uz.osoncode.easygram.core.reply.ReplyOptions;
+import uz.osoncode.easygram.core.returntypehandler.BotReplyAction;
+
+@Component
+public class AuditForwardReplyAction implements BotReplyAction {
+
+    private static final String AUDIT_CHAT_ID = "-100123456789";
+
+    @Override
+    public boolean supports(ReplyOptions options, BotRequest request) {
+        return !options.callbackAlert(); // fire on every regular send
+    }
+
+    @Override
+    public void execute(BotRequest request, BotResponse response,
+                        String resolvedText, ReplyOptions options) {
+        response.addBotApiMethod(ForwardMessage.builder()
+                .chatId(AUDIT_CHAT_ID)
+                .fromChatId(String.valueOf(request.getChat().getId()))
+                .messageId(request.getMessage().getMessageId())
+                .build());
+    }
+
+    @Override
+    public int getOrder() {
+        return 30; // after built-in actions at 10 and 20
+    }
+}
+```
+
+**Key rules:**
+- Returning `true` from `supports()` does not stop other actions — the chain always runs all matching actions.
+- Use `getOrder()` to position the action relative to the built-ins (10 = send/edit, 20 = callback answer).
+- Actions are auto-discovered as Spring beans; no manual registration is needed.
+
+---
+
 ## Custom BotReturnTypeHandler
 
 Add support for a new handler method return type.

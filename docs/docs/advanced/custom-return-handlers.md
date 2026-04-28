@@ -44,13 +44,17 @@ returns the **first matching handler** — registration order matters.
 |---|---|
 | `void` | `BotVoidReturnHandler` — no response sent |
 | `String` | `BotStringReturnHandler` → `SendMessage` |
-| `PlainReply` | `BotPlainReplyReturnTypeHandler` |
-| `PlainTextTemplate` | `BotPlainTextTemplateReturnTypeHandler` |
+| `PlainReply` | `BotPlainReplyReturnTypeHandler` — delegates to `BotReplyActionChain` |
 | `BotApiMethod<?>` | `BotBotApiMethodReturnHandler` — enqueued directly |
 | `Collection<BotApiMethod<?>>` | `BotBotApiMethodsReturnHandler` — all enqueued |
 | `Collection<Object>` (mixed) | `BotMixedCollectionReturnTypeHandler` — per-element dispatch |
-| `LocalizedReply` *(core-i18n)* | `BotLocalizedReplyReturnTypeHandler` |
-| `LocalizedTemplate` *(core-i18n)* | `BotLocalizedTemplateReturnTypeHandler` |
+| `LocalizedReply` *(core-i18n)* | `BotLocalizedReplyReturnTypeHandler` — delegates to `BotReplyActionChain` |
+
+:::tip Customising reply dispatch for `PlainReply` / `LocalizedReply`
+Both handlers delegate the actual Bot API call selection to a [`BotReplyActionChain`](./bot-reply-action).
+Implement `BotReplyAction` to add actions like forwarding, pinning, or notification without
+touching the handler itself.
+:::
 
 ## Example: Custom Reply Type
 
@@ -215,5 +219,6 @@ Return `BotApiMethod<?>` directly when:
 
 See also:
 - [Return Types (Core Concept)](../core-concepts/return-types) — built-in return types
-- [i18n Setup](./i18n-setup) — `LocalizedReply` and `LocalizedTemplate`
+- [Custom Reply Actions (BotReplyAction)](./bot-reply-action) — add custom Bot API calls to `PlainReply`/`LocalizedReply` dispatch
+- [i18n Setup](./i18n-setup) — `LocalizedReply` usage
 - [Custom Argument Resolvers](./custom-argument-resolvers) — complementary extension point
