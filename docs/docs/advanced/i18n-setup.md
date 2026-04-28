@@ -175,61 +175,40 @@ public LocalizedReply replyWithMode(String key, boolean useHtml) {
 
 *`@BotParseMode` and `.withParseMode()` — since 0.0.6*
 
-### LocalizedTemplate
+### sendMessage Delivery Options
 
-`LocalizedTemplate` resolves a **template string** that can mix two token types:
+`LocalizedReply` supports all Telegram `sendMessage` delivery control fields:
 
-| Token | Source | Example |
-|---|---|---|
-| `${key}` | Resolved from message bundle (Spring `MessageSource`) | `${welcome.title}` |
-| `#{index}` | Replaced with positional `args[index]` (0-based) | `#{0}` |
-
-```java
-import uz.osoncode.easygram.core.i18n.reply.LocalizedTemplate;
-
-@BotCommand("/profile")
-public LocalizedTemplate onProfile(User user) {
-    // ${profile.header} is resolved from the bundle; #{0} is user.getFirstName()
-    return LocalizedTemplate.of("${profile.header}\n\n#{0} registered!", user.getFirstName());
-}
-```
-
-A more complex example combining multiple bundle keys and positional args:
+| Field | Type | Wither | Builder | Purpose |
+|-------|------|--------|---------|---------|
+| `disableNotification` | `Boolean` | `.withDisableNotification(bool)` | `.disableNotification(bool)` | Send silently (no sound/vibration) |
+| `protectContent` | `Boolean` | `.withProtectContent(bool)` | `.protectContent(bool)` | Disable forwarding and saving |
+| `messageThreadId` | `Integer` | `.withMessageThreadId(id)` | `.messageThreadId(id)` | Target a forum topic thread |
+| `replyParameters` | `ReplyParameters` | `.withReplyParameters(rp)` | `.replyParameters(rp)` | Reply to a specific message |
+| `linkPreviewOptions` | `LinkPreviewOptions` | `.withLinkPreviewOptions(lp)` | `.linkPreviewOptions(lp)` | Control link preview |
 
 ```java
-@BotCommand("/stats")
-public LocalizedTemplate onStats(User user) {
-    long count = orderService.countByUser(user.getId());
-    // Mixes bundle keys and runtime values in one template
-    return LocalizedTemplate.of(
-        "${stats.title}\n\n${stats.orders.label}: #{0}\n${stats.user.label}: #{1}",
-        count,
-        user.getFirstName()
-    );
-}
+// Send silently in a forum thread
+return LocalizedReply.of("notification.quiet")
+        .withDisableNotification(true)
+        .withMessageThreadId(topicId);
+
+// Reply to a specific message
+return LocalizedReply.of("reply.acknowledged")
+        .withReplyParameters(ReplyParameters.builder()
+                .messageId(originalMessageId)
+                .build());
+
+// Builder — combine multiple options
+return LocalizedReply.builder()
+        .key("confirmation.message")
+        .args(user.getFirstName())
+        .protectContent(true)
+        .disableNotification(true)
+        .build();
 ```
 
-`LocalizedTemplate` also supports `@BotParseMode` and `.withParseMode(String)` — the parse
-mode is applied after all `${key}` and `#{index}` tokens are resolved:
-
-```java
-// Annotation — all responses from this handler use HTML
-@BotParseMode("HTML")
-@BotCommand("/welcome")
-public LocalizedTemplate onWelcome(User user) {
-    // messages/bot_en.properties:
-    //   welcome.title=<b>Welcome!</b>
-    //   welcome.body=Here is what you can do.
-    return LocalizedTemplate.of("${welcome.title}\n\n${welcome.body}\n\nHello, #{0}!", user.getFirstName());
-}
-
-// Fluent — parse mode set at runtime
-public LocalizedTemplate replyWithMode(String template, boolean useHtml, Object... args) {
-    return LocalizedTemplate.of(template, args).withParseMode(useHtml ? "HTML" : null);
-}
-```
-
-*`@BotParseMode` and `.withParseMode()` — since 0.0.6*
+*Since 0.0.7*
 
 ---
 
