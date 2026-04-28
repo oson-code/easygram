@@ -14,23 +14,29 @@ Everything runs inside Docker. You do not need Node.js, npm, or yarn installed o
 
 ```bash
 cd docs/
+
+# First time (or after adding/updating npm dependencies):
+docker compose build
+
+# Start the dev server:
 docker compose up
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:7006](http://localhost:7006).
 
-Changes to any file under `docs/` are reflected immediately thanks to the volume mount and
-Docusaurus's hot-reload. The `node_modules` directory is kept inside the container via an
-anonymous volume — it is never written to your local disk.
+Changes to any file under `docs/` are reflected immediately thanks to the bind-mounted
+source volumes and Docusaurus's hot-reload. `node_modules` is baked into the Docker image
+during `docker compose build` and reused on every subsequent start — no `npm install` on
+container startup.
 
 ### Production build
 
 ```bash
 cd docs/
-docker compose --profile production up docusaurus-prod
+docker compose --profile production up doc-prod
 ```
 
-The static site is written to `./build/`. Serve it with any static file host.
+The static site is served on port 7006. Serve it with any static file host.
 
 ### Stop the server
 
@@ -46,11 +52,11 @@ The `docker-compose.yml` in this directory defines two services:
 
 | Service | Profile | Purpose |
 |---|---|---|
-| `docusaurus` | *(default)* | Development server with hot-reload on port 3000 |
-| `docusaurus-prod` | `production` | Production build — outputs to `./build/` |
+| `doc` | *(default)* | Development server with hot-reload on port 7006 |
+| `doc-prod` | `production` | Production build and serve on port 7006 |
 
-Both services use the official `node:20-alpine` image. The `node_modules` directory lives
-inside the container only (anonymous volume), so your local working tree stays clean.
+Both services build from the local `Dockerfile`, which bakes `node_modules` into the image
+layer. `npm install` only runs during `docker compose build` — not on every container start.
 
 ---
 
@@ -261,9 +267,10 @@ footer: {
 
 ```bash
 # Build with Docker
-docker compose --profile production up docusaurus-prod
+docker compose build
+docker compose --profile production up doc-prod
 
-# Upload ./build/ to your hosting provider
+# The built site is served on port 7006; copy static output or point your host there
 ```
 
 ### GitHub Pages
@@ -288,20 +295,20 @@ npm run deploy
 
 ## Troubleshooting
 
-### Port 3000 already in use
+### Port 7006 already in use
 
-Edit `docker-compose.yml` and change `"3000:3000"` to `"3001:3000"`, then:
+Edit `docker-compose.yml` and change `"7006:7006"` to `"7007:7006"`, then:
 
 ```bash
 docker compose up
-# Open http://localhost:3001
+# Open http://localhost:7007
 ```
 
-### node_modules missing or stale
+### node_modules missing or stale (dependencies changed)
 
 ```bash
-docker compose down -v # Remove anonymous volumes (clears node_modules)
-docker compose up # Fresh install
+docker compose build   # rebuilds image with fresh npm install
+docker compose up
 ```
 
 ### Links returning 404
@@ -319,7 +326,8 @@ docker compose down && docker compose up
 ### Build fails
 
 ```bash
-docker compose --profile production up docusaurus-prod 2>&1 | tail -50
+docker compose build
+docker compose --profile production up doc-prod 2>&1 | tail -50
 ```
 
 ---
@@ -329,8 +337,8 @@ docker compose --profile production up docusaurus-prod 2>&1 | tail -50
 To update documentation:
 
 1. Edit Markdown files in `docs/`
-2. Run `docker compose up` to preview changes at [http://localhost:3000](http://localhost:3000)
-3. Verify the production build: `docker compose --profile production up docusaurus-prod`
+2. Run `docker compose up` to preview changes at [http://localhost:7006](http://localhost:7006)
+3. Verify the production build: `docker compose --profile production up doc-prod`
 4. Submit a PR with your changes
 
 **Guidelines:**

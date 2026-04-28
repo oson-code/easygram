@@ -29,7 +29,7 @@ handles `/start` and `/help` commands, and falls back gracefully for unknown inp
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
 </dependency>
 ```
 
