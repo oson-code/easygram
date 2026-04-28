@@ -61,6 +61,8 @@ public final class BotReplyMessageHelper {
      * @param registry     optional markup registry for ID-based keyboard resolution
      * @param markupId     the pre-registered markup ID, or {@code null}
      * @param markupParams parameters forwarded to the markup factory, or {@code null}
+     * @param options      delivery options (parse mode, etc.); use {@link SendReplyOptions#NONE} for defaults
+     * @since 0.0.6 ({@code options} replaces the former {@code parseMode} parameter)
      */
     public static void addReply(
             BotResponse botResponse,
@@ -71,12 +73,13 @@ public final class BotReplyMessageHelper {
             boolean removeMarkup,
             Optional<BotMarkupRegistry> registry,
             String markupId,
-            Map<String, Object> markupParams) {
+            Map<String, Object> markupParams,
+            SendReplyOptions options) {
 
         if (editMessage && botRequest.getUpdate().hasCallbackQuery()) {
-            addEditMethods(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams);
+            addEditMethods(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams, options);
         } else {
-            addSendMessage(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams);
+            addSendMessage(botResponse, botRequest, text, keyboard, removeMarkup, registry, markupId, markupParams, options);
         }
     }
 
@@ -88,13 +91,32 @@ public final class BotReplyMessageHelper {
             boolean removeMarkup,
             Optional<BotMarkupRegistry> registry,
             String markupId,
-            Map<String, Object> markupParams) {
+            Map<String, Object> markupParams,
+            SendReplyOptions options) {
 
         SendMessage.SendMessageBuilder<?, ?> builder = SendMessage.builder()
                 .chatId(Objects.requireNonNull(botRequest.getChat(),
                         "Cannot send reply: no chat associated with this update").getId())
                 .text(text);
 
+        if (Objects.nonNull(options) && Objects.nonNull(options.parseMode())) {
+            builder.parseMode(options.parseMode());
+        }
+        if (Objects.nonNull(options) && Objects.nonNull(options.disableNotification())) {
+            builder.disableNotification(options.disableNotification());
+        }
+        if (Objects.nonNull(options) && Objects.nonNull(options.protectContent())) {
+            builder.protectContent(options.protectContent());
+        }
+        if (Objects.nonNull(options) && Objects.nonNull(options.messageThreadId())) {
+            builder.messageThreadId(options.messageThreadId());
+        }
+        if (Objects.nonNull(options) && Objects.nonNull(options.replyParameters())) {
+            builder.replyParameters(options.replyParameters());
+        }
+        if (Objects.nonNull(options) && Objects.nonNull(options.linkPreviewOptions())) {
+            builder.linkPreviewOptions(options.linkPreviewOptions());
+        }
         if (removeMarkup) {
             builder.replyMarkup(ReplyKeyboardRemove.builder().removeKeyboard(true).build());
         } else if (Objects.nonNull(keyboard)) {
@@ -114,7 +136,8 @@ public final class BotReplyMessageHelper {
             boolean removeMarkup,
             Optional<BotMarkupRegistry> registry,
             String markupId,
-            Map<String, Object> markupParams) {
+            Map<String, Object> markupParams,
+            SendReplyOptions options) {
 
         MaybeInaccessibleMessage original =
                 botRequest.getUpdate().getCallbackQuery().getMessage();
@@ -122,11 +145,14 @@ public final class BotReplyMessageHelper {
         Integer messageId = original.getMessageId();
 
         // 1. Edit the message text
-        botResponse.addBotApiMethod(EditMessageText.builder()
+        EditMessageText.EditMessageTextBuilder<?, ?> editBuilder = EditMessageText.builder()
                 .chatId(chatId)
                 .messageId(messageId)
-                .text(text)
-                .build());
+                .text(text);
+        if (Objects.nonNull(options) && Objects.nonNull(options.parseMode())) {
+            editBuilder.parseMode(options.parseMode());
+        }
+        botResponse.addBotApiMethod(editBuilder.build());
 
         // 2. Update the inline keyboard separately via EditMessageReplyMarkup
         EditMessageReplyMarkup.EditMessageReplyMarkupBuilder markupBuilder =

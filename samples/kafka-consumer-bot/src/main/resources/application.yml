@@ -9,15 +9,15 @@ easygram:
     consumer:
       # Broker type to consume from: KAFKA | RABBIT
       type: KAFKA
-    kafka:
-      # Kafka topic to consume Telegram updates from
-      topic: easygram-updates
-      # Kafka consumer group ID (default: easygram-bot)
-      group-id: my-telegram-bot
-      # Auto-create the topic on startup if it does not exist (default: true)
-      create-if-absent: true
-      partitions: 1
-      replication-factor: 1
+#    kafka:
+#      # Kafka topic to consume Telegram updates from
+#      topic: easygram-updates
+#      # Kafka consumer group ID (default: easygram-bot)
+#      group-id: my-telegram-bot
+#      # Auto-create the topic on startup if it does not exist (default: true)
+#      create-if-absent: true
+#      partitions: 1
+#      replication-factor: 1
 
 spring:
   application:
@@ -31,3 +31,5 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
+server:
+  port: 8085

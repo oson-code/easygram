@@ -9,37 +9,27 @@ x-source: &source-volumes
     - ./versions.json:/docs/versions.json
     - ./versioned_docs:/docs/versioned_docs
     - ./versioned_sidebars:/docs/versioned_sidebars
-    - ./package.json:/docs/package.json
-    - ./package-lock.json:/docs/package-lock.json
-    - cache:/docs/node_modules
 
 services:
   doc:
     <<: *source-volumes
-    image: node:20-alpine
-    working_dir: /docs
+    build: .
     ports:
       - "7006:7006"
     environment:
       - NODE_ENV=development
-    command: sh -c "npm ci && npm run start -- --host 0.0.0.0 --port 7006"
     restart: unless-stopped
 
   doc-prod:
     <<: *source-volumes
-    image: node:20-alpine
-    working_dir: /docs
+    build: .
     ports:
       - "7006:7006"
     environment:
       - NODE_ENV=production
     # Build and serve entirely inside /tmp — no Windows bind-mount EBUSY issues
     command: >
-      sh -c "npm ci &&
-             npm run build -- --out-dir /tmp/docbuild &&
+      sh -c "npm run build -- --out-dir /tmp/docbuild &&
              ./node_modules/.bin/docusaurus serve --dir /tmp/docbuild --host 0.0.0.0 --port 7006"
     profiles:
       - production
-
-volumes:
-  cache:

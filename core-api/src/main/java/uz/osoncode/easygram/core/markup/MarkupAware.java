@@ -9,8 +9,7 @@ import java.util.Map;
  * a directly-built {@link ReplyKeyboard}, and optional parameters for the
  * {@link BotMarkupRegistry} factory method.
  *
- * <p>Implemented by {@link uz.osoncode.easygram.core.reply.PlainReply},
- * {@link uz.osoncode.easygram.core.reply.PlainTextTemplate}, and
+ * <p>Implemented by {@link uz.osoncode.easygram.core.reply.PlainReply} and
  * {@code LocalizedReply} (from {@code core-i18n}). This interface enables
  * {@code BotMethodHandler} to apply markup to any supported return type without
  * introducing module-level circular dependencies.</p>
@@ -101,6 +100,37 @@ public interface MarkupAware {
      * @return a new instance with the remove-markup flag set
      */
     MarkupAware removeMarkup();
+
+    /**
+     * Returns the Telegram parse mode string set on this reply, or {@code null} if none was set.
+     *
+     * <p>Typical values: {@code "HTML"}, {@code "MarkdownV2"}, {@code "Markdown"}.</p>
+     *
+     * <p>Defaults to {@code null}. Implementations override this when a {@code parseMode}
+     * field is set on the return value.</p>
+     *
+     * @return the parse mode string; may be {@code null}
+     * @since 0.0.6
+     */
+    default String getParseMode() {
+        return null;
+    }
+
+    /**
+     * Returns a copy of this reply with the given Telegram parse mode set.
+     *
+     * <p>Typical values: {@code "HTML"}, {@code "MarkdownV2"}, {@code "Markdown"}.</p>
+     *
+     * <p>The default implementation returns {@code this} unchanged. Implementations
+     * override this to apply the parse mode immutably.</p>
+     *
+     * @param parseMode the Telegram parse mode string; must not be {@code null}
+     * @return a new instance with the parse mode set, or {@code this} if unsupported
+     * @since 0.0.6
+     */
+    default MarkupAware withParseMode(String parseMode) {
+        return this;
+    }
 
     /**
      * Returns {@code true} if the handler should edit the original message (via

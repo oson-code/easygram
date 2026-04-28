@@ -16,13 +16,13 @@ Complete reference for all easygram annotations, interfaces, model classes, and 
 - [Structural Annotations](#structural-annotations) — `@BotController`, `@BotControllerAdvice`, `@BotConfiguration`, `@BotMarkup`, `@BotOrder`
 - [Handler Routing Annotations](#handler-routing-annotations) — `@BotCommand`, `@BotText`, `@BotTextPattern`, `@BotCallbackQuery`, `@BotDynamicCallbackQuery`, `@BotContact`, `@BotLocation`, `@BotReplyButton`, `@BotEditedMessage`, `@BotInlineQuery`, `@BotMyChatMember`, `@BotChatMemberUpdate`, `@BotDefaultHandler`, `@BotExceptionHandler`, … (+14 more update types)
 - [Parameter Annotations](#parameter-annotations) — `@BotCommandValue`, `@BotTextValue`, `@BotCallbackQueryData`, `@BotCommandQueryParam`, `@BotInlineQueryValue`, `@BotChosenInlineResultId`, `@BotShippingPayload`, `@BotPreCheckoutPayload`
-- [Response Annotations](#response-annotations) — `@BotReplyMarkup`, `@BotClearMarkup`
+- [Response Annotations](#response-annotations) — `@BotReplyMarkup`, `@BotClearMarkup`, `@BotParseMode`
 - [Chat State Annotations](#chat-state-annotations) — `@BotChatState`, `@BotForwardChatState`, `@BotClearChatState`
 - [Return Types](#return-types)
-- [Model Classes](#model-classes) — `BotRequest`, `BotResponse`, `BotMetadata`, `BotMarkupContext`, `BotDynamicCallbackData`
+- [Model Classes](#model-classes) — `BotRequest`, `BotResponse`, `BotMetadata`, `BotMarkupContext`, `BotDynamicCallbackData`, `ReplyOptions`, `SendReplyOptions`
 - [Dynamic Callbacks](#dynamic-callbacks) — `@BotDynamicCallbackQuery`, `BotDynamicCallbackData`, `BotDynamicCallbackQueryService`
-- [Extension Interfaces](#extension-interfaces) — `BotFilter`, `BotArgumentResolver`, `BotReturnTypeHandler`, `BotHandlerInvocationFilter`, `BotChatStateService`, `BotUpdatePublisher`, `BotHandlerConditionContributor`, `BotStartTrigger`, `BotHandler`, `BotHandlerCondition`, `BotInlineQueryMatcher`, `BotReplyButtonMatcher`, `BotMarkupRegistry`, `MarkupAware`
-- [Provider Interfaces](#provider-interfaces) — `BotTelegramClientProvider`, `BotOkHttpClientProvider`, `BotObjectMapperProvider`, `BotExecutorServiceProvider`, `BotTelegramUrlProvider`
+- [Extension Interfaces](#extension-interfaces) — `BotFilter`, `BotArgumentResolver`, `BotReturnTypeHandler`, `BotReplyAction`, `BotHandlerInvocationFilter`, `BotChatStateService`, `BotUpdatePublisher`, `BotHandlerConditionContributor`, `BotStartTrigger`, `BotHandler`, `BotHandlerCondition`, `BotInlineQueryMatcher`, `BotReplyButtonMatcher`, `BotMarkupRegistry`, `MarkupAware`
+- [Provider Interfaces](#provider-interfaces) — `BotTelegramClientProvider`, `BotOkHttpClientProvider`, `BotObjectMapperProvider`, `BotExecutorServiceProvider`, `BotTelegramUrlProvider`, `BotKafkaProducerFactoryProvider`, `BotKafkaConsumerFactoryProvider`, `BotRabbitConnectionFactoryProvider`
 - [Advanced SPI](#advanced-spi) — `BotMetaDataResolver`, `BotMetaDataDefaultResolver`, `BotMetaDataSpecResolver`, `BotHandlerInvocationContext`, `BotHandlerException`
 - [i18n Services](#i18n-services-core-i18n) — `BotLocaleResolver`, `BotMessageSource`, `BotKeyboardFactory`
 - [Observability](#observability-core-observability) — `BotHealthIndicator`, `BotInfoContributor`, `BotObservabilityFilter`
@@ -1017,7 +1017,7 @@ public String onMenu() {
 }
 ```
 
-Compatible with `String`, `PlainReply`, `PlainTextTemplate`, and `LocalizedReply` return types.
+Compatible with `String`, `PlainReply`, and `LocalizedReply` return types.
 
 ---
 
@@ -1036,6 +1036,47 @@ public String onCancel() {
     return "Cancelled. Keyboard removed.";
 }
 ```
+
+---
+
+### @BotParseMode
+
+**Package:** `uz.osoncode.easygram.core.bind.annotation`
+**Target:** `METHOD`
+
+Sets the Telegram `parse_mode` field on the outgoing `SendMessage` or `EditMessageText` call.
+Valid values: `"HTML"`, `"MarkdownV2"`, `"Markdown"` (legacy).
+
+Works with all return types that produce a `SendMessage`: `String`, `PlainReply`, and `LocalizedReply`.
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `value` | `String` | — **(required)** | Parse mode — `"HTML"`, `"MarkdownV2"`, or `"Markdown"` |
+
+```java
+@BotParseMode("HTML")
+@BotCommand("/start")
+public String start(User user) {
+    return "<b>Hello, " + user.getFirstName() + "!</b>";
+}
+
+@BotParseMode("MarkdownV2")
+@BotCommand("/help")
+public PlainReply help() {
+    return PlainReply.of("*Bold* and _italic_");
+}
+```
+
+Can be combined with `@BotReplyMarkup` in any order.
+
+All `MarkupAware` reply types also expose `.withParseMode(String)` for runtime control:
+
+```java
+return PlainReply.of("<b>text</b>").withParseMode("HTML");
+return LocalizedReply.of("msg.key").withParseMode("HTML");
+```
+
+*Since 0.0.6*
 
 ---
 
@@ -1122,21 +1163,28 @@ Handler methods may return any of the following types. `null` is treated as no-o
 |---|---|---|
 | `void` | `core` | No message sent |
 | `null` | `core` | No-op — same as `void` |
-| `String` | `core` | `SendMessage` to current chat. `@BotReplyMarkup`/`@BotClearMarkup` applied by `BotStringReturnHandler` |
-| `PlainReply` | `core` | `SendMessage` with optional markup. Implements `MarkupAware` |
-| `PlainTextTemplate` | `core` | `SendMessage` with `#{index}` token substitution. Implements `MarkupAware` |
+| `String` | `core` | `SendMessage` to current chat. `@BotReplyMarkup`/`@BotParseMode`/`@BotClearMarkup` applied by `BotStringReturnHandler` |
+| `PlainReply` | `core` | `SendMessage` with optional markup, parse mode, and delivery options (since 0.0.6). Implements `MarkupAware`. Actions routed through `BotReplyActionChain` |
 | `BotApiMethod<?>` | `core` | Enqueued and executed directly by `BotApiSenderFilter` |
 | `Collection<BotApiMethod<?>>` | `core` | All methods enqueued and executed in order |
 | `Collection<Object>` | `core` | Each element individually dispatched to matching `BotReturnTypeHandler` via `supportsElement()` |
-| `LocalizedReply` | `core-i18n` | `MessageSource` key lookup resolved to locale-aware `SendMessage`. Implements `MarkupAware` |
-| `LocalizedTemplate` | `core-i18n` | Mixed `${key}` / `#{index}` template resolved per locale. Implements `MarkupAware` |
+| `LocalizedReply` | `core-i18n` | `MessageSource` key lookup resolved to locale-aware `SendMessage`. Implements `MarkupAware`. Actions routed through `BotReplyActionChain` (since 0.0.6) |
+
+:::info Removed in 0.0.6
+`PlainTextTemplate` and `LocalizedTemplate` were removed in 0.0.6.
+Use `PlainReply.of("Hello, {0}!", name)` or `LocalizedReply.of("msg.key", name)` with standard Java `MessageFormat` `{n}` tokens instead.
+See the [0.0.5 → 0.0.6 migration guide](./migration/0.0.5-to-0.0.6.md) for full migration instructions.
+:::
 
 ### PlainReply — Fluent API
 
 `PlainReply` is an immutable value object. All wither methods return new instances. A builder is also available.
 
+`PlainReply` supports standard Java `MessageFormat` `{n}` positional tokens when args are provided; the framework calls `MessageFormat.format(text, args)` before sending. *(Since 0.0.6)*
+
 ```java
 PlainReply.of("Hello!")                          // text only
+PlainReply.of("Hi, {0}!", user.getFirstName())   // MessageFormat arg substitution (since 0.0.6)
 PlainReply.of("Choose:").withMarkup("main_menu") // attach registered keyboard
 PlainReply.of("Buy?").withMarkup("product_kb",   // attach keyboard with params
     Map.of("productId", "42"))
@@ -1150,50 +1198,74 @@ PlainReply.of("Deleted.").asAnswerCallbackQuery().withCallbackAlert()  // alert 
 PlainReply.of("Open page").asAnswerCallbackQuery().withCallbackUrl("https://example.com")
 PlainReply.of("OK").asAnswerCallbackQuery().withCallbackCacheTime(10)
 
+// Parse mode — inline or via @BotParseMode (since 0.0.6)
+PlainReply.of("<b>Bold</b>").withParseMode("HTML")
+PlainReply.of("*Bold*").withParseMode("MarkdownV2")
+
+// Delivery options (since 0.0.6)
+PlainReply.of("Silent!").withDisableNotification(true)   // send without sound
+PlainReply.of("Private.").withProtectContent(true)       // disable forwarding/saving
+PlainReply.of("Thread.").withMessageThreadId(123)        // post into forum topic
+PlainReply.of("Reply").withReplyParameters(replyParams)  // reply to a specific message
+PlainReply.of("Preview").withLinkPreviewOptions(previewOpts) // control link preview
+
 // Builder
 PlainReply.builder()
     .text("Choose:")
+    .args(user.getFirstName())
     .markupId("main_menu")
-    .editMessage(true)            // edit instead of send (since 0.0.2)
-    .answerCallbackQuery(true)    // send AnswerCallbackQuery (since 0.0.5)
-    .callbackAlert(true)          // showAlert=true (since 0.0.5)
-    .callbackUrl("https://...")   // optional URL (since 0.0.5)
-    .callbackCacheTime(10)        // cache seconds (since 0.0.5)
+    .parseMode("HTML")                // since 0.0.6
+    .disableNotification(true)        // since 0.0.6
+    .protectContent(true)             // since 0.0.6
+    .messageThreadId(123)             // since 0.0.6
+    .replyParameters(replyParams)     // since 0.0.6
+    .linkPreviewOptions(previewOpts)  // since 0.0.6
+    .editMessage(true)                // edit instead of send (since 0.0.2)
+    .answerCallbackQuery(true)        // send AnswerCallbackQuery (since 0.0.5)
+    .callbackAlert(true)              // showAlert=true (since 0.0.5)
+    .callbackUrl("https://...")       // optional URL (since 0.0.5)
+    .callbackCacheTime(10)            // cache seconds (since 0.0.5)
     .build()
 ```
 
-### PlainTextTemplate — Fluent API
+**Wither methods summary:**
 
-Uses `#{index}` positional tokens (0-based) for value substitution. Same markup methods as `PlainReply`.
-Supports the same AnswerCallbackQuery API — the **resolved template text** is used as the popup notification.
+| Method | Returns | Since |
+|---|---|---|
+| `withMarkup(String)` | `PlainReply` | 0.0.1 |
+| `withMarkup(String, Map)` | `PlainReply` | 0.0.1 |
+| `withKeyboard(ReplyKeyboard)` | `PlainReply` | 0.0.1 |
+| `removeMarkup()` | `PlainReply` | 0.0.1 |
+| `withEditMessage()` | `PlainReply` | 0.0.2 |
+| `asAnswerCallbackQuery()` | `PlainReply` | 0.0.5 |
+| `withCallbackAlert()` | `PlainReply` | 0.0.5 |
+| `withCallbackUrl(String)` | `PlainReply` | 0.0.5 |
+| `withCallbackCacheTime(int)` | `PlainReply` | 0.0.5 |
+| `withArgs(Object...)` | `PlainReply` | 0.0.6 |
+| `withParseMode(String)` | `PlainReply` | 0.0.6 |
+| `withDisableNotification(Boolean)` | `PlainReply` | 0.0.6 |
+| `withProtectContent(Boolean)` | `PlainReply` | 0.0.6 |
+| `withMessageThreadId(Integer)` | `PlainReply` | 0.0.6 |
+| `withReplyParameters(ReplyParameters)` | `PlainReply` | 0.0.6 |
+| `withLinkPreviewOptions(LinkPreviewOptions)` | `PlainReply` | 0.0.6 |
+
+:::danger Removed in 0.0.6 — PlainTextTemplate
+`PlainTextTemplate` was removed in version 0.0.6. Migrate to `PlainReply` with `{n}` MessageFormat args:
 
 ```java
-PlainTextTemplate.of("Hello, #{0}! You have #{1} messages.", user.getFirstName(), count)
-PlainTextTemplate.of("Order ##{0} ready.", orderId).withMarkup("order_kb")
-PlainTextTemplate.of("Updated #{0}!").withEditMessage()  // edit callback-query message (since 0.0.2)
+// Before (0.0.5)
+PlainTextTemplate.of("Hello, #{0}! You have #{1} messages.", name, count)
 
-// Answer callback query — resolved template text used as popup (since 0.0.5)
-PlainTextTemplate.of("Step #{0} complete!", step).asAnswerCallbackQuery()              // toast
-PlainTextTemplate.of("Deleted #{0}.", item).asAnswerCallbackQuery().withCallbackAlert() // alert dialog
-PlainTextTemplate.of("Done #{0}.").asAnswerCallbackQuery().withCallbackUrl("https://example.com")
-PlainTextTemplate.of("OK #{0}.").asAnswerCallbackQuery().withCallbackCacheTime(10)
-
-// Builder
-PlainTextTemplate.builder()
-    .template("Hello, #{0}! Order ##{1} is ready.")
-    .args(user.getFirstName(), orderId)
-    .markupId("order_kb")
-    .editMessage(true)            // edit instead of send (since 0.0.2)
-    .answerCallbackQuery(true)    // send AnswerCallbackQuery (since 0.0.5)
-    .callbackAlert(true)          // showAlert=true (since 0.0.5)
-    .callbackUrl("https://...")   // optional URL (since 0.0.5)
-    .callbackCacheTime(10)        // cache seconds (since 0.0.5)
-    .build()
+// After (0.0.6)
+PlainReply.of("Hello, {0}! You have {1} messages.", name, count)
 ```
+
+See the [0.0.5 → 0.0.6 migration guide](./migration/0.0.5-to-0.0.6.md) for full details.
+:::
 
 ### LocalizedReply — Fluent API *(core-i18n)*
 
-Key is resolved via `BotMessageSource` using the request locale.
+Key is resolved via `BotMessageSource` using the request locale. Positional args use standard Java `MessageFormat` `{n}` tokens.
 
 ```java
 LocalizedReply.of("welcome.message", user.getFirstName())
@@ -1206,46 +1278,76 @@ LocalizedReply.of("action.confirmed").asAnswerCallbackQuery()
 LocalizedReply.of("item.deleted").asAnswerCallbackQuery().withCallbackAlert()
 LocalizedReply.of("opening.page").asAnswerCallbackQuery().withCallbackUrl("https://example.com")
 
+// Parse mode — inline or via @BotParseMode (since 0.0.6)
+LocalizedReply.of("msg.bold").withParseMode("HTML")
+
+// Delivery options (since 0.0.6)
+LocalizedReply.of("msg.silent").withDisableNotification(true)
+LocalizedReply.of("msg.private").withProtectContent(true)
+LocalizedReply.of("msg.thread").withMessageThreadId(123)
+LocalizedReply.of("msg.reply").withReplyParameters(replyParams)
+LocalizedReply.of("msg.link").withLinkPreviewOptions(previewOpts)
+
 // Builder
 LocalizedReply.builder()
     .key("welcome.message")
     .args(user.getFirstName())
     .markupId("main_menu")
-    .editMessage(true)            // since 0.0.2
-    .answerCallbackQuery(true)    // since 0.0.5
-    .callbackAlert(true)          // showAlert=true (since 0.0.5)
-    .callbackUrl("https://...")   // optional URL (since 0.0.5)
-    .callbackCacheTime(10)        // cache seconds (since 0.0.5)
+    .parseMode("HTML")                // since 0.0.6
+    .disableNotification(true)        // since 0.0.6
+    .protectContent(true)             // since 0.0.6
+    .messageThreadId(123)             // since 0.0.6
+    .replyParameters(replyParams)     // since 0.0.6
+    .linkPreviewOptions(previewOpts)  // since 0.0.6
+    .editMessage(true)                // since 0.0.2
+    .answerCallbackQuery(true)        // since 0.0.5
+    .callbackAlert(true)              // showAlert=true (since 0.0.5)
+    .callbackUrl("https://...")       // optional URL (since 0.0.5)
+    .callbackCacheTime(10)            // cache seconds (since 0.0.5)
     .build()
 ```
 
-### LocalizedTemplate — Fluent API *(core-i18n)*
+**Wither methods summary:**
 
-Supports mixed `${messageKey}` bundle lookups and `#{index}` positional arg substitution.
-Supports the same AnswerCallbackQuery API — the **fully resolved template string** is used as the popup notification.
+| Method | Returns | Since |
+|---|---|---|
+| `withMarkup(String)` | `LocalizedReply` | 0.0.1 |
+| `withMarkup(String, Map)` | `LocalizedReply` | 0.0.1 |
+| `withKeyboard(ReplyKeyboard)` | `LocalizedReply` | 0.0.1 |
+| `removeMarkup()` | `LocalizedReply` | 0.0.1 |
+| `withEditMessage()` | `LocalizedReply` | 0.0.2 |
+| `asAnswerCallbackQuery()` | `LocalizedReply` | 0.0.5 |
+| `withCallbackAlert()` | `LocalizedReply` | 0.0.5 |
+| `withCallbackUrl(String)` | `LocalizedReply` | 0.0.5 |
+| `withCallbackCacheTime(int)` | `LocalizedReply` | 0.0.5 |
+| `withParseMode(String)` | `LocalizedReply` | 0.0.6 |
+| `withDisableNotification(Boolean)` | `LocalizedReply` | 0.0.6 |
+| `withProtectContent(Boolean)` | `LocalizedReply` | 0.0.6 |
+| `withMessageThreadId(Integer)` | `LocalizedReply` | 0.0.6 |
+| `withReplyParameters(ReplyParameters)` | `LocalizedReply` | 0.0.6 |
+| `withLinkPreviewOptions(LinkPreviewOptions)` | `LocalizedReply` | 0.0.6 |
+
+:::danger Removed in 0.0.6 — LocalizedTemplate
+`LocalizedTemplate` was removed in version 0.0.6. Migrate to `LocalizedReply` with standard `{n}` MessageFormat tokens in your message bundles:
+
+```properties
+# Before (0.0.5) — bot.properties using #{n} tokens
+welcome.title=Welcome, #{0}!
+
+# After (0.0.6) — standard MessageFormat {n} tokens
+welcome.title=Welcome, {0}!
+```
 
 ```java
+// Before (0.0.5)
 LocalizedTemplate.of("${welcome.title}\n\nHello, #{0}!", user.getFirstName())
-LocalizedTemplate.of("${stats.header}\n\nMessages: #{0}", count).withMarkup("stats_menu")
-LocalizedTemplate.of("${updated}").withEditMessage()  // edit callback-query message (since 0.0.2)
 
-// Answer callback query — fully resolved template text used as popup (since 0.0.5)
-LocalizedTemplate.of("${action.confirmed}").asAnswerCallbackQuery()              // toast
-LocalizedTemplate.of("${item.deleted}").asAnswerCallbackQuery().withCallbackAlert() // alert dialog
-LocalizedTemplate.of("${opening.page}").asAnswerCallbackQuery().withCallbackUrl("https://example.com")
-
-// Builder
-LocalizedTemplate.builder()
-    .template("${stats.header}\n\nMessages: #{0}\nCommands: #{1}")
-    .args(messages, commands)
-    .markupId("stats_menu")
-    .editMessage(true)            // since 0.0.2
-    .answerCallbackQuery(true)    // send AnswerCallbackQuery (since 0.0.5)
-    .callbackAlert(true)          // showAlert=true (since 0.0.5)
-    .callbackUrl("https://...")   // optional URL (since 0.0.5)
-    .callbackCacheTime(10)        // cache seconds (since 0.0.5)
-    .build()
+// After (0.0.6)
+LocalizedReply.of("welcome.title", user.getFirstName())
 ```
+
+See the [0.0.5 → 0.0.6 migration guide](./migration/0.0.5-to-0.0.6.md) for full details.
+:::
 
 ---
 
@@ -1458,6 +1560,48 @@ public ReplyKeyboard productKeyboard(BotMarkupContext ctx) {
 
 ---
 
+## Model Classes
+
+### ReplyOptions
+
+**Package:** `uz.osoncode.easygram.core.reply`
+**Module:** `core-api`
+
+Immutable record that groups all shared options for `PlainReply` and `LocalizedReply`. Both types hold a `ReplyOptions` instance and delegate all wither methods to it. *(Since 0.0.6)*
+
+| Group | Fields |
+|---|---|
+| **Markup** | `markupId`, `markupParams`, `keyboard`, `removeMarkup` |
+| **Behavior** | `editMessage` |
+| **Callback** | `answerCallbackQuery`, `callbackAlert`, `callbackUrl`, `callbackCacheTime` |
+| **Delivery** | `parseMode`, `disableNotification`, `protectContent`, `messageThreadId`, `replyParameters`, `linkPreviewOptions` |
+
+`ReplyOptions.DEFAULTS` — singleton with all fields null / false; use as the starting point.
+
+Typically not used directly by application code — use the `PlainReply` / `LocalizedReply` wither methods which delegate to `ReplyOptions` internally.
+
+---
+
+### SendReplyOptions
+
+**Package:** `uz.osoncode.easygram.core.returntypehandler`
+**Module:** `core-api`
+
+Immutable record carrying the delivery options subset passed from the return-type handler into `BotReplyMessageHelper` when constructing `SendMessage` or `EditMessageText` calls. *(Since 0.0.6)*
+
+| Field | Type |
+|---|---|
+| `parseMode` | `String` |
+| `disableNotification` | `Boolean` |
+| `protectContent` | `Boolean` |
+| `messageThreadId` | `Integer` |
+| `replyParameters` | `ReplyParameters` |
+| `linkPreviewOptions` | `LinkPreviewOptions` |
+
+Obtained from `ReplyOptions.toSendReplyOptions()` inside the action implementations.
+
+---
+
 ## Extension Interfaces
 
 All extension interfaces are registered as Spring `@Bean`s (or `@Component`s). The framework auto-collects them via `List<T>` injection.
@@ -1584,6 +1728,41 @@ public interface BotReturnTypeHandler {
 `BotReturnTypeHandlerFactory` collects all `BotReturnTypeHandler` beans and returns the **first** whose `supportsReturnType` returns `true`. Registration order matters — use `@Order` to control priority.
 
 See [Custom Return-Type Handlers](advanced/custom-return-handlers) for examples.
+
+---
+
+### BotReplyAction
+
+**Package:** `uz.osoncode.easygram.core.returntypehandler`
+**Module:** `core-api`
+
+SPI interface for extensible Bot API method dispatch. The framework collects all `BotReplyAction` beans into a `BotReplyActionChain`, sorts them by `getOrder()`, and fires every action whose `supports()` returns `true`. *(Since 0.0.6)*
+
+Three default actions ship in `core`:
+
+| Class | Condition | Order |
+|---|---|---|
+| `SendMessageReplyAction` | Not an alert, not `editMessage` or no callback query | 10 |
+| `EditMessageReplyAction` | `editMessage=true` and a callback query is present | 10 |
+| `AnswerCallbackQueryReplyAction` | `answerCallbackQuery=true` | 20 |
+
+```java
+public interface BotReplyAction {
+    boolean supports(ReplyOptions options, BotRequest request);
+    void execute(BotRequest request, BotResponse response,
+                 String resolvedText, ReplyOptions options);
+    default int getOrder() { return 0; }
+}
+```
+
+Register a custom action as a `@Bean` to add new dispatch behaviour (e.g. pin a message, send a sticker) without modifying any existing code.
+
+```java
+@Bean
+public BotReplyAction pinMessageAction() {
+    return new PinMessageReplyAction();
+}
+```
 
 ---
 
@@ -1865,7 +2044,7 @@ public interface BotMarkupRegistry {
 
 **Package:** `uz.osoncode.easygram.core.markup`
 
-Marker interface implemented by all reply types that support carrying markup: `PlainReply`, `PlainTextTemplate`, `LocalizedReply`, and `LocalizedTemplate`. Enables the framework to apply markup to any return type uniformly.
+Marker interface implemented by all reply types that support carrying markup: `PlainReply` and `LocalizedReply`. Enables the framework to apply markup to any return type uniformly.
 
 **Markup resolution precedence:**
 1. `isRemoveMarkup()` — sends `ReplyKeyboardRemove`; overrides everything (triggered by `@BotClearMarkup`)
@@ -2165,6 +2344,101 @@ public BotTelegramUrlProvider botTelegramUrlProvider() {
 ```
 
 When no custom bean is present, defaults to `TelegramUrl.DEFAULT_URL`.
+
+---
+
+### BotKafkaProducerFactoryProvider
+
+**Package:** `uz.osoncode.easygram.messaging.api`
+**Module:** `messaging-api`
+
+Supplies the `ProducerFactory<Object, Object>` used to create Kafka producers when publishing updates. Override to customise serializers, SSL, interceptors, or other producer properties. *(Since 0.0.6)*
+
+```java
+@FunctionalInterface
+public interface BotKafkaProducerFactoryProvider {
+    ProducerFactory<Object, Object> provide();
+}
+```
+
+```java
+@Bean
+public BotKafkaProducerFactoryProvider botKafkaProducerFactoryProvider() {
+    return () -> {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        return new DefaultKafkaProducerFactory<>(props);
+    };
+}
+```
+
+Registered with `@ConditionalOnMissingBean` — the default uses properties from `easygram.kafka.*`.
+
+---
+
+### BotKafkaConsumerFactoryProvider
+
+**Package:** `uz.osoncode.easygram.messaging.api`
+**Module:** `messaging-api`
+
+Supplies the `ConsumerFactory<Object, Object>` used when creating the programmatic Kafka listener container. Override to customise deserializers, group ID, SSL, or other consumer properties. *(Since 0.0.6)*
+
+```java
+@FunctionalInterface
+public interface BotKafkaConsumerFactoryProvider {
+    ConsumerFactory<Object, Object> provide();
+}
+```
+
+```java
+@Bean
+public BotKafkaConsumerFactoryProvider botKafkaConsumerFactoryProvider() {
+    return () -> {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "my-bot-group");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(props);
+    };
+}
+```
+
+Registered with `@ConditionalOnMissingBean` — the default uses properties from `easygram.kafka.*`.
+
+---
+
+### BotRabbitConnectionFactoryProvider
+
+**Package:** `uz.osoncode.easygram.messaging.api`
+**Module:** `messaging-api`
+
+Supplies the RabbitMQ `ConnectionFactory` used when creating the programmatic listener container and the `RabbitTemplate` for publishing. Override to customise host, port, virtual host, TLS, or AMQP connection tuning. *(Since 0.0.6)*
+
+```java
+@FunctionalInterface
+public interface BotRabbitConnectionFactoryProvider {
+    ConnectionFactory provide();
+}
+```
+
+```java
+@Bean
+public BotRabbitConnectionFactoryProvider botRabbitConnectionFactoryProvider() {
+    return () -> {
+        CachingConnectionFactory factory = new CachingConnectionFactory("rabbitmq.example.com");
+        factory.setPort(5672);
+        factory.setUsername("bot");
+        factory.setPassword("secret");
+        factory.setVirtualHost("/bots");
+        return factory;
+    };
+}
+```
+
+Registered with `@ConditionalOnMissingBean` — the default uses properties from `easygram.rabbit.*`.
 
 ---
 

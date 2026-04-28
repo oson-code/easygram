@@ -2,12 +2,14 @@ package uz.osoncode.easygram.core.dispatcher;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import uz.osoncode.easygram.core.handler.BotHandler;
 import uz.osoncode.easygram.core.handler.BotHandlerRegistry;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
 
 /**
  * Central dispatcher responsible for routing an incoming {@link BotRequest} to
@@ -67,10 +69,11 @@ public final class BotDispatcher {
                                 .peek(h -> log.debug("Matched default handler: {}", h.info()))
                                 .findFirst()
                                 .orElseThrow(() -> {
+                                    Update update = botRequest.getUpdate();
                                     log.warn("No handler matched for updateId={} update={}",
-                                            botRequest.getUpdate().getUpdateId(), botRequest.getUpdate());
+                                            Objects.nonNull(update) ? update.getUpdateId() : null, update);
                                     return new IllegalStateException(
-                                            "No handler found for update: " + botRequest.getUpdate());
+                                            "No handler found for update: " + update);
                                 })));
     }
 }

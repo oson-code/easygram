@@ -9,10 +9,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.ContainerProperties;
 import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
@@ -24,19 +24,22 @@ import uz.osoncode.easygram.core.trigger.BotStartTrigger;
 import uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties;
 import uz.osoncode.easygram.messaging.kafka.consumer.KafkaBotUpdateListener;
 import uz.osoncode.easygram.messaging.kafka.consumer.KafkaConsumerBot;
+import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaConsumerFactoryProvider;
 
 import java.util.List;
 
 /**
  * Spring Boot auto-configuration for the Kafka consumer transport module.
  *
- * <p>Activated when {@link KafkaListener} is present on the classpath,
+ * <p>Activated when {@link ConcurrentMessageListenerContainer} is present on the classpath,
  * {@code easygram.messaging.type=CONSUMER}, and {@code easygram.messaging.consumer.type=KAFKA}.
  * Enables {@link EasygramKafkaProperties} binding (prefix {@code easygram.messaging.kafka})
  * and registers the following beans:</p>
  * <ul>
  *   <li>{@link KafkaConsumerBot} — the bot instance that authenticates with Telegram and processes updates.</li>
- *   <li>{@link KafkaBotUpdateListener} — the Kafka listener that feeds deserialized updates into the bot.</li>
+ *   <li>{@link KafkaBotUpdateListener} — the listener that feeds deserialized updates into the bot.</li>
+ *   <li>{@code botKafkaListenerContainer} — the programmatic {@link ConcurrentMessageListenerContainer}
+ *       wired from {@link BotKafkaConsumerFactoryProvider} and {@link EasygramKafkaProperties}.</li>
  * </ul>
  *
  * <p>All beans are guarded by {@link ConditionalOnMissingBean} so applications can supply
@@ -46,35 +49,58 @@ import java.util.List;
  * @since 0.0.1
  */
 @AutoConfiguration
-@ConditionalOnClass(KafkaListener.class)
+@ConditionalOnClass(ConcurrentMessageListenerContainer.class)
 @ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "CONSUMER")
 @ConditionalOnProperty(prefix = "easygram.messaging.consumer", name = "type", havingValue = "KAFKA")
 @EnableConfigurationProperties(EasygramKafkaProperties.class)
 public class KafkaConsumerAutoConfiguration {
 
     /**
-     * Provides the default {@code botKafkaListenerContainerFactory} used by
-     * {@link uz.osoncode.easygram.messaging.kafka.consumer.KafkaBotUpdateListener}.
+     * Registers the default {@link BotKafkaConsumerFactoryProvider} if none is defined.
+     * This simply returns Spring Boot's auto-configured {@link ConsumerFactory}.
      *
-     * <p>This fallback factory has no observation support. It is skipped when the
+     * <p>Override this bean to provide a custom consumer factory — for example one
+     * pointing at a different Kafka cluster or using custom deserializers.</p>
+     *
+     * @param consumerFactory the auto-configured Kafka consumer factory
+     * @return a provider wrapping the default consumer factory
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public BotKafkaConsumerFactoryProvider botKafkaConsumerFactoryProvider(
+            ConsumerFactory<Object, Object> consumerFactory) {
+        return () -> consumerFactory;
+    }
+
+    /**
+     * Provides the default {@code botKafkaListenerContainer}: a programmatic
+     * {@link ConcurrentMessageListenerContainer} wired from
+     * {@link BotKafkaConsumerFactoryProvider} and {@link EasygramKafkaProperties}.
+     *
+     * <p>This fallback container has no observation support. It is skipped when the
      * {@link KafkaConsumerObservationConfig} inner class registers its own observed variant
      * (i.e. when Micrometer is on the classpath and configured).</p>
      *
-     * @param consumerFactory the auto-configured Kafka consumer factory
-     * @return a basic {@link ConcurrentKafkaListenerContainerFactory}
+     * @param consumerFactoryProvider the provider for the Kafka consumer factory
+     * @param kafkaProperties         topic and group ID for the container
+     * @param kafkaBotUpdateListener  the listener to register with the container
+     * @return a {@link ConcurrentMessageListenerContainer} ready for Spring lifecycle management
      */
-    @Bean(name = "botKafkaListenerContainerFactory")
-    @ConditionalOnMissingBean(name = "botKafkaListenerContainerFactory")
-    public ConcurrentKafkaListenerContainerFactory<Object, Object> botKafkaListenerContainerFactory(
-            ConsumerFactory<Object, Object> consumerFactory) {
-        var factory = new ConcurrentKafkaListenerContainerFactory<Object, Object>();
-        factory.setConsumerFactory(consumerFactory);
-        return factory;
+    @Bean(name = "botKafkaListenerContainer")
+    @ConditionalOnMissingBean(name = "botKafkaListenerContainer")
+    public ConcurrentMessageListenerContainer<Object, Object> botKafkaListenerContainer(
+            BotKafkaConsumerFactoryProvider consumerFactoryProvider,
+            EasygramKafkaProperties kafkaProperties,
+            KafkaBotUpdateListener kafkaBotUpdateListener) {
+        ContainerProperties containerProps = new ContainerProperties(kafkaProperties.topic());
+        containerProps.setGroupId(kafkaProperties.groupId());
+        containerProps.setMessageListener(kafkaBotUpdateListener);
+        return new ConcurrentMessageListenerContainer<>(consumerFactoryProvider.provide(), containerProps);
     }
 
     /**
      * Inner configuration that registers a Micrometer-observation-enabled
-     * {@code botKafkaListenerContainerFactory}. Only activated when an
+     * {@code botKafkaListenerContainer}. Only activated when an
      * {@link ObservationRegistry} bean is present.
      *
      * <p>When active, the listener container extracts the W3C {@code traceparent} header from
@@ -88,21 +114,26 @@ public class KafkaConsumerAutoConfiguration {
     static class KafkaConsumerObservationConfig {
 
         /**
-         * Registers an observation-enabled {@link ConcurrentKafkaListenerContainerFactory}.
+         * Registers an observation-enabled {@link ConcurrentMessageListenerContainer}.
          *
-         * @param consumerFactory    the auto-configured Kafka consumer factory
-         * @param observationRegistry the active Micrometer observation registry
-         * @return a factory with {@code observationEnabled=true}
+         * @param consumerFactoryProvider the provider for the Kafka consumer factory
+         * @param kafkaProperties         topic and group ID for the container
+         * @param kafkaBotUpdateListener  the listener to register with the container
+         * @param observationRegistry     the active Micrometer observation registry
+         * @return a container with {@code observationEnabled=true}
          */
-        @Bean(name = "botKafkaListenerContainerFactory")
-        @ConditionalOnMissingBean(name = "botKafkaListenerContainerFactory")
-        public ConcurrentKafkaListenerContainerFactory<Object, Object> botKafkaListenerContainerFactory(
-                ConsumerFactory<Object, Object> consumerFactory,
+        @Bean(name = "botKafkaListenerContainer")
+        @ConditionalOnMissingBean(name = "botKafkaListenerContainer")
+        public ConcurrentMessageListenerContainer<Object, Object> botKafkaListenerContainer(
+                BotKafkaConsumerFactoryProvider consumerFactoryProvider,
+                EasygramKafkaProperties kafkaProperties,
+                KafkaBotUpdateListener kafkaBotUpdateListener,
                 ObservationRegistry observationRegistry) {
-            var factory = new ConcurrentKafkaListenerContainerFactory<Object, Object>();
-            factory.setConsumerFactory(consumerFactory);
-            factory.getContainerProperties().setObservationEnabled(true);
-            return factory;
+            ContainerProperties containerProps = new ContainerProperties(kafkaProperties.topic());
+            containerProps.setGroupId(kafkaProperties.groupId());
+            containerProps.setObservationEnabled(true);
+            containerProps.setMessageListener(kafkaBotUpdateListener);
+            return new ConcurrentMessageListenerContainer<>(consumerFactoryProvider.provide(), containerProps);
         }
     }
 

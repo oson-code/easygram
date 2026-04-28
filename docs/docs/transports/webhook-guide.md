@@ -24,7 +24,7 @@ Webhook requires `spring-web` (included in `spring-boot-starter-web`) in additio
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
 </dependency>
 <dependency>
     <groupId>org.springframework.boot</groupId>

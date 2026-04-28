@@ -6,10 +6,9 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import io.micrometer.observation.ObservationRegistry;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -29,19 +28,22 @@ import uz.osoncode.easygram.core.trigger.BotStartTrigger;
 import uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitBotUpdateListener;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitConsumerBot;
+import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitConnectionFactoryProvider;
 
 import java.util.List;
 
 /**
  * Spring Boot auto-configuration for the RabbitMQ consumer transport module.
  *
- * <p>Activated when {@link RabbitListener} is present on the classpath,
+ * <p>Activated when {@link SimpleMessageListenerContainer} is present on the classpath,
  * {@code easygram.messaging.type=CONSUMER}, and {@code easygram.messaging.consumer.type=RABBIT}.
  * Enables {@link EasygramRabbitProperties} binding (prefix {@code easygram.messaging.rabbit})
  * and registers:</p>
  * <ul>
  *   <li>{@link RabbitConsumerBot} — the bot that authenticates with Telegram and processes updates.</li>
  *   <li>{@link RabbitBotUpdateListener} — the AMQP listener that feeds deserialized updates into the bot.</li>
+ *   <li>{@code botRabbitListenerContainer} — the programmatic {@link SimpleMessageListenerContainer}
+ *       wired from {@link BotRabbitConnectionFactoryProvider} and {@link EasygramRabbitProperties}.</li>
  *   <li>A {@link TopicExchange}, {@link Queue}, and {@link Binding} — auto-created by
  *       {@link RabbitAdmin} on startup when {@code create-if-absent=true} (default).</li>
  * </ul>
@@ -50,35 +52,58 @@ import java.util.List;
  * @since 0.0.1
  */
 @AutoConfiguration
-@ConditionalOnClass(RabbitListener.class)
+@ConditionalOnClass(SimpleMessageListenerContainer.class)
 @ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "CONSUMER")
 @ConditionalOnProperty(prefix = "easygram.messaging.consumer", name = "type", havingValue = "RABBIT")
 @EnableConfigurationProperties(EasygramRabbitProperties.class)
 public class RabbitConsumerAutoConfiguration {
 
     /**
-     * Provides the default {@code botRabbitListenerContainerFactory} used by
-     * {@link uz.osoncode.easygram.messaging.rabbit.consumer.RabbitBotUpdateListener}.
+     * Registers the default {@link BotRabbitConnectionFactoryProvider} if none is defined.
+     * This simply returns Spring Boot's auto-configured {@link ConnectionFactory}.
      *
-     * <p>This fallback factory has no observation support. It is skipped when the
+     * <p>Override this bean to provide a custom connection factory.</p>
+     *
+     * @param connectionFactory the auto-configured RabbitMQ connection factory
+     * @return a provider wrapping the default connection factory
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public BotRabbitConnectionFactoryProvider botRabbitConnectionFactoryProvider(
+            ConnectionFactory connectionFactory) {
+        return () -> connectionFactory;
+    }
+
+    /**
+     * Provides the default {@code botRabbitListenerContainer}: a programmatic
+     * {@link SimpleMessageListenerContainer} wired from
+     * {@link BotRabbitConnectionFactoryProvider} and {@link EasygramRabbitProperties}.
+     *
+     * <p>This fallback container has no observation support. It is skipped when the
      * {@link RabbitConsumerObservationConfig} inner class registers its own observed variant
      * (i.e. when Micrometer is on the classpath and configured).</p>
      *
-     * @param connectionFactory the auto-configured RabbitMQ connection factory
-     * @return a basic {@link SimpleRabbitListenerContainerFactory}
+     * @param connectionFactoryProvider the provider for the RabbitMQ connection factory
+     * @param rabbitProperties          queue name for the container
+     * @param rabbitBotUpdateListener   the listener to register with the container
+     * @return a {@link SimpleMessageListenerContainer} ready for Spring lifecycle management
      */
-    @Bean(name = "botRabbitListenerContainerFactory")
-    @ConditionalOnMissingBean(name = "botRabbitListenerContainerFactory")
-    public SimpleRabbitListenerContainerFactory botRabbitListenerContainerFactory(
-            ConnectionFactory connectionFactory) {
-        var factory = new SimpleRabbitListenerContainerFactory();
-        factory.setConnectionFactory(connectionFactory);
-        return factory;
+    @Bean(name = "botRabbitListenerContainer")
+    @ConditionalOnMissingBean(name = "botRabbitListenerContainer")
+    public SimpleMessageListenerContainer botRabbitListenerContainer(
+            BotRabbitConnectionFactoryProvider connectionFactoryProvider,
+            EasygramRabbitProperties rabbitProperties,
+            RabbitBotUpdateListener rabbitBotUpdateListener) {
+        SimpleMessageListenerContainer container =
+                new SimpleMessageListenerContainer(connectionFactoryProvider.provide());
+        container.setQueueNames(rabbitProperties.queue());
+        container.setMessageListener(rabbitBotUpdateListener);
+        return container;
     }
 
     /**
      * Inner configuration that registers a Micrometer-observation-enabled
-     * {@code botRabbitListenerContainerFactory}. Only activated when an
+     * {@code botRabbitListenerContainer}. Only activated when an
      * {@link ObservationRegistry} bean is present.
      *
      * <p>When active, the listener container extracts the W3C {@code traceparent} header
@@ -92,21 +117,27 @@ public class RabbitConsumerAutoConfiguration {
     static class RabbitConsumerObservationConfig {
 
         /**
-         * Registers an observation-enabled {@link SimpleRabbitListenerContainerFactory}.
+         * Registers an observation-enabled {@link SimpleMessageListenerContainer}.
          *
-         * @param connectionFactory   the auto-configured RabbitMQ connection factory
-         * @param observationRegistry the active Micrometer observation registry
-         * @return a factory with {@code observationEnabled=true}
+         * @param connectionFactoryProvider the provider for the RabbitMQ connection factory
+         * @param rabbitProperties          queue name for the container
+         * @param rabbitBotUpdateListener   the listener to register with the container
+         * @param observationRegistry       the active Micrometer observation registry
+         * @return a container with {@code observationEnabled=true}
          */
-        @Bean(name = "botRabbitListenerContainerFactory")
-        @ConditionalOnMissingBean(name = "botRabbitListenerContainerFactory")
-        public SimpleRabbitListenerContainerFactory botRabbitListenerContainerFactory(
-                ConnectionFactory connectionFactory,
+        @Bean(name = "botRabbitListenerContainer")
+        @ConditionalOnMissingBean(name = "botRabbitListenerContainer")
+        public SimpleMessageListenerContainer botRabbitListenerContainer(
+                BotRabbitConnectionFactoryProvider connectionFactoryProvider,
+                EasygramRabbitProperties rabbitProperties,
+                RabbitBotUpdateListener rabbitBotUpdateListener,
                 ObservationRegistry observationRegistry) {
-            var factory = new SimpleRabbitListenerContainerFactory();
-            factory.setConnectionFactory(connectionFactory);
-            factory.setObservationEnabled(true);
-            return factory;
+            SimpleMessageListenerContainer container =
+                    new SimpleMessageListenerContainer(connectionFactoryProvider.provide());
+            container.setQueueNames(rabbitProperties.queue());
+            container.setObservationEnabled(true);
+            container.setMessageListener(rabbitBotUpdateListener);
+            return container;
         }
     }
 

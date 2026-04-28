@@ -390,3 +390,25 @@ html[data-theme='dark'] .table-of-contents__link--active {
   border-left-color: #f2f2f2;
 }
 
+
+/* ── Sidebar "new" badge ─────────────────────────────────────────────────── */
+.menu__link[href] span.badge--new::after,
+.menu__link span.badge--new::after {
+  content: 'NEW';
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  background: #2a2a2a;
+  color: #ffffff;
+}
+
+html[data-theme='dark'] .menu__link span.badge--new::after {
+  background: #e0e0e0;
+  color: #1a1a1a;
+}

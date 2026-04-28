@@ -3,9 +3,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.4</version>
+        <relativePath/>
+    </parent>
+
     <groupId>uz.osoncode.easygram.samples</groupId>
     <artifactId>samples-parent</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
     <packaging>pom</packaging>
     <name>easygram :: samples</name>
     <description>Runnable sample applications for every easygram transport module</description>
@@ -19,13 +26,34 @@
         <module>webhook-as-producer</module>
         <module>kafka-consumer-bot</module>
         <module>rabbit-consumer-bot</module>
+        <module>linkedlist-bot</module>
     </modules>
 
     <properties>
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <library.version>0.0.5</library.version>
-        <spring-boot.version>3.5.4</spring-boot.version>
+        <library.version>0.0.6</library.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>uz.osoncode.easygram</groupId>
+                <artifactId>spring-boot-starter</artifactId>
+                <version>${library.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>

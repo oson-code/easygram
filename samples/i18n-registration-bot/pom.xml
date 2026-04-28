@@ -4,15 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.4</version>
-        <relativePath/>
+        <groupId>uz.osoncode.easygram.samples</groupId>
+        <artifactId>samples-parent</artifactId>
+        <version>0.0.6</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>uz.osoncode.easygram.samples</groupId>
     <artifactId>i18n-registration-bot</artifactId>
-    <version>0.0.5</version>
     <name>sample :: i18n-registration-bot</name>
     <description>
         Sample: Multi-step registration wizard with full i18n support.
@@ -22,33 +20,22 @@
         Supports English, Uzbek and Russian via Spring message bundles.
     </description>
 
-    <properties>
-        <java.version>17</java.version>
-        <library.version>0.0.5</library.version>
-    </properties>
-
     <dependencies>
-        <!--
-            longpolling pulls in: core, core-api, core-chatstate, spring-boot-starter-validation.
-            core-chatstate provides InMemoryBotChatStateService automatically.
-        -->
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>${library.version}</version>
-        </dependency>
-
-        <!-- i18n support: BotMessageSource, BotKeyboardFactory, LocalizedReply, LocalizedTemplate -->
-        <dependency>
-            <groupId>uz.osoncode.easygram</groupId>
-            <artifactId>core-i18n</artifactId>
-            <version>${library.version}</version>
         </dependency>
 
         <!-- Actuator: /actuator/health, /actuator/info, /actuator/prometheus -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <!-- Prometheus metrics registry: exposes /actuator/prometheus for scraping -->

@@ -16,13 +16,14 @@ easygram:
     producer:
       # Choose which broker to publish to: KAFKA | RABBIT
       type: KAFKA
+#      type: RABBIT
 
     # ── Kafka settings (active when producer.type=KAFKA) ────────────────────
-    kafka:
-      topic: easygram-updates
-      create-if-absent: true   # auto-create topic on startup (default: true)
-      partitions: 1
-      replication-factor: 1
+#    kafka:
+#      topic: easygram-updates
+#      create-if-absent: true   # auto-create topic on startup (default: true)
+#      partitions: 1
+#      replication-factor: 1
 
     # ── RabbitMQ settings (active when producer.type=RABBIT) ────────────────
     # rabbit:
@@ -52,4 +53,7 @@ spring:
     port: 5672
     username: rabbit
     password: rabbit
+
+server:
+  port: 8087
 

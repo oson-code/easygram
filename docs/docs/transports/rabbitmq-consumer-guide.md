@@ -28,7 +28,7 @@ Producer Bot  →  [RabbitMQ Exchange]  →  [Queue: easygram-updates]
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
 </dependency>
 
 <!-- Required: spring-amqp is marked optional in messaging-api -->
@@ -44,7 +44,7 @@ Or without the starter:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-api</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
 </dependency>
 <dependency>
     <groupId>org.springframework.boot</groupId>

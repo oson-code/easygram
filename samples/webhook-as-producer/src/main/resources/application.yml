@@ -28,7 +28,7 @@ easygram:
 
     producer:
       # Choose which broker to publish to: KAFKA | RABBIT
-      type: RABBIT
+      type: KAFKA
 
     # ── Kafka settings (active when producer.type=KAFKA) ────────────────────
     # kafka:
@@ -38,14 +38,12 @@ easygram:
     #   replication-factor: 1
 
     # ── RabbitMQ settings (active when producer.type=RABBIT) ────────────────
-    rabbit:
-      exchange: easygram-exchange
-      routing-key: easygram.updates
-      queue: easygram-updates
-      create-if-absent: true
+#    rabbit:
+#      exchange: easygram-exchange
+#      routing-key: easygram.updates
+#      queue: easygram-updates
+#      create-if-absent: true
 
-server:
-  port: 8080
 
 # ── Spring Kafka (required when producer.type=KAFKA) ─────────────────────────
 spring:

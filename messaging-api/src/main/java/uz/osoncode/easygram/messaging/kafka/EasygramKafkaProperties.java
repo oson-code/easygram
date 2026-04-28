@@ -1,9 +1,7 @@
 package uz.osoncode.easygram.messaging.kafka;
 
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
-import org.springframework.validation.annotation.Validated;
 
 /**
  * Shared Kafka configuration for both producer and consumer bot integrations.
@@ -11,6 +9,10 @@ import org.springframework.validation.annotation.Validated;
  * <p>Bound from the {@code easygram.messaging.kafka} prefix. These properties are used by
  * both {@code KafkaMessagingAutoConfiguration} (PRODUCER mode) and
  * {@code KafkaConsumerAutoConfiguration} (CONSUMER mode).</p>
+ *
+ * <p>If {@code easygram.messaging.kafka.topic} is not set it defaults to
+ * {@code easygram-updates}. All other fields also have defaults, so the minimal
+ * configuration is zero additional properties.</p>
  *
  * <p>Example {@code application.yml} snippet:</p>
  * <pre>{@code
@@ -27,7 +29,8 @@ import org.springframework.validation.annotation.Validated;
  *     bootstrap-servers: localhost:9092
  * }</pre>
  *
- * @param topic             the Kafka topic to publish to or consume from; must not be blank
+ * @param topic             the Kafka topic to publish to or consume from;
+ *                          defaults to {@code easygram-updates}
  * @param groupId           the Kafka consumer group ID; defaults to {@code easygram-bot}
  * @param createIfAbsent    auto-create the topic if it does not exist (requires broker admin permissions);
  *                          defaults to {@code true}
@@ -36,12 +39,11 @@ import org.springframework.validation.annotation.Validated;
  * @author Islom Mirsaburov
  * @since 0.0.5
  */
-@Validated
 @ConfigurationProperties("easygram.messaging.kafka")
 public record EasygramKafkaProperties(
 
         /** The Kafka topic name used for publishing or consuming Telegram updates. */
-        @NotBlank(message = "easygram.messaging.kafka.topic must not be blank")
+        @DefaultValue("easygram-updates")
         String topic,
 
         /** The Kafka consumer group ID. Defaults to {@code easygram-bot}. */

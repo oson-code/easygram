@@ -72,6 +72,7 @@ class BotReplyButtonMatcherAutoConfigurationTest {
     void coreAndI18n_i18nMatcherTakesPrecedence() {
         runner.withPropertyValues(
                         "easygram.token=" + BOT_TOKEN,
+                        "easygram.i18n.enabled=true",
                         "easygram.i18n.default-locale=en"
                 )
                 .withUserConfiguration(FakeMessageSourceConfig.class)
@@ -103,6 +104,7 @@ class BotReplyButtonMatcherAutoConfigurationTest {
 
         runner.withPropertyValues(
                         "easygram.token=" + BOT_TOKEN,
+                        "easygram.i18n.enabled=true",
                         "easygram.i18n.default-locale=en"
                 )
                 .withBean(BotReplyButtonMatcher.class, () -> customMatcher)

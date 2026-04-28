@@ -1,8 +1,8 @@
 ---
 id: return-types
 title: Return Types
-description: Supported return types in Easygram — String, PlainReply, LocalizedReply, PlainTextTemplate, LocalizedTemplate — with fluent builder API, wither methods, and AnswerCallbackQuery support.
-keywords: [PlainReply, LocalizedReply, PlainTextTemplate, telegram bot return type java, AnswerCallbackQuery spring boot, easygram reply types]
+description: Supported return types in Easygram — String, PlainReply, LocalizedReply — with fluent builder API, wither methods, sendMessage delivery options, and AnswerCallbackQuery support.
+keywords: [PlainReply, LocalizedReply, telegram bot return type java, AnswerCallbackQuery spring boot, easygram reply types, disableNotification, replyParameters]
 ---
 
 # Return Types
@@ -17,13 +17,56 @@ the method's declared return type wins.
 |---|---|---|
 | `void` | `core` | No response sent |
 | `String` | `core` | `SendMessage` to the current chat |
-| `PlainReply` | `core` | `SendMessage` (or `EditMessageText` when `editMessage=true`) with optional keyboard |
-| `PlainTextTemplate` | `core` | `SendMessage` (or `EditMessageText`) with `#{index}` token substitution |
+| `PlainReply` | `core` | `SendMessage` (or `EditMessageText` when `editMessage=true`) with optional keyboard and delivery options |
 | `BotApiMethod<?>` | `core` | Executed directly via `TelegramClient` |
 | `Collection<BotApiMethod<?>>` | `core` | All executed in insertion order |
 | `Collection<Object>` | `core` | Per-element dispatch via `supportsElement()` |
 | `LocalizedReply` | `core-i18n` | `MessageSource` key lookup with `Locale` (or `EditMessageText` when `editMessage=true`) |
-| `LocalizedTemplate` | `core-i18n` | Mixed `${key}` / `#{index}` template with `MessageSource` (or `EditMessageText` when `editMessage=true`) |
+
+---
+
+## `@BotParseMode` {#bot-parse-mode}
+
+Annotate a handler method with `@BotParseMode` to set Telegram's `parse_mode` field on the
+outgoing `SendMessage` or `EditMessageText`. Valid values are `"HTML"`, `"MarkdownV2"`, and
+`"Markdown"` (legacy).
+
+Works with **all** return types that produce a `SendMessage` — `String`, `PlainReply`, and `LocalizedReply`.
+
+```java
+@BotParseMode("HTML")
+@BotCommand("/start")
+public String start(User user) {
+    return "<b>Hello, " + user.getFirstName() + "!</b>";
+}
+
+@BotParseMode("MarkdownV2")
+@BotCommand("/help")
+public PlainReply help() {
+    return PlainReply.of("*Bold* and _italic_");
+}
+```
+
+`@BotParseMode` and `@BotReplyMarkup` can appear together in any order:
+
+```java
+@BotParseMode("HTML")
+@BotReplyMarkup("main_menu")
+@BotCommand("/menu")
+public String menu() {
+    return "<b>Choose an option:</b>";
+}
+```
+
+All `MarkupAware` reply types also expose `.withParseMode(String)` for runtime control
+(see [MarkupAware — `.withParseMode()`](#with-parse-mode)):
+
+```java
+String mode = richText ? "HTML" : null;
+return PlainReply.of(text).withParseMode(mode);
+```
+
+*Since 0.0.6*
 
 ---
 
@@ -43,8 +86,9 @@ public void subscribe(User user) {
 
 ## `String`
 
-The simplest way to send a text message. Supports `@BotReplyMarkup` and `@BotClearMarkup`
-annotations on the method for attaching or removing a keyboard:
+The simplest way to send a text message. Supports `@BotReplyMarkup`, `@BotClearMarkup`, and
+`@BotParseMode` annotations on the method for attaching or removing a keyboard or setting
+parse mode:
 
 ```java
 @BotCommand("/hello")
@@ -62,6 +106,12 @@ public String start() {
 @BotCommand("/cancel")
 public String cancel() {
     return "Cancelled.";  // ReplyKeyboardRemove sent automatically
+}
+
+@BotParseMode("HTML")
+@BotCommand("/bold")
+public String bold() {
+    return "<b>Hello!</b>";
 }
 ```
 
@@ -99,6 +149,29 @@ public PlainReply start() {
 
 See the [MarkupAware section](#markupaware) for all keyboard attachment options.
 
+### MessageFormat Args {#plain-reply-args}
+
+Pass positional arguments and use standard Java `{n}` placeholders. The handler applies
+`MessageFormat.format(text, args)` before sending:
+
+```java
+@BotCommand("/hello")
+public PlainReply hello(User user) {
+    return PlainReply.of("Hello, {0}! You have {1} new messages.", user.getFirstName(), count);
+}
+
+// Builder
+return PlainReply.builder()
+    .text("Your balance: {0} USD")
+    .args(balance)
+    .build();
+
+// Wither
+return PlainReply.of("Hi, {0}!").withArgs(user.getFirstName());
+```
+
+*Since 0.0.6*
+
 ### Edit-Message {#edit-message}
 
 When a handler is triggered by a callback query button, you often want to **edit** the
@@ -130,81 +203,46 @@ Telegram's `EditMessageReplyMarkup` API only accepts `InlineKeyboardMarkup`. If 
 `ReplyKeyboardMarkup` in edit context it is silently ignored.
 :::
 
----
+### sendMessage Delivery Options {#delivery-options}
 
-## `PlainTextTemplate`
+`PlainReply` supports all Telegram `sendMessage` delivery control fields via wither methods
+and Builder setters:
 
-Like `PlainReply`, but substitutes `#{index}` positional tokens (0-based) into the message at
-send time. No message-bundle lookup is performed — use `LocalizedTemplate` when i18n is needed.
+| Field | Type | Wither | Builder | Purpose |
+|-------|------|--------|---------|---------|
+| `disableNotification` | `Boolean` | `.withDisableNotification(bool)` | `.disableNotification(bool)` | Send silently (no sound/vibration) |
+| `protectContent` | `Boolean` | `.withProtectContent(bool)` | `.protectContent(bool)` | Disable forwarding and saving |
+| `messageThreadId` | `Integer` | `.withMessageThreadId(id)` | `.messageThreadId(id)` | Target a forum topic thread |
+| `replyParameters` | `ReplyParameters` | `.withReplyParameters(rp)` | `.replyParameters(rp)` | Reply to a specific message |
+| `linkPreviewOptions` | `LinkPreviewOptions` | `.withLinkPreviewOptions(lp)` | `.linkPreviewOptions(lp)` | Control link preview |
 
 ```java
-@BotCommand("/welcome")
-public PlainTextTemplate welcome(User user) {
-    return PlainTextTemplate.of("Hello, #{0}! You have #{1} messages.", user.getFirstName(), 5);
-    // Sends: "Hello, Alice! You have 5 messages."
-}
+// Send silently
+return PlainReply.of("Quiet notification.")
+        .withDisableNotification(true);
 
-@BotCommand("/balance")
-public PlainTextTemplate balance(User user) {
-    double amount = accountService.getBalance(user.getId());
-    return PlainTextTemplate.of("Your balance: #{0} USD", amount)
-        .withMarkup("account_menu");
-}
+// Reply to a specific message
+return PlainReply.of("Got it!")
+        .withReplyParameters(ReplyParameters.builder()
+                .messageId(originalMessageId)
+                .build());
 
-// Builder pattern
-@BotCommand("/info")
-public PlainTextTemplate info(User user) {
-    return PlainTextTemplate.builder()
-        .template("Hello, #{0}! Your ID is #{1}.")
-        .args(user.getFirstName(), user.getId())
-        .markupId("main_menu")
+// Disable link preview
+return PlainReply.of("Check https://example.com")
+        .withLinkPreviewOptions(LinkPreviewOptions.builder()
+                .isDisabled(true)
+                .build());
+
+// Builder — combine multiple options
+return PlainReply.builder()
+        .text("Silent reply to your message")
+        .disableNotification(true)
+        .protectContent(true)
+        .replyParameters(ReplyParameters.builder().messageId(msgId).build())
         .build();
-}
 ```
 
-:::note
-`PlainTextTemplate` uses `#{index}` tokens (same format as `LocalizedTemplate`). If the index
-is out of bounds the token is left unchanged.
-:::
-
-`PlainTextTemplate` also supports the `editMessage` flag — see [Edit-Message](#edit-message)
-above for details (the behaviour is identical to `PlainReply`).
-
-### Answering Callback Queries from a Template
-
-`PlainTextTemplate` supports the same callback-answer API as `PlainReply`. The **resolved
-template text** (after all `#{index}` substitutions) is used as the popup notification text:
-
-```java
-// Toast popup — resolved text shown in the notification
-@BotCallbackQuery("next")
-public PlainTextTemplate nextStep(User user) {
-    return PlainTextTemplate.of("Step #{0} complete, #{1}!", step, user.getFirstName())
-            .asAnswerCallbackQuery();
-}
-
-// Alert dialog
-@BotCallbackQuery("reset")
-public PlainTextTemplate resetDone() {
-    return PlainTextTemplate.of("Reset complete. Starting over.")
-            .asAnswerCallbackQuery()
-            .withCallbackAlert();
-}
-
-// Builder
-@BotCallbackQuery("confirm")
-public PlainTextTemplate confirmOrder(User user) {
-    return PlainTextTemplate.builder()
-            .template("Order #{0} confirmed for #{1}!")
-            .args(orderId, user.getFirstName())
-            .answerCallbackQuery(true)
-            .callbackAlert(true)
-            .build();
-}
-```
-
-See [Answering Callback Queries](#callback-answer) in the MarkupAware section for the full
-method reference.
+*Since 0.0.6*
 
 ---
 
@@ -333,7 +371,7 @@ public Collection<Object> showSummary(Update update, Chat chat) {
         AnswerCallbackQuery.builder()                    // dismiss the spinner
             .callbackQueryId(query.getId())
             .build(),
-        PlainTextTemplate.of("Summary for #{0}:\n#{1}",      // #{index} token substitution
+        PlainReply.of("Summary for {0}:\n{1}",           // MessageFormat arg substitution
             chat.getFirstName(),
             summaryService.get(chat.getId()))
     );
@@ -388,122 +426,37 @@ return LocalizedReply.builder()
 `LocalizedReply` also supports the `editMessage` flag — see [Edit-Message](#edit-message)
 for details. Use `withEditMessage()` or `Builder.editMessage(true)`.
 
----
+### sendMessage Delivery Options for LocalizedReply {#localized-delivery-options}
 
-## `LocalizedTemplate` *(core-i18n)*
+`LocalizedReply` supports the same delivery option fields as `PlainReply`:
 
-Combines `MessageSource` lookups and positional argument interpolation in a **single template
-string** you write inline. Two token types are supported:
-
-| Token | Meaning |
-|---|---|
-| `${key}` | Replaced with `messageSource.getMessage(key, locale)` |
-| `#{index}` | Replaced with `args[index]` (0-based) |
-
-The framework resolves all `${key}` tokens first, then substitutes `#{index}` placeholders with
-the provided arguments.
+| Field | Type | Wither | Builder | Purpose |
+|-------|------|--------|---------|---------|
+| `disableNotification` | `Boolean` | `.withDisableNotification(bool)` | `.disableNotification(bool)` | Send silently |
+| `protectContent` | `Boolean` | `.withProtectContent(bool)` | `.protectContent(bool)` | Disable forwarding/saving |
+| `messageThreadId` | `Integer` | `.withMessageThreadId(id)` | `.messageThreadId(id)` | Forum topic thread |
+| `replyParameters` | `ReplyParameters` | `.withReplyParameters(rp)` | `.replyParameters(rp)` | Reply to specific message |
+| `linkPreviewOptions` | `LinkPreviewOptions` | `.withLinkPreviewOptions(lp)` | `.linkPreviewOptions(lp)` | Link preview control |
 
 ```java
-// messages/bot_en.properties:
-//   welcome.title=Welcome!
-//   welcome.body=Here is what you can do.
+return LocalizedReply.of("welcome.silently")
+        .withDisableNotification(true);
 
-@BotCommand("/start")
-public LocalizedTemplate start(User user) {
-    return LocalizedTemplate.of(
-        "${welcome.title}\n\n${welcome.body}\n\nHello, #{0}!",
-        user.getFirstName()
-    );
-    // Sends: "Welcome!\n\nHere is what you can do.\n\nHello, Alice!"
-}
+return LocalizedReply.builder()
+        .key("greeting")
+        .args(user.getFirstName())
+        .protectContent(true)
+        .build();
 ```
 
-When every substitution comes from the bundle (no runtime args needed), omit `#{index}`:
-
-```java
-// messages/bot_en.properties:
-//   register.complete=Registration complete. You can now use all features.
-
-@BotCommand("/done")
-public LocalizedTemplate registrationComplete() {
-    return LocalizedTemplate.of("${register.complete}");
-}
-```
-
-With runtime args and a keyboard:
-
-```java
-@BotCommand("/stats")
-public LocalizedTemplate stats(User user) {
-    return LocalizedTemplate.of(
-        "${stats.header}\n\nMessages: #{0}\nCommands: #{1}",
-        statsService.messages(user.getId()),
-        statsService.commands(user.getId())
-    ).withMarkup("stats_menu");
-}
-```
-
-Builder pattern:
-
-```java
-return LocalizedTemplate.builder()
-    .template("${stats.header}\n\nMessages: #{0}\nCommands: #{1}")
-    .args(statsService.messages(user.getId()), statsService.commands(user.getId()))
-    .markupId("stats_menu")
-    .build();
-```
-
-:::caution
-`LocalizedTemplate` does **not** use `MessageFormat` syntax. Use `#{0}` for positional args,
-not `{0}`. The `${key}` tokens are message bundle lookups, not Spring EL.
-:::
-
-`LocalizedTemplate` also supports the `editMessage` flag — see [Edit-Message](#edit-message)
-for details. Use `withEditMessage()` or `Builder.editMessage(true)`.
-
-### Answering Callback Queries from a Template
-
-`LocalizedTemplate` supports the same callback-answer API as `LocalizedReply`. The **fully
-resolved template string** (after all `${key}` lookups and `#{index}` substitutions) is used
-as the popup notification text:
-
-```java
-// Toast popup — resolved template text shown in the notification
-@BotCallbackQuery("next")
-public LocalizedTemplate nextStep() {
-    return LocalizedTemplate.of("${step.complete} #{0}!", stepNumber)
-            .asAnswerCallbackQuery();
-}
-
-// Alert dialog
-@BotCallbackQuery("confirm")
-public LocalizedTemplate confirmAction() {
-    return LocalizedTemplate.of("${action.confirmed}")
-            .asAnswerCallbackQuery()
-            .withCallbackAlert();
-}
-
-// Builder
-@BotCallbackQuery("approve")
-public LocalizedTemplate approve(User user) {
-    return LocalizedTemplate.builder()
-            .template("${approved.message} #{0}")
-            .args(user.getFirstName())
-            .answerCallbackQuery(true)
-            .callbackAlert(true)
-            .build();
-}
-```
-
-See [Answering Callback Queries](#callback-answer) in the MarkupAware section for the full
-method reference.
+*Since 0.0.6*
 
 ---
 
 ## MarkupAware
 
-`PlainReply`, `PlainTextTemplate`, `LocalizedReply`, and `LocalizedTemplate` all implement
-`MarkupAware`. They are **immutable** — every method returns a new instance with the change applied.
+`PlainReply` and `LocalizedReply` both implement `MarkupAware`. They are **immutable** —
+every method returns a new instance with the change applied.
 
 Five methods are available:
 
@@ -561,6 +514,22 @@ framework edits the original message instead of sending a new one:
 ```java
 return PlainReply.of("Updated!").withEditMessage();
 ```
+
+### `.withParseMode(String mode)` {#with-parse-mode}
+
+Returns a copy with the Telegram `parse_mode` field set. Valid values: `"HTML"`,
+`"MarkdownV2"`, `"Markdown"`. Pass `null` to clear an existing parse mode.
+
+```java
+return PlainReply.of("<b>bold</b>").withParseMode("HTML");
+return PlainReply.of("<i>{0}</i>", name).withParseMode("HTML");
+return LocalizedReply.of("greeting.html").withParseMode("HTML");
+```
+
+Prefer `@BotParseMode` on the method for the common case where all responses from a
+handler use the same mode. Use `.withParseMode()` when the mode depends on runtime state.
+
+*Since 0.0.6*
 
 ### Answering Callback Queries {#callback-answer}
 

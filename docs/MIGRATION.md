@@ -1,5 +1,155 @@
 # Easygram — Migration Guide
 
+## 0.0.5 → 0.0.6
+
+### BREAKING: `PlainTextTemplate` removed
+
+`PlainTextTemplate` and its handler `BotPlainTextTemplateReturnTypeHandler` have been
+removed. Migrate to `PlainReply` with built-in `MessageFormat` arg support:
+
+| Before (0.0.5) | After (0.0.6) |
+|---|---|
+| `PlainTextTemplate.of("Hello, #{0}!", name)` | `PlainReply.of("Hello, {0}!", name)` |
+| `PlainTextTemplate.of("#{0} msgs", count)` | `PlainReply.of("{0} msgs", count)` |
+
+Token notation changes: **`#{n}` → `{n}`** (standard Java `MessageFormat` syntax).
+
+```java
+// Before
+return PlainTextTemplate.of("Welcome, #{0}! You have #{1} messages.", name, count);
+
+// After
+return PlainReply.of("Welcome, {0}! You have {1} messages.", name, count);
+```
+
+The builder and wither are analogous:
+
+```java
+PlainReply.builder().text("Hi, {0}!").args(name).build();
+PlainReply.of("Hi, {0}!").withArgs(name);
+```
+
+### BREAKING: `LocalizedTemplate` removed
+
+`LocalizedTemplate` and its handler `BotLocalizedTemplateReturnTypeHandler` have been
+removed. Message bundle files must also be updated to use standard `MessageFormat` `{n}`
+placeholders instead of the old `#{n}` notation.
+
+**Option 1 — Use `LocalizedReply` with args** (single key, positional args):
+
+```java
+// messages/bot_en.properties: register.complete=Registration complete. City: {0}
+
+// Before
+return LocalizedTemplate.of("${register.complete} #{0}", city);
+
+// After (single-key with arg)
+return LocalizedReply.of("register.complete", city);
+```
+
+**Option 2 — Concatenate via `BotMessageSource`** (multi-key):
+
+```java
+// Before
+return LocalizedTemplate.of("${welcome.title}\n\n${welcome.body}\n\nHello, #{0}!", name);
+
+// After — inject BotMessageSource, resolve each key, combine
+@BotController
+@RequiredArgsConstructor
+public class WelcomeController {
+    private final BotMessageSource messageSource;
+
+    @BotCommand("/start")
+    public String onStart(User user, BotRequest request) {
+        return messageSource.getMessage("welcome.title", request) + "\n\n"
+             + messageSource.getMessage("welcome.body", request) + "\n\n"
+             + "Hello, " + user.getFirstName() + "!";
+    }
+}
+```
+
+**Bundle file migration** — change `#{n}` → `{n}` in all `.properties` files:
+
+```properties
+# Before (0.0.5)
+greeting=Hello, #{0}!
+register.complete=Complete! City: #{0}
+
+# After (0.0.6)
+greeting=Hello, {0}!
+register.complete=Complete! City: {0}
+```
+
+### New: sendMessage delivery options on `PlainReply` and `LocalizedReply`
+
+Five new optional fields added (additive, fully backward-compatible):
+
+| Field | Method | Purpose |
+|---|---|---|
+| `disableNotification` | `.withDisableNotification(bool)` | Send silently |
+| `protectContent` | `.withProtectContent(bool)` | Disable forwarding/saving |
+| `messageThreadId` | `.withMessageThreadId(id)` | Forum topic thread |
+| `replyParameters` | `.withReplyParameters(rp)` | Reply to specific message |
+| `linkPreviewOptions` | `.withLinkPreviewOptions(lp)` | Link preview control |
+
+```java
+return PlainReply.of("Quiet update.").withDisableNotification(true);
+return LocalizedReply.of("welcome").withProtectContent(true);
+```
+
+### New: `@BotParseMode` annotation
+
+Attach `@BotParseMode("HTML")`, `@BotParseMode("MarkdownV2")`, or `@BotParseMode("Markdown")`
+to any handler method. Works with all return types: `String`, `PlainReply`, `LocalizedReply`.
+
+```java
+@BotParseMode("HTML")
+@BotCommand("/start")
+public String start(User user) {
+    return "<b>Hello, " + user.getFirstName() + "!</b>";
+}
+```
+
+All `MarkupAware` reply types also gained `.withParseMode(String)` for runtime control:
+
+```java
+return PlainReply.of("<b>text</b>").withParseMode("HTML");
+```
+
+### New: Configurable Telegram API URL (`easygram.telegram-url.*`)
+
+Use a local or self-hosted Bot API server:
+
+```yaml
+easygram:
+  telegram-url:
+    host: my-local-bot-api.example.com
+    port: 8443
+    schema: https
+    test-server: false
+```
+
+All fields are optional. When `host` is absent, the standard `api.telegram.org` is used.
+
+### New: Messaging factory provider SPI
+
+Register a bean of any of the three new interfaces to supply a custom factory:
+
+| Interface | Replaces |
+|---|---|
+| `BotKafkaProducerFactoryProvider` | Kafka `ProducerFactory` |
+| `BotKafkaConsumerFactoryProvider` | Kafka `ConsumerFactory` |
+| `BotRabbitConnectionFactoryProvider` | RabbitMQ `ConnectionFactory` |
+
+All three are `@ConditionalOnMissingBean` — declare only the ones you need.
+
+Topic and exchange properties are now fully optional (defaults: `easygram-updates`,
+`easygram-exchange`).
+
+**Full details:** [Migrating from 0.0.5 to 0.0.6](../docs/migration/0.0.5-to-0.0.6)
+
+---
+
 ## 0.0.4 → 0.0.5
 
 ### Property namespace rename (`telegram.bot` → `easygram`)

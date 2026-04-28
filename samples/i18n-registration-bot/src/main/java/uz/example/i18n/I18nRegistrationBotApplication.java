@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * <p>This sample demonstrates:</p>
  * <ul>
  *   <li>Multi-step registration wizard with {@code @BotChatState} state management</li>
- *   <li>Fully localised responses using {@code LocalizedReply} and {@code LocalizedTemplate}</li>
+ *   <li>Fully localised responses using {@code LocalizedReply} with {@code MessageFormat} args</li>
  *   <li>Locale-aware keyboards built with {@code BotKeyboardFactory}</li>
  *   <li>Direct message resolution via {@code BotMessageSource}</li>
  *   <li>Phone-number routing with {@code @BotTextPattern}</li>

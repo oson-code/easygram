@@ -23,7 +23,8 @@ import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.markup.DefaultBotMarkupFactory;
 import uz.osoncode.easygram.core.markup.InMemoryBotMarkupRegistry;
 import uz.osoncode.easygram.core.returntypehandler.BotPlainReplyReturnTypeHandler;
-import uz.osoncode.easygram.core.returntypehandler.BotPlainTextTemplateReturnTypeHandler;
+import uz.osoncode.easygram.core.returntypehandler.BotReplyAction;
+import uz.osoncode.easygram.core.returntypehandler.BotReplyActionChain;
 
 import jakarta.validation.Validator;
 
@@ -61,6 +62,7 @@ import uz.osoncode.easygram.core.argumentresolver.BotShippingPayloadArgumentReso
 import uz.osoncode.easygram.core.argumentresolver.BotPreCheckoutPayloadArgumentResolver;
 import uz.osoncode.easygram.core.bot.BotConfigurer;
 import uz.osoncode.easygram.core.bot.EasygramProperties;
+import uz.osoncode.easygram.core.bot.EasygramTelegramUrlProperties;
 import uz.osoncode.easygram.core.bot.EasygramUpdateProperties;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
@@ -163,7 +165,7 @@ import java.util.concurrent.Executors;
  * @since 0.0.1
  */
 @AutoConfiguration
-@EnableConfigurationProperties({EasygramProperties.class, EasygramUpdateProperties.class})
+@EnableConfigurationProperties({EasygramProperties.class, EasygramUpdateProperties.class, EasygramTelegramUrlProperties.class})
 public class CoreAutoConfiguration {
 
     /**
@@ -1218,15 +1220,35 @@ public class CoreAutoConfiguration {
     }
 
     /**
-     * Default {@link BotTelegramUrlProvider} pointing to {@link TelegramUrl#DEFAULT_URL}.
+     * {@link BotTelegramUrlProvider} driven by {@code easygram.telegram-url.*} properties.
      *
-     * <p>Override this bean to redirect the bot to a local Bot API server.</p>
+     * <p>When {@code easygram.telegram-url.host} is set a {@link TelegramUrl} is built from the
+     * configured {@code schema}, {@code host}, {@code port}, and {@code testServer} values.
+     * Any field left blank keeps its default value from the {@link TelegramUrl} no-arg constructor.
+     * When no host is configured the provider returns {@link TelegramUrl#DEFAULT_URL}.</p>
      *
-     * @return a {@link BotTelegramUrlProvider} that always returns the default Telegram URL
+     * <p>Declare your own {@code @Bean BotTelegramUrlProvider} to override this entirely.</p>
+     *
+     * @param telegramUrlProperties optional URL properties from {@code easygram.telegram-url}
+     * @return a {@link BotTelegramUrlProvider} pointing at the configured or default URL
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotTelegramUrlProvider botTelegramUrlProvider() {
+    public BotTelegramUrlProvider botTelegramUrlProvider(EasygramTelegramUrlProperties telegramUrlProperties) {
+        if (telegramUrlProperties.host() != null) {
+            TelegramUrl url = new TelegramUrl();
+            if (telegramUrlProperties.schema() != null) {
+                url.setSchema(telegramUrlProperties.schema());
+            }
+            url.setHost(telegramUrlProperties.host());
+            if (telegramUrlProperties.port() != null) {
+                url.setPort(telegramUrlProperties.port());
+            }
+            if (telegramUrlProperties.testServer() != null) {
+                url.setTestServer(telegramUrlProperties.testServer());
+            }
+            return () -> url;
+        }
         return () -> TelegramUrl.DEFAULT_URL;
     }
 
@@ -1338,32 +1360,70 @@ public class CoreAutoConfiguration {
     }
 
     /**
+     * Handles send-message dispatch for {@link uz.osoncode.easygram.core.reply.PlainReply}.
+     *
+     * @param markupRegistry optional registry for resolving markup IDs
+     * @return a {@link uz.osoncode.easygram.core.returntypehandler.action.SendMessageReplyAction}
+     * @since 0.0.6
+     */
+    @Bean
+    @ConditionalOnMissingBean(uz.osoncode.easygram.core.returntypehandler.action.SendMessageReplyAction.class)
+    public uz.osoncode.easygram.core.returntypehandler.action.SendMessageReplyAction sendMessageReplyAction(
+            Optional<BotMarkupRegistry> markupRegistry) {
+        return new uz.osoncode.easygram.core.returntypehandler.action.SendMessageReplyAction(markupRegistry);
+    }
+
+    /**
+     * Handles edit-message dispatch for {@link uz.osoncode.easygram.core.reply.PlainReply}.
+     *
+     * @param markupRegistry optional registry for resolving markup IDs
+     * @return an {@link uz.osoncode.easygram.core.returntypehandler.action.EditMessageReplyAction}
+     * @since 0.0.6
+     */
+    @Bean
+    @ConditionalOnMissingBean(uz.osoncode.easygram.core.returntypehandler.action.EditMessageReplyAction.class)
+    public uz.osoncode.easygram.core.returntypehandler.action.EditMessageReplyAction editMessageReplyAction(
+            Optional<BotMarkupRegistry> markupRegistry) {
+        return new uz.osoncode.easygram.core.returntypehandler.action.EditMessageReplyAction(markupRegistry);
+    }
+
+    /**
+     * Handles {@code answerCallbackQuery} dispatch for reply types.
+     *
+     * @return an {@link uz.osoncode.easygram.core.returntypehandler.action.AnswerCallbackQueryReplyAction}
+     * @since 0.0.6
+     */
+    @Bean
+    @ConditionalOnMissingBean(uz.osoncode.easygram.core.returntypehandler.action.AnswerCallbackQueryReplyAction.class)
+    public uz.osoncode.easygram.core.returntypehandler.action.AnswerCallbackQueryReplyAction answerCallbackQueryReplyAction() {
+        return new uz.osoncode.easygram.core.returntypehandler.action.AnswerCallbackQueryReplyAction();
+    }
+
+    /**
+     * Assembles the {@link BotReplyActionChain} from all registered {@link BotReplyAction} beans.
+     *
+     * @param actions all {@link BotReplyAction} beans registered in the context
+     * @return a {@link BotReplyActionChain} sorted by order
+     * @since 0.0.6
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public BotReplyActionChain botReplyActionChain(List<BotReplyAction> actions) {
+        return new BotReplyActionChain(actions);
+    }
+
+    /**
      * Return-type handler for {@link uz.osoncode.easygram.core.reply.PlainReply}.
      *
      * <p>Handles simple text replies and optionally attaches markups via ID.</p>
      *
-     * @param markupRegistry optional registry for resolving markup IDs
+     * @param replyActionChain the chain of reply actions to use for dispatch
      * @return a {@link BotPlainReplyReturnTypeHandler}
      */
     @Bean
     @ConditionalOnMissingBean(BotPlainReplyReturnTypeHandler.class)
-    public BotPlainReplyReturnTypeHandler botPlainReplyReturnTypeHandler(Optional<BotMarkupRegistry> markupRegistry) {
-        return new BotPlainReplyReturnTypeHandler(markupRegistry);
-    }
-
-    /**
-     * Return-type handler for {@link uz.osoncode.easygram.core.reply.PlainTextTemplate}.
-     *
-     * <p>Handles plain text templates formatted using {@link String#format} if arguments are present,
-     * and optionally attaches markups via ID.</p>
-     *
-     * @param botMarkupRegistry optional registry for resolving markup IDs
-     * @return a {@link BotPlainTextTemplateReturnTypeHandler}
-     */
-    @Bean
-    @ConditionalOnMissingBean(BotPlainTextTemplateReturnTypeHandler.class)
-    public BotPlainTextTemplateReturnTypeHandler botPlainTextTemplateReturnTypeHandler(
-            Optional<BotMarkupRegistry> botMarkupRegistry) {
-        return new BotPlainTextTemplateReturnTypeHandler(botMarkupRegistry);
+    public BotPlainReplyReturnTypeHandler botPlainReplyReturnTypeHandler(BotReplyActionChain replyActionChain) {
+        return new BotPlainReplyReturnTypeHandler(replyActionChain);
     }
 }
+

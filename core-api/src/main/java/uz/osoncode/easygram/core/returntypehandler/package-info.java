@@ -15,12 +15,10 @@
  *   <tr><td>{@code void}</td><td>{@code BotVoidReturnHandler}</td><td>core</td></tr>
  *   <tr><td>{@code String}</td><td>{@code BotStringReturnHandler}</td><td>core</td></tr>
  *   <tr><td>{@link uz.osoncode.easygram.core.reply.PlainReply}</td><td>{@code BotPlainReplyReturnTypeHandler}</td><td>core</td></tr>
- *   <tr><td>{@link uz.osoncode.easygram.core.reply.PlainTextTemplate}</td><td>{@code BotPlainTextTemplateReturnTypeHandler}</td><td>core</td></tr>
  *   <tr><td>{@code BotApiMethod<?>}</td><td>{@code BotBotApiMethodReturnHandler}</td><td>core</td></tr>
  *   <tr><td>{@code Collection<BotApiMethod<?>>}</td><td>{@code BotBotApiMethodsReturnHandler}</td><td>core</td></tr>
  *   <tr><td>{@code Collection<Object>} (mixed)</td><td>{@code BotMixedCollectionReturnTypeHandler}</td><td>core</td></tr>
  *   <tr><td>{@code LocalizedReply}</td><td>{@code BotLocalizedReplyReturnTypeHandler}</td><td>core-i18n</td></tr>
- *   <tr><td>{@code LocalizedTemplate}</td><td>{@code BotLocalizedTemplateReturnTypeHandler}</td><td>core-i18n</td></tr>
  * </table>
  *
  * <h2>Adding a custom return-type handler</h2>

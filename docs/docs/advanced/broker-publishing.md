@@ -36,7 +36,7 @@ BotUpdatePublishingFilter ← messaging-api (producer auto-config)
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-api</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
 </dependency>
 
 <!-- Required for Kafka: spring-kafka is optional in messaging-api -->
@@ -162,6 +162,68 @@ public BotUpdatePublisher pubSubPublisher(PubSubTemplate pubSub,
     };
 }
 ```
+
+## Factory Provider SPI
+
+Use the factory provider SPI to inject a fully configured Kafka or RabbitMQ client factory,
+replacing the Spring Boot auto-configured defaults. This is useful when you need custom SSL,
+SASL, a separate cluster, or specific serializer configuration.
+
+All three providers are `@ConditionalOnMissingBean` — declare only the ones you need.
+
+### `BotKafkaProducerFactoryProvider`
+
+Replaces the `ProducerFactory` used to build the internal Kafka template:
+
+```java
+@Bean
+public BotKafkaProducerFactoryProvider kafkaProducerFactory() {
+    return () -> {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-cluster:9093");
+        props.put(ProducerConfig.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
+        // ... additional SASL / SSL settings
+        return new DefaultKafkaProducerFactory<>(props,
+            new StringSerializer(), new StringSerializer());
+    };
+}
+```
+
+### `BotKafkaConsumerFactoryProvider`
+
+Replaces the `ConsumerFactory` used to build the Kafka listener container:
+
+```java
+@Bean
+public BotKafkaConsumerFactoryProvider kafkaConsumerFactory() {
+    return () -> {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-cluster:9093");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "my-custom-group");
+        return new DefaultKafkaConsumerFactory<>(props,
+            new StringDeserializer(), new StringDeserializer());
+    };
+}
+```
+
+### `BotRabbitConnectionFactoryProvider`
+
+Replaces the RabbitMQ `ConnectionFactory` for both publishing and consuming:
+
+```java
+@Bean
+public BotRabbitConnectionFactoryProvider rabbitConnectionFactory() {
+    return () -> {
+        CachingConnectionFactory factory = new CachingConnectionFactory("rabbit-cluster");
+        factory.setVirtualHost("/my-vhost");
+        factory.setUsername("bot-user");
+        factory.setPassword("secret");
+        return factory;
+    };
+}
+```
+
+*Since 0.0.6*
 
 ## Consuming Updates from the Broker
 

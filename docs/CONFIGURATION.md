@@ -12,6 +12,43 @@ All properties are under the `easygram` prefix.
 
 ---
 
+## Telegram API URL Properties
+
+By default, Easygram sends all API requests to `api.telegram.org`. Use these properties
+to redirect to a local or self-hosted [Telegram Bot API server](https://core.telegram.org/bots/api#using-a-local-bot-api-server).
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `easygram.telegram-url.host` | `String` | — | Custom hostname; when absent, `api.telegram.org` is used |
+| `easygram.telegram-url.port` | `int` | `443` | Port; only used when `host` is set |
+| `easygram.telegram-url.schema` | `String` | `https` | Protocol scheme; only used when `host` is set |
+| `easygram.telegram-url.test-server` | `boolean` | `false` | Set to `true` to use the Telegram test environment |
+
+**Example — local Bot API server:**
+
+```yaml
+easygram:
+  token: ${BOT_TOKEN}
+  telegram-url:
+    host: my-local-bot-api.example.com
+    port: 8443
+    schema: https
+```
+
+For complete programmatic control, declare a `BotTelegramUrlProvider` bean (takes
+precedence over these properties):
+
+```java
+@Bean
+public BotTelegramUrlProvider customUrl() {
+    return () -> new TelegramUrl("https", "my-bot-api.example.com", 443);
+}
+```
+
+*Since 0.0.6*
+
+---
+
 ## Update Transport Properties
 
 These properties control how updates arrive **from Telegram** to your application.

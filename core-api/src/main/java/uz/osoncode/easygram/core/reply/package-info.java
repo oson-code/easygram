@@ -7,27 +7,26 @@
  *
  * <h2>Key types</h2>
  * <ul>
- *   <li>{@link uz.osoncode.easygram.core.reply.PlainReply} — sends the text as-is, with optional keyboard attachment</li>
- *   <li>{@link uz.osoncode.easygram.core.reply.PlainTextTemplate} — sends formatted plain text using inline
- *       {@code #{index}} positional placeholder syntax (non-i18n)</li>
+ *   <li>{@link uz.osoncode.easygram.core.reply.PlainReply} — sends the text as-is, with optional
+ *       keyboard attachment and optional {@link java.text.MessageFormat} positional arguments
+ *       ({@code {0}}, {@code {1}}, …)</li>
  * </ul>
  *
- * <p>For locale-aware replies, use {@code LocalizedReply} and {@code LocalizedTemplate} from the
- * {@code core-i18n} module instead.</p>
+ * <p>For locale-aware replies, use {@code LocalizedReply} from the {@code core-i18n} module instead.</p>
  *
  * <h2>Examples</h2>
  * <pre>{@code
  * // Simple plain text
  * return PlainReply.of("Hello!");
  *
+ * // With positional args (Java MessageFormat)
+ * return PlainReply.of("Hello, {0}!", user.getFirstName());
+ *
  * // With a pre-registered keyboard
  * return PlainReply.of("Choose an option:").withMarkup("main_menu");
  *
  * // Remove keyboard after handler returns
  * return PlainReply.of("Cancelled.").removeMarkup();
- *
- * // Formatted template: #{0} replaced with first arg
- * return PlainTextTemplate.of("Welcome, #{0}!", user.getFirstName());
  * }</pre>
  */
 package uz.osoncode.easygram.core.reply;

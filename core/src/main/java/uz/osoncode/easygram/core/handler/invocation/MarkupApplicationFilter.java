@@ -9,6 +9,7 @@ import uz.osoncode.easygram.core.bind.annotation.BotClearChatState;
 import uz.osoncode.easygram.core.bind.annotation.BotClearMarkup;
 import uz.osoncode.easygram.core.bind.annotation.BotForwardChatState;
 import uz.osoncode.easygram.core.bind.annotation.BotReplyMarkup;
+import uz.osoncode.easygram.core.bind.annotation.BotParseMode;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 import uz.osoncode.easygram.core.markup.BotMarkupRegistry;
 import uz.osoncode.easygram.core.markup.MarkupAware;
@@ -96,6 +97,7 @@ public class MarkupApplicationFilter implements BotHandlerInvocationFilter {
         if (Objects.nonNull(returnValue)) {
             BotClearMarkup clearMarkup = AnnotationUtils.findAnnotation(context.getMethod(), BotClearMarkup.class);
             BotReplyMarkup replyMarkup = AnnotationUtils.findAnnotation(context.getMethod(), BotReplyMarkup.class);
+            BotParseMode parseModeAnnotation = AnnotationUtils.findAnnotation(context.getMethod(), BotParseMode.class);
 
             if (returnValue instanceof MarkupAware markupAware) {
                 if (Objects.nonNull(clearMarkup)) {
@@ -115,20 +117,33 @@ public class MarkupApplicationFilter implements BotHandlerInvocationFilter {
                         context.setReturnValue(markupAware.withKeyboard(stateKeyboard));
                     }
                 }
+                // Apply parseMode to whatever MarkupAware is now in context (original or modified)
+                if (Objects.nonNull(parseModeAnnotation) && context.getReturnValue() instanceof MarkupAware updated) {
+                    context.setReturnValue(updated.withParseMode(parseModeAnnotation.value()));
+                }
             } else if (returnValue instanceof String text) {
                 if (Objects.nonNull(clearMarkup)) {
                     log.debug("Clearing markup (String return) for method '{}'", context.getMethod().getName());
-                    context.setReturnValue(PlainReply.of(text).removeMarkup());
+                    PlainReply plain = PlainReply.of(text).removeMarkup();
+                    if (Objects.nonNull(parseModeAnnotation)) plain = (PlainReply) plain.withParseMode(parseModeAnnotation.value());
+                    context.setReturnValue(plain);
                 } else if (Objects.nonNull(replyMarkup)) {
                     log.debug("Applying @BotReplyMarkup '{}' to String return of method '{}'",
                             replyMarkup.value(), context.getMethod().getName());
-                    context.setReturnValue(PlainReply.of(text).withMarkup(replyMarkup.value()));
+                    PlainReply plain = PlainReply.of(text).withMarkup(replyMarkup.value());
+                    if (Objects.nonNull(parseModeAnnotation)) plain = (PlainReply) plain.withParseMode(parseModeAnnotation.value());
+                    context.setReturnValue(plain);
                 } else {
                     ReplyKeyboard stateKeyboard = resolveStateKeyboard(context);
                     if (Objects.nonNull(stateKeyboard)) {
                         log.debug("Applying state-bound keyboard to String return of method '{}'",
                                 context.getMethod().getName());
-                        context.setReturnValue(PlainReply.of(text).withKeyboard(stateKeyboard));
+                        PlainReply plain = PlainReply.of(text).withKeyboard(stateKeyboard);
+                        if (Objects.nonNull(parseModeAnnotation)) plain = (PlainReply) plain.withParseMode(parseModeAnnotation.value());
+                        context.setReturnValue(plain);
+                    } else if (Objects.nonNull(parseModeAnnotation)) {
+                        // No markup action, but @BotParseMode is present: wrap String in PlainReply to carry parseMode
+                        context.setReturnValue(PlainReply.of(text).withParseMode(parseModeAnnotation.value()));
                     }
                 }
             }

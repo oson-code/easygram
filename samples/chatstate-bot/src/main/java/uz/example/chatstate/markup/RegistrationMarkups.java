@@ -1,7 +1,5 @@
 package uz.example.chatstate.markup;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -18,15 +16,11 @@ import uz.osoncode.easygram.core.annotation.BotMarkup;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
-@Slf4j
 @BotConfiguration
-@RequiredArgsConstructor
 public class RegistrationMarkups {
-
 
     @BotMarkup("kb_cancel")
     public ReplyKeyboard cancelKeyboard(User user) {
-        log.info("user : {}", user.getUserName());
         return ReplyKeyboardMarkup.builder()
                 .keyboardRow(new KeyboardRow("❌ Cancel"))
                 .resizeKeyboard(true)
