@@ -78,8 +78,13 @@ public class WebhookAutoConfiguration {
             EasygramTelegramClientProvider telegramClientProvider,
             EasygramExecutorServiceProvider executorServiceProvider) {
         if (webhookBotProperties.secretToken() == null || webhookBotProperties.secretToken().isBlank()) {
-            log.warn("easygram: webhook secret-token is not configured — any client can POST fake updates "
-                    + "to {}. Set easygram.update.webhook.secret-token to secure your endpoint.",
+            log.warn("easygram: webhook secret-token is not configured — any client that knows your "
+                    + "webhook URL can POST fake updates to {}. "
+                    + "Set a secret token to secure your endpoint:\n"
+                    + "  easygram:\n"
+                    + "    update:\n"
+                    + "      webhook:\n"
+                    + "        secret-token: \"your-random-secret\"  # min 1 char, max 256 chars",
                     webhookBotProperties.path());
         }
         return new WebhookBot(

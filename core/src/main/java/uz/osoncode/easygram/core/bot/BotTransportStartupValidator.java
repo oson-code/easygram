@@ -32,18 +32,23 @@ public class BotTransportStartupValidator implements SmartInitializingSingleton 
             case LONG_POLLING -> {
                 log.info("Easygram transport: LONG_POLLING — polling Telegram getUpdates");
                 warnIfProducerMissing();
+                warnIfForwardOnlyWithDirectTransport(transport);
             }
             case WEBHOOK -> {
                 log.info("Easygram transport: WEBHOOK — waiting for Telegram push requests");
                 warnIfProducerMissing();
+                warnIfForwardOnlyWithDirectTransport(transport);
             }
             case KAFKA_CONSUMER -> validateBrokerConsumerPresent(transport,
                     "spring-kafka", "easygram-messaging-kafka-consumer");
             case RABBIT_CONSUMER -> validateBrokerConsumerPresent(transport,
                     "spring-boot-starter-amqp", "easygram-messaging-rabbit-consumer");
-            case NONE -> log.info(
-                    "Easygram transport: NONE — no direct Telegram transport started. "
-                    + "The application is expected to provide its own update ingestion.");
+            case NONE -> {
+                log.info("Easygram transport: NONE — no direct Telegram transport started. "
+                        + "The application is expected to provide its own update ingestion "
+                        + "(e.g. Kafka/RabbitMQ consumer, custom BotHandler bean, or a test harness).");
+                warnIfNoneWithNoHandlers();
+            }
         }
     }
 
@@ -67,6 +72,52 @@ public class BotTransportStartupValidator implements SmartInitializingSingleton 
             }
         } catch (ClassNotFoundException ignored) {
             // messaging-api not on classpath — standalone bot, nothing to warn
+        }
+    }
+
+    /**
+     * Emits a startup warning when {@code forward-only=true} is configured together with a direct
+     * transport (LONG_POLLING or WEBHOOK). In this combination all {@code @BotController} handlers
+     * are skipped — updates are published to the broker but never dispatched locally.
+     * This is intentional for relay bots but is the most common accidental misconfiguration.
+     */
+    private void warnIfForwardOnlyWithDirectTransport(BotTransportType transport) {
+        try {
+            Class<?> msgPropsClass =
+                    Class.forName("uz.osoncode.easygram.messaging.EasygramMessagingProperties");
+            applicationContext.getBeansOfType(msgPropsClass).values().forEach(props -> {
+                try {
+                    Boolean forwardOnly = (Boolean) msgPropsClass.getMethod("forwardOnly").invoke(props);
+                    if (Boolean.TRUE.equals(forwardOnly)) {
+                        log.warn("easygram: transport={} with easygram.messaging.forward-only=true — "
+                                + "@BotController handler methods will be SKIPPED for every update. "
+                                + "This is correct for a relay/proxy bot. "
+                                + "If you also want to handle updates locally, set forward-only=false.",
+                                transport);
+                    }
+                } catch (ReflectiveOperationException ignored) { }
+            });
+        } catch (ClassNotFoundException ignored) { }
+    }
+
+    /**
+     * Emits a startup warning when transport is NONE and no custom {@link Bot} subclass beans
+     * or messaging-api consumer beans are found. This usually means the application will
+     * never receive any Telegram updates.
+     */
+    private void warnIfNoneWithNoHandlers() {
+        String[] botBeans = applicationContext.getBeanNamesForType(Bot.class);
+        boolean hasConsumer = false;
+        try {
+            Class<?> publisherClass = Class.forName("uz.osoncode.easygram.messaging.BotUpdatePublisher");
+            hasConsumer = applicationContext.getBeanNamesForType(publisherClass).length > 0;
+        } catch (ClassNotFoundException ignored) { }
+
+        if (botBeans.length == 0 && !hasConsumer) {
+            log.warn("easygram: transport=NONE with no Bot or BotUpdatePublisher beans in context — "
+                    + "the application will not receive any Telegram updates. "
+                    + "Register a broker consumer transport (KAFKA_CONSUMER / RABBIT_CONSUMER) "
+                    + "or provide a custom update source.");
         }
     }
 

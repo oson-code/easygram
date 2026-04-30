@@ -71,10 +71,24 @@ public final class BotDispatcher {
 
     private Optional<BotHandler> findInTier(
             List<BotHandler> tier, BotRequest botRequest, String tierName) {
+        if (log.isTraceEnabled()) {
+            Update u = botRequest.getUpdate();
+            Integer updateId = u != null ? u.getUpdateId() : null;
+            tier.forEach(h -> {
+                if (!h.supports(botRequest)) {
+                    log.trace("Tier '{}' handler '{}' rejected updateId={}", tierName, h.info(), updateId);
+                }
+            });
+        }
         List<BotHandler> matches = tier.stream()
                 .filter(h -> h.supports(botRequest))
                 .toList();
         if (matches.isEmpty()) {
+            if (log.isDebugEnabled()) {
+                Update u = botRequest.getUpdate();
+                log.debug("Tier '{}' had no matching handler for updateId={} (tier size={})",
+                        tierName, u != null ? u.getUpdateId() : null, tier.size());
+            }
             return Optional.empty();
         }
         if (matches.size() > 1) {

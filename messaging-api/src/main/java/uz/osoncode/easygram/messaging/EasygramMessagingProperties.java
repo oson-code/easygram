@@ -47,6 +47,11 @@ import uz.osoncode.easygram.messaging.producer.ProducerType;
  * @param forwardOnly when {@code true}, updates are published to the broker only — local
  *                    {@code @BotController} handlers are skipped. Only meaningful when a
  *                    producer type is configured. Defaults to {@code false}.
+ * @param failOnPublishError when {@code true}, a broker publish failure rethrows the exception
+ *                           so the upstream transport (long-polling / webhook) can react.
+ *                           When {@code false} (default) publish failures are only logged at ERROR
+ *                           and processing continues. Set to {@code true} for production systems
+ *                           where losing an update is worse than a delayed retry.
  * @param producer    producer-specific settings (broker type); activates when set
  * @author Islom Mirsaburov
  * @since 0.0.1
@@ -62,6 +67,14 @@ public record EasygramMessagingProperties(
          */
         @DefaultValue("false")
         Boolean forwardOnly,
+
+        /**
+         * Whether to rethrow publish exceptions.
+         * {@code false} (default) = log error and continue;
+         * {@code true} = rethrow so the transport layer sees the failure.
+         */
+        @DefaultValue("false")
+        Boolean failOnPublishError,
 
         /** Producer configuration — which broker to publish to. */
         ProducerConfig producer

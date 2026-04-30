@@ -1,3 +1,6 @@
+# =============================================================================
+# REQUIRED — minimum configuration to run this sample
+# =============================================================================
 easygram:
   # Required: your Telegram Bot API token from @BotFather.
   # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
@@ -15,20 +18,6 @@ easygram:
       type: KAFKA
 #      type: RABBIT
 
-    # ── Kafka settings (active when producer.type=KAFKA) ────────────────────
-#    kafka:
-#      topic: easygram-updates
-#      create-if-absent: true   # auto-create topic on startup (default: true)
-#      partitions: 1
-#      replication-factor: 1
-
-    # ── RabbitMQ settings (active when producer.type=RABBIT) ────────────────
-    # rabbit:
-    #   exchange: easygram-exchange
-    #   routing-key: easygram.updates
-    #   queue: easygram-updates
-    #   create-if-absent: true
-
 # ── Spring Kafka (required when producer.type=KAFKA) ─────────────────────────
 spring:
   application:
@@ -40,8 +29,6 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
-      acks: all
-      retries: 3
 
   # ── Spring RabbitMQ (required when producer.type=RABBIT) ─────────────────
   rabbitmq:
@@ -50,6 +37,36 @@ spring:
     port: 5672
     username: rabbit
     password: rabbit
+
+# =============================================================================
+# OPTIONAL — production tuning (safe to omit for local development)
+# =============================================================================
+
+#easygram:
+#  messaging:
+#    # Rethrow on broker publish failure so the transport retries delivery.
+#    # Default: false (swallow and log only)
+#    fail-on-publish-error: false
+#
+#    # ── Kafka settings (active when producer.type=KAFKA) ──────────────────
+#    kafka:
+#      topic: easygram-updates
+#      create-if-absent: true   # auto-create topic on startup (default: true)
+#      partitions: 1
+#      replication-factor: 1
+#
+#    # ── RabbitMQ settings (active when producer.type=RABBIT) ──────────────
+#    rabbit:
+#      exchange: easygram-exchange
+#      routing-key: easygram.updates
+#      queue: easygram-updates
+#      create-if-absent: true
+
+#spring:
+#  kafka:
+#    producer:
+#      acks: all    # strongest durability guarantee
+#      retries: 3
 
 server:
   port: 8087

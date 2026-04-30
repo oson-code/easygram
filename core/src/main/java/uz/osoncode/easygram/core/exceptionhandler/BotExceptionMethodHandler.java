@@ -8,6 +8,7 @@ import uz.osoncode.easygram.core.exception.BotHandlerException;
 import uz.osoncode.easygram.core.handler.invocation.BotHandlerInvocationContext;
 import uz.osoncode.easygram.core.markup.MarkupAware;
 import uz.osoncode.easygram.core.model.BotRequest;
+import uz.osoncode.easygram.core.model.BotRequestAttributes;
 import uz.osoncode.easygram.core.model.BotResponse;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandlerFactory;
 import uz.osoncode.easygram.core.handler.invocation.MarkupApplicationFilter;
@@ -186,7 +187,7 @@ public class BotExceptionMethodHandler<T extends Throwable> {
      * Returns {@code true} when no predicate was set or the controller class is unknown.
      */
     private boolean matchesControllerScope(BotRequest botRequest) {
-        Class<?> controllerClass = botRequest.getAttribute("easygram.controllerClass");
+        Class<?> controllerClass = botRequest.getAttribute(BotRequestAttributes.CONTROLLER_CLASS, Class.class);
         if (controllerClass == null) {
             return true;
         }

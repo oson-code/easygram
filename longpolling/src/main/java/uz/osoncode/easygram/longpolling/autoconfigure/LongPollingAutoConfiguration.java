@@ -3,6 +3,7 @@ package uz.osoncode.easygram.longpolling.autoconfigure;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import uz.osoncode.easygram.core.bot.EasygramProperties;
@@ -15,6 +16,7 @@ import uz.osoncode.easygram.core.provider.EasygramOkHttpClientProvider;
 import uz.osoncode.easygram.core.provider.EasygramTelegramClientProvider;
 import uz.osoncode.easygram.core.provider.EasygramTelegramUrlProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
+import uz.osoncode.easygram.longpolling.EasygramLongPollingProperties;
 import uz.osoncode.easygram.longpolling.LongPollingBot;
 import uz.osoncode.easygram.longpolling.LongPollingBotConfig;
 import uz.osoncode.easygram.longpolling.provider.EasygramBackOffProvider;
@@ -48,6 +50,7 @@ import java.util.List;
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "easygram.update", name = "transport", havingValue = "LONG_POLLING", matchIfMissing = true)
+@EnableConfigurationProperties(EasygramLongPollingProperties.class)
 @Import(LongPollingBotConfig.class)
 public class LongPollingAutoConfiguration {
 

@@ -114,14 +114,19 @@ public class WebhookBot extends Bot implements InitializingBean, DisposableBean 
      *
      * <p>Shuts down the executor service, and, if
      * {@link EasygramWebhookProperties#unregisterOnShutdown()} is {@code true},
-     * deletes the webhook from Telegram.</p>
+     * attempts to delete the webhook from Telegram. A failure during webhook
+     * deregistration is logged at WARN but does not prevent the rest of shutdown.</p>
      */
     @Override
-    @SneakyThrows
     public void destroy() {
         if (Boolean.TRUE.equals(webhookBotProperties.unregisterOnShutdown())) {
-            telegramClient.execute(DeleteWebhook.builder().build());
-            log.info("Telegram webhook unregistered");
+            try {
+                telegramClient.execute(DeleteWebhook.builder().build());
+                log.info("Telegram webhook unregistered");
+            } catch (Exception e) {
+                log.warn("Failed to unregister Telegram webhook on shutdown — "
+                        + "the webhook may still be registered on Telegram's side", e);
+            }
         }
         executorService.shutdown();
         try {

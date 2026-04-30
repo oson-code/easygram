@@ -58,7 +58,8 @@ public class WebhookController {
      * @param secretToken the value of the {@code X-Telegram-Bot-Api-Secret-Token} header,
      *                    or {@code null} if the header is absent
      * @return {@code 200 OK} on success, {@code 401 Unauthorized} if secret token validation
-     *         fails, or {@code 500 Internal Server Error} if deserialization fails
+     *         fails, {@code 500 Internal Server Error} if deserialization fails or handler throws
+     *         (Telegram will retry on 5xx)
      */
     @PostMapping("${easygram.update.webhook.path:/webhook}")
     public ResponseEntity<Void> receiveUpdate(
@@ -78,7 +79,8 @@ public class WebhookController {
             log.error("Failed to deserialize webhook update", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         } catch (Exception e) {
-            log.error("Failed to process webhook update", e);
+            log.error("Failed to process webhook update — returning 500 so Telegram will retry", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         return ResponseEntity.ok().build();

@@ -52,6 +52,11 @@ public class BotUpdatePublishingFilter implements BotFilter {
             log.debug("Published update id={} to message broker", update.getUpdateId());
         } catch (Exception e) {
             log.error("Failed to publish update id={} to message broker", update.getUpdateId(), e);
+            if (Boolean.TRUE.equals(botPublishingProperties.failOnPublishError())) {
+                throw new RuntimeException(
+                        "Broker publish failed for update id=" + update.getUpdateId()
+                        + "; easygram.messaging.fail-on-publish-error=true", e);
+            }
         }
 
         if (!Boolean.TRUE.equals(botPublishingProperties.forwardOnly())) {

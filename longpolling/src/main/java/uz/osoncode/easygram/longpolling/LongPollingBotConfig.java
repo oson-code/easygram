@@ -52,16 +52,31 @@ public class LongPollingBotConfig {
     }
 
     /**
-     * Default {@link EasygramGetUpdatesGeneratorProvider} requesting up to 100 updates per poll
-     * with a 50-second long-poll timeout.
+     * Default {@link EasygramGetUpdatesGeneratorProvider} driven by
+     * {@link EasygramLongPollingProperties}.
      *
+     * <p>The limit and timeout values default to {@code 100} and {@code 50}
+     * respectively and can be overridden via:
+     * <pre>{@code
+     * easygram:
+     *   update:
+     *     long-polling:
+     *       limit: 100
+     *       timeout-seconds: 50
+     * }</pre>
+     *
+     * @param props long-polling tuning properties
      * @return a {@link EasygramGetUpdatesGeneratorProvider} that builds {@code GetUpdates} requests
      */
     @Bean
     @ConditionalOnMissingBean
-    public EasygramGetUpdatesGeneratorProvider botGetUpdatesGeneratorProvider() {
+    public EasygramGetUpdatesGeneratorProvider botGetUpdatesGeneratorProvider(
+            EasygramLongPollingProperties props) {
+        int limit = props.limit();
+        int timeout = props.timeoutSeconds();
         Function<Integer, GetUpdates> generator = offset ->
-                GetUpdates.builder().offset(offset + 1).limit(100).timeout(50).build();
+                GetUpdates.builder().offset(offset + 1).limit(limit).timeout(timeout).build();
         return () -> generator;
     }
 }
+

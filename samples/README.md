@@ -150,7 +150,7 @@ stateDiagram-v2
    any state, overriding the class restriction and allowing restart.
 3. **Enum-based states** — `chatStateService.setState(userId, RegistrationState.AWAITING_NAME)`
    and `chatStateService.getStateAs(userId, RegistrationState.class)` for type-safe state access.
-4. **State clearing** — `chatStateService.setState(userId, (String) null)` removes the state
+4. **State clearing** — `chatStateService.clearState(userId)` removes the state
    and ends the wizard.
 5. **Multiple controllers** — the two controllers cooperate seamlessly; the framework routes
    to the correct handler based on current state.

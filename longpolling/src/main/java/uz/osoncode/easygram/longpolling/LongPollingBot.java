@@ -140,12 +140,17 @@ public class LongPollingBot extends Bot implements InitializingBean, DisposableB
      * Shuts down the bot and releases all associated resources.
      *
      * <p>Stops the active {@link BotSession}, then shuts down the main executor service and the
-     * scheduled executor service.</p>
+     * scheduled executor service. A failure during session stop is logged at WARN but does not
+     * prevent executor shutdown from proceeding.</p>
      */
     @Override
     public void destroy() {
         if (botSession != null) {
-            botSession.stop();
+            try {
+                botSession.stop();
+            } catch (Exception e) {
+                log.warn("Error stopping long-polling bot session", e);
+            }
         }
         executorService.shutdown();
         scheduledExecutorService.shutdown();
