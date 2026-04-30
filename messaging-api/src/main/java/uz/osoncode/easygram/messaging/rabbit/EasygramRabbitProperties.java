@@ -2,6 +2,7 @@ package uz.osoncode.easygram.messaging.rabbit;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * Shared RabbitMQ configuration for both producer and consumer bot integrations.
@@ -40,6 +41,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @author Islom Mirsaburov
  * @since 0.0.5
  */
+@Validated
 @ConfigurationProperties("easygram.messaging.rabbit")
 public record EasygramRabbitProperties(
 

@@ -123,6 +123,9 @@ public class BotContextSetterFilter implements BotFilter {
             botRequest.setUser(update.getBusinessMessage().getFrom());
 
         } else if (update.hasEditedBusinessMessage()) {
+            // NOTE: telegrambots-meta:9.5.0 upstream typo — the method is spelled
+            // 'getEditedBuinessMessage()' ("Buiness" not "Business"). The correctly-spelled
+            // variant 'getEditedBusinessMessage()' does not exist on Update.
             botRequest.setChat(update.getEditedBuinessMessage().getChat());
             botRequest.setUser(update.getEditedBuinessMessage().getFrom());
 

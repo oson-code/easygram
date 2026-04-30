@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.annotation;
 import uz.osoncode.easygram.core.stereotype.BotController;
 
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.*;
@@ -19,6 +20,8 @@ import java.lang.annotation.*;
  * @RequiredArgsConstructor
  * public class MyMarkups {
  *
+ *     // NOTE: BotKeyboardFactory is only available when easygram.i18n.enabled=true
+ *     // and spring.messages.basename is set. See BotKeyboardFactory Javadoc.
  *     private final BotKeyboardFactory keyboards;
  *
  *     @BotMarkup("main_menu")
@@ -46,8 +49,11 @@ public @interface BotConfiguration {
 
     /**
      * The optional Spring bean name for the configuration component.
+     * Aliased to {@link Component#value()} so that the name is honoured
+     * by Spring's component-scan.
      *
      * @return the bean name, or an empty string to use the default name
      */
+    @AliasFor(annotation = Component.class, attribute = "value")
     String value() default "";
 }

@@ -11,10 +11,10 @@ import org.telegram.telegrambots.meta.api.methods.GetMe;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration;
-import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramClientProvider;
 import uz.osoncode.easygram.messaging.kafka.consumer.KafkaBotUpdateListener;
 import uz.osoncode.easygram.messaging.kafka.consumer.KafkaConsumerBot;
-import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaConsumerFactoryProvider;
+import uz.osoncode.easygram.messaging.kafka.provider.EasygramKafkaConsumerFactoryProvider;
 
 import java.util.Map;
 
@@ -42,14 +42,13 @@ class KafkaConsumerAutoConfigurationTest {
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withPropertyValues(
                     "easygram.token=" + BOT_TOKEN,
-                    "easygram.messaging.type=CONSUMER",
-                    "easygram.messaging.consumer.type=KAFKA"
+                    "easygram.update.transport=KAFKA_CONSUMER"
             )
             .withConfiguration(AutoConfigurations.of(
                     CoreAutoConfiguration.class,
                     KafkaConsumerAutoConfiguration.class
             ))
-            .withBean(BotTelegramClientProvider.class, KafkaConsumerAutoConfigurationTest::fakeTelegramClientProvider)
+            .withBean(EasygramTelegramClientProvider.class, KafkaConsumerAutoConfigurationTest::fakeTelegramClientProvider)
             .withBean(ConsumerFactory.class,
                     () -> new DefaultKafkaConsumerFactory<String, String>(FAKE_CONSUMER_PROPS));
 
@@ -78,17 +77,16 @@ class KafkaConsumerAutoConfigurationTest {
     }
 
     @Test
-    void withoutConsumerType_doesNotRegisterBot() {
+    void withoutKafkaConsumerTransport_doesNotRegisterBot() {
         new ApplicationContextRunner()
                 .withPropertyValues(
-                        "easygram.token=" + BOT_TOKEN,
-                        "easygram.messaging.type=CONSUMER"
+                        "easygram.token=" + BOT_TOKEN
                 )
                 .withConfiguration(AutoConfigurations.of(
                         CoreAutoConfiguration.class,
                         KafkaConsumerAutoConfiguration.class
                 ))
-                .withBean(BotTelegramClientProvider.class, KafkaConsumerAutoConfigurationTest::fakeTelegramClientProvider)
+                .withBean(EasygramTelegramClientProvider.class, KafkaConsumerAutoConfigurationTest::fakeTelegramClientProvider)
                 .withBean(ConsumerFactory.class,
                         () -> new DefaultKafkaConsumerFactory<String, String>(FAKE_CONSUMER_PROPS))
                 .run(context -> assertThat(context).doesNotHaveBean(KafkaConsumerBot.class));
@@ -96,21 +94,41 @@ class KafkaConsumerAutoConfigurationTest {
 
     @Test
     void userProvidedConsumerFactoryProvider_suppressesDefault() {
-        BotKafkaConsumerFactoryProvider customProvider =
+        EasygramKafkaConsumerFactoryProvider customProvider =
                 () -> new DefaultKafkaConsumerFactory<>(FAKE_CONSUMER_PROPS);
 
-        runner.withBean(BotKafkaConsumerFactoryProvider.class, () -> customProvider)
+        runner.withBean(EasygramKafkaConsumerFactoryProvider.class, () -> customProvider)
                 .run(context -> {
-                    assertThat(context).hasSingleBean(BotKafkaConsumerFactoryProvider.class);
-                    assertThat(context.getBean(BotKafkaConsumerFactoryProvider.class))
+                    assertThat(context).hasSingleBean(EasygramKafkaConsumerFactoryProvider.class);
+                    assertThat(context.getBean(EasygramKafkaConsumerFactoryProvider.class))
                             .isSameAs(customProvider);
+                });
+    }
+
+    @Test
+    void userProvidedKafkaListener_suppressesDefault() {
+        KafkaBotUpdateListener custom = mock(KafkaBotUpdateListener.class);
+        runner.withBean(KafkaBotUpdateListener.class, () -> custom)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(KafkaBotUpdateListener.class);
+                    assertThat(context.getBean(KafkaBotUpdateListener.class)).isSameAs(custom);
+                });
+    }
+
+    @Test
+    void userProvidedKafkaConsumerBot_suppressesDefault() {
+        KafkaConsumerBot custom = mock(KafkaConsumerBot.class);
+        runner.withBean(KafkaConsumerBot.class, () -> custom)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(KafkaConsumerBot.class);
+                    assertThat(context.getBean(KafkaConsumerBot.class)).isSameAs(custom);
                 });
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
 
     @SuppressWarnings("unchecked")
-    private static BotTelegramClientProvider fakeTelegramClientProvider() {
+    private static EasygramTelegramClientProvider fakeTelegramClientProvider() {
         TelegramClient client = mock(TelegramClient.class);
         User fakeUser = User.builder()
                 .id(123L)

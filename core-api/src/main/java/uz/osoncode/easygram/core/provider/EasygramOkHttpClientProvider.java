@@ -11,7 +11,7 @@ import okhttp3.OkHttpClient;
  *
  * <pre>{@code
  * @Bean
- * public BotOkHttpClientProvider botOkHttpClientProvider() {
+ * public EasygramOkHttpClientProvider botOkHttpClientProvider() {
  *     OkHttpClient client = new OkHttpClient.Builder()
  *             .connectTimeout(30, TimeUnit.SECONDS)
  *             .readTimeout(60, TimeUnit.SECONDS)
@@ -28,7 +28,7 @@ import okhttp3.OkHttpClient;
  * @since 0.0.1
  */
 @FunctionalInterface
-public interface BotOkHttpClientProvider {
+public interface EasygramOkHttpClientProvider {
 
     /**
      * Returns the {@link OkHttpClient} to use for outbound Telegram API calls.

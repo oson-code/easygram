@@ -19,9 +19,6 @@ easygram:
       unregister-on-shutdown: false
 
   messaging:
-    # Declare this bot as a PRODUCER: it receives updates from Telegram and publishes them.
-    type: PRODUCER
-
     # true  → forward ONLY to broker; local @BotController handlers are skipped
     # false → forward to broker AND run local handlers (default)
     forward-only: true

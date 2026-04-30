@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
+import uz.osoncode.easygram.core.provider.EasygramObjectMapperProvider;
 
 /**
  * Spring AMQP message listener that consumes Telegram {@link Update} JSON payloads from
@@ -16,7 +16,7 @@ import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
  * {@link uz.osoncode.easygram.messaging.rabbit.consumer.autoconfigure.RabbitConsumerAutoConfiguration}.
  * Queue and connection factory are resolved at startup from
  * {@link uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties} and
- * {@link uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitConnectionFactoryProvider}.</p>
+ * {@link uz.osoncode.easygram.messaging.rabbit.provider.EasygramRabbitConnectionFactoryProvider}.</p>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
@@ -26,7 +26,7 @@ import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
 public class RabbitBotUpdateListener implements MessageListener {
 
     private final RabbitConsumerBot rabbitConsumerBot;
-    private final BotObjectMapperProvider objectMapperProvider;
+    private final EasygramObjectMapperProvider objectMapperProvider;
 
     /**
      * Receives a raw AMQP message from the configured RabbitMQ queue, deserializes the body

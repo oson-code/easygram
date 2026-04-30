@@ -9,7 +9,9 @@ import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Central dispatcher responsible for routing an incoming {@link BotRequest} to
@@ -56,24 +58,33 @@ public final class BotDispatcher {
     }
 
     private BotHandler resolveHandler(BotRequest botRequest) {
-        return botHandlerRegistry.getStateHandlers().stream()
-                .filter(h -> h.supports(botRequest))
-                .peek(h -> log.debug("Matched state handler: {}", h.info()))
-                .findFirst()
-                .orElseGet(() -> botHandlerRegistry.getBotHandlers().stream()
-                        .filter(h -> h.supports(botRequest))
-                        .peek(h -> log.debug("Matched specific handler: {}", h.info()))
-                        .findFirst()
-                        .orElseGet(() -> botHandlerRegistry.getDefaultHandlers().stream()
-                                .filter(h -> h.supports(botRequest))
-                                .peek(h -> log.debug("Matched default handler: {}", h.info()))
-                                .findFirst()
+        return findInTier(botHandlerRegistry.getStateHandlers(), botRequest, "state")
+                .orElseGet(() -> findInTier(botHandlerRegistry.getBotHandlers(), botRequest, "specific")
+                        .orElseGet(() -> findInTier(botHandlerRegistry.getDefaultHandlers(), botRequest, "default")
                                 .orElseThrow(() -> {
                                     Update update = botRequest.getUpdate();
                                     log.warn("No handler matched for updateId={} update={}",
                                             Objects.nonNull(update) ? update.getUpdateId() : null, update);
-                                    return new IllegalStateException(
-                                            "No handler found for update: " + update);
+                                    return new IllegalStateException("No handler found for update: " + update);
                                 })));
+    }
+
+    private Optional<BotHandler> findInTier(
+            List<BotHandler> tier, BotRequest botRequest, String tierName) {
+        List<BotHandler> matches = tier.stream()
+                .filter(h -> h.supports(botRequest))
+                .toList();
+        if (matches.isEmpty()) {
+            return Optional.empty();
+        }
+        if (matches.size() > 1) {
+            log.warn("Ambiguous handler dispatch in '{}' tier — {} handlers matched the same request. " +
+                     "Using first. Matched: {}",
+                    tierName, matches.size(),
+                    matches.stream().map(BotHandler::info).toList());
+        }
+        BotHandler chosen = matches.get(0);
+        log.debug("Matched {} handler: {}", tierName, chosen.info());
+        return Optional.of(chosen);
     }
 }

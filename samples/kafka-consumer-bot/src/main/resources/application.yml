@@ -3,12 +3,11 @@ easygram:
   # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
   token: "${BOT_TOKEN}"
 
-  messaging:
-    # Declare this bot as a CONSUMER: it receives updates from Kafka, not from Telegram directly.
-    type: CONSUMER
-    consumer:
-      # Broker type to consume from: KAFKA | RABBIT
-      type: KAFKA
+  update:
+    # Consume updates from Kafka (produced by a separate bot instance).
+    transport: KAFKA_CONSUMER
+
+#  messaging:
 #    kafka:
 #      # Kafka topic to consume Telegram updates from
 #      topic: easygram-updates

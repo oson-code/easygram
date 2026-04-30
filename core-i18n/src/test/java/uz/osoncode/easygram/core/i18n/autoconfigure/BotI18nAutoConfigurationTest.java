@@ -7,12 +7,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.StaticMessageSource;
 import uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration;
+import uz.osoncode.easygram.core.handler.inlinequery.BotInlineQueryMatcher;
 import uz.osoncode.easygram.core.i18n.BotLocaleResolver;
 import uz.osoncode.easygram.core.i18n.BotMessageSource;
 import uz.osoncode.easygram.core.i18n.filter.BotLocaleSetterFilter;
 import uz.osoncode.easygram.core.i18n.keyboard.BotKeyboardFactory;
+import uz.osoncode.easygram.core.i18n.resolver.BotLocaleArgumentResolver;
 import uz.osoncode.easygram.core.i18n.resolver.UserLanguageCodeLocaleResolver;
+import uz.osoncode.easygram.core.i18n.returntypehandler.BotLocalizedReplyReturnTypeHandler;
+import uz.osoncode.easygram.core.returntypehandler.BotReplyActionChain;
 
+import java.util.List;
 import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -97,6 +102,138 @@ class BotI18nAutoConfigurationTest {
                 .run(context -> {
                     assertThat(context).hasSingleBean(BotLocaleResolver.class);
                     assertThat(context.getBean(BotLocaleResolver.class)).isSameAs(custom);
+                });
+    }
+
+    @Test
+    void withEnabledTrue_registersBotLocaleArgumentResolver() {
+        runner.withPropertyValues(
+                        "easygram.token=" + BOT_TOKEN,
+                        "easygram.i18n.enabled=true",
+                        "easygram.i18n.default-locale=en"
+                )
+                .run(context -> assertThat(context).hasSingleBean(BotLocaleArgumentResolver.class));
+    }
+
+    @Test
+    void withEnabledTrue_registersBotInlineQueryMatcher() {
+        runner.withPropertyValues(
+                        "easygram.token=" + BOT_TOKEN,
+                        "easygram.i18n.enabled=true",
+                        "easygram.i18n.default-locale=en"
+                )
+                .run(context -> assertThat(context).hasSingleBean(BotInlineQueryMatcher.class));
+    }
+
+    @Test
+    void withEnabledTrue_registersBotLocalizedReplyReturnTypeHandler() {
+        runner.withPropertyValues(
+                        "easygram.token=" + BOT_TOKEN,
+                        "easygram.i18n.enabled=true",
+                        "easygram.i18n.default-locale=en"
+                )
+                .run(context -> assertThat(context).hasSingleBean(BotLocalizedReplyReturnTypeHandler.class));
+    }
+
+    @Test
+    void userProvidedBotMessageSource_suppressesDefault() {
+        StaticMessageSource staticSource = new StaticMessageSource();
+        BotMessageSource custom = new BotMessageSource(staticSource, request -> Locale.FRENCH);
+
+        runner.withPropertyValues(
+                        "easygram.token=" + BOT_TOKEN,
+                        "easygram.i18n.enabled=true",
+                        "easygram.i18n.default-locale=en"
+                )
+                .withBean(BotMessageSource.class, () -> custom)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(BotMessageSource.class);
+                    assertThat(context.getBean(BotMessageSource.class)).isSameAs(custom);
+                });
+    }
+
+    @Test
+    void userProvidedBotLocaleSetterFilter_suppressesDefault() {
+        BotLocaleSetterFilter custom = new BotLocaleSetterFilter(request -> Locale.GERMAN);
+
+        runner.withPropertyValues(
+                        "easygram.token=" + BOT_TOKEN,
+                        "easygram.i18n.enabled=true",
+                        "easygram.i18n.default-locale=en"
+                )
+                .withBean(BotLocaleSetterFilter.class, () -> custom)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(BotLocaleSetterFilter.class);
+                    assertThat(context.getBean(BotLocaleSetterFilter.class)).isSameAs(custom);
+                });
+    }
+
+    @Test
+    void userProvidedBotKeyboardFactory_suppressesDefault() {
+        StaticMessageSource staticSource = new StaticMessageSource();
+        BotMessageSource messageSource = new BotMessageSource(staticSource, request -> Locale.ENGLISH);
+        BotKeyboardFactory custom = new BotKeyboardFactory(messageSource, null);
+
+        runner.withPropertyValues(
+                        "easygram.token=" + BOT_TOKEN,
+                        "easygram.i18n.enabled=true",
+                        "easygram.i18n.default-locale=en"
+                )
+                .withBean(BotKeyboardFactory.class, () -> custom)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(BotKeyboardFactory.class);
+                    assertThat(context.getBean(BotKeyboardFactory.class)).isSameAs(custom);
+                });
+    }
+
+    @Test
+    void userProvidedBotLocaleArgumentResolver_suppressesDefault() {
+        BotLocaleArgumentResolver custom = new BotLocaleArgumentResolver(request -> Locale.JAPANESE);
+
+        runner.withPropertyValues(
+                        "easygram.token=" + BOT_TOKEN,
+                        "easygram.i18n.enabled=true",
+                        "easygram.i18n.default-locale=en"
+                )
+                .withBean(BotLocaleArgumentResolver.class, () -> custom)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(BotLocaleArgumentResolver.class);
+                    assertThat(context.getBean(BotLocaleArgumentResolver.class)).isSameAs(custom);
+                });
+    }
+
+    @Test
+    void userProvidedBotInlineQueryMatcher_suppressesDefault() {
+        BotInlineQueryMatcher custom = (values, request) -> true;
+
+        runner.withPropertyValues(
+                        "easygram.token=" + BOT_TOKEN,
+                        "easygram.i18n.enabled=true",
+                        "easygram.i18n.default-locale=en"
+                )
+                .withBean(BotInlineQueryMatcher.class, () -> custom)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(BotInlineQueryMatcher.class);
+                    assertThat(context.getBean(BotInlineQueryMatcher.class)).isSameAs(custom);
+                });
+    }
+
+    @Test
+    void userProvidedBotLocalizedReplyReturnTypeHandler_suppressesDefault() {
+        StaticMessageSource staticSource = new StaticMessageSource();
+        BotMessageSource messageSource = new BotMessageSource(staticSource, request -> Locale.ENGLISH);
+        BotLocalizedReplyReturnTypeHandler custom =
+                new BotLocalizedReplyReturnTypeHandler(messageSource, new BotReplyActionChain(List.of()));
+
+        runner.withPropertyValues(
+                        "easygram.token=" + BOT_TOKEN,
+                        "easygram.i18n.enabled=true",
+                        "easygram.i18n.default-locale=en"
+                )
+                .withBean(BotLocalizedReplyReturnTypeHandler.class, () -> custom)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(BotLocalizedReplyReturnTypeHandler.class);
+                    assertThat(context.getBean(BotLocalizedReplyReturnTypeHandler.class)).isSameAs(custom);
                 });
     }
 

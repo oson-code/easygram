@@ -17,29 +17,29 @@ import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
-import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
-import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
-import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramExecutorServiceProvider;
+import uz.osoncode.easygram.core.provider.EasygramObjectMapperProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramClientProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
 import uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties;
 import uz.osoncode.easygram.messaging.kafka.consumer.KafkaBotUpdateListener;
 import uz.osoncode.easygram.messaging.kafka.consumer.KafkaConsumerBot;
-import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaConsumerFactoryProvider;
+import uz.osoncode.easygram.messaging.kafka.provider.EasygramKafkaConsumerFactoryProvider;
 
 import java.util.List;
 
 /**
  * Spring Boot auto-configuration for the Kafka consumer transport module.
  *
- * <p>Activated when {@link ConcurrentMessageListenerContainer} is present on the classpath,
- * {@code easygram.messaging.type=CONSUMER}, and {@code easygram.messaging.consumer.type=KAFKA}.
- * Enables {@link EasygramKafkaProperties} binding (prefix {@code easygram.messaging.kafka})
+ * <p>Activated when {@link ConcurrentMessageListenerContainer} is present on the classpath
+ * and {@code easygram.update.transport=KAFKA_CONSUMER} is set. Enables
+ * {@link EasygramKafkaProperties} binding (prefix {@code easygram.messaging.kafka})
  * and registers the following beans:</p>
  * <ul>
  *   <li>{@link KafkaConsumerBot} — the bot instance that authenticates with Telegram and processes updates.</li>
  *   <li>{@link KafkaBotUpdateListener} — the listener that feeds deserialized updates into the bot.</li>
  *   <li>{@code botKafkaListenerContainer} — the programmatic {@link ConcurrentMessageListenerContainer}
- *       wired from {@link BotKafkaConsumerFactoryProvider} and {@link EasygramKafkaProperties}.</li>
+ *       wired from {@link EasygramKafkaConsumerFactoryProvider} and {@link EasygramKafkaProperties}.</li>
  * </ul>
  *
  * <p>All beans are guarded by {@link ConditionalOnMissingBean} so applications can supply
@@ -50,13 +50,12 @@ import java.util.List;
  */
 @AutoConfiguration
 @ConditionalOnClass(ConcurrentMessageListenerContainer.class)
-@ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "CONSUMER")
-@ConditionalOnProperty(prefix = "easygram.messaging.consumer", name = "type", havingValue = "KAFKA")
+@ConditionalOnProperty(prefix = "easygram.update", name = "transport", havingValue = "KAFKA_CONSUMER")
 @EnableConfigurationProperties(EasygramKafkaProperties.class)
 public class KafkaConsumerAutoConfiguration {
 
     /**
-     * Registers the default {@link BotKafkaConsumerFactoryProvider} if none is defined.
+     * Registers the default {@link EasygramKafkaConsumerFactoryProvider} if none is defined.
      * This simply returns Spring Boot's auto-configured {@link ConsumerFactory}.
      *
      * <p>Override this bean to provide a custom consumer factory — for example one
@@ -67,7 +66,7 @@ public class KafkaConsumerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotKafkaConsumerFactoryProvider botKafkaConsumerFactoryProvider(
+    public EasygramKafkaConsumerFactoryProvider botKafkaConsumerFactoryProvider(
             ConsumerFactory<Object, Object> consumerFactory) {
         return () -> consumerFactory;
     }
@@ -75,7 +74,7 @@ public class KafkaConsumerAutoConfiguration {
     /**
      * Provides the default {@code botKafkaListenerContainer}: a programmatic
      * {@link ConcurrentMessageListenerContainer} wired from
-     * {@link BotKafkaConsumerFactoryProvider} and {@link EasygramKafkaProperties}.
+     * {@link EasygramKafkaConsumerFactoryProvider} and {@link EasygramKafkaProperties}.
      *
      * <p>This fallback container has no observation support. It is skipped when the
      * {@link KafkaConsumerObservationConfig} inner class registers its own observed variant
@@ -89,7 +88,7 @@ public class KafkaConsumerAutoConfiguration {
     @Bean(name = "botKafkaListenerContainer")
     @ConditionalOnMissingBean(name = "botKafkaListenerContainer")
     public ConcurrentMessageListenerContainer<Object, Object> botKafkaListenerContainer(
-            BotKafkaConsumerFactoryProvider consumerFactoryProvider,
+            EasygramKafkaConsumerFactoryProvider consumerFactoryProvider,
             EasygramKafkaProperties kafkaProperties,
             KafkaBotUpdateListener kafkaBotUpdateListener) {
         ContainerProperties containerProps = new ContainerProperties(kafkaProperties.topic());
@@ -125,7 +124,7 @@ public class KafkaConsumerAutoConfiguration {
         @Bean(name = "botKafkaListenerContainer")
         @ConditionalOnMissingBean(name = "botKafkaListenerContainer")
         public ConcurrentMessageListenerContainer<Object, Object> botKafkaListenerContainer(
-                BotKafkaConsumerFactoryProvider consumerFactoryProvider,
+                EasygramKafkaConsumerFactoryProvider consumerFactoryProvider,
                 EasygramKafkaProperties kafkaProperties,
                 KafkaBotUpdateListener kafkaBotUpdateListener,
                 ObservationRegistry observationRegistry) {
@@ -159,8 +158,8 @@ public class KafkaConsumerAutoConfiguration {
             List<BotFilter> filters,
             BotDispatcher botDispatcher,
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
-            BotTelegramClientProvider telegramClientProvider,
-            BotExecutorServiceProvider executorServiceProvider) {
+            EasygramTelegramClientProvider telegramClientProvider,
+            EasygramExecutorServiceProvider executorServiceProvider) {
         return new KafkaConsumerBot(botProperties, kafkaProperties, triggers, filters, botDispatcher,
                 botExceptionHandlerRegistry, telegramClientProvider, executorServiceProvider);
     }
@@ -177,7 +176,7 @@ public class KafkaConsumerAutoConfiguration {
     @ConditionalOnMissingBean
     public KafkaBotUpdateListener kafkaBotUpdateListener(
             KafkaConsumerBot kafkaConsumerBot,
-            BotObjectMapperProvider objectMapperProvider) {
+            EasygramObjectMapperProvider objectMapperProvider) {
         return new KafkaBotUpdateListener(kafkaConsumerBot, objectMapperProvider);
     }
 

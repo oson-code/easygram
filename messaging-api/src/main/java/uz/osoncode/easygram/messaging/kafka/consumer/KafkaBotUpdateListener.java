@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.listener.MessageListener;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
+import uz.osoncode.easygram.core.provider.EasygramObjectMapperProvider;
 
 /**
  * Spring Kafka message listener that consumes Telegram {@link Update} JSON payloads
@@ -16,7 +16,7 @@ import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
  * {@link uz.osoncode.easygram.messaging.kafka.consumer.autoconfigure.KafkaConsumerAutoConfiguration}.
  * Topic, group ID, and consumer factory are resolved at startup from
  * {@link uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties} and
- * {@link uz.osoncode.easygram.messaging.kafka.provider.BotKafkaConsumerFactoryProvider}.</p>
+ * {@link uz.osoncode.easygram.messaging.kafka.provider.EasygramKafkaConsumerFactoryProvider}.</p>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
@@ -26,7 +26,7 @@ import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
 public class KafkaBotUpdateListener implements MessageListener<Object, Object> {
 
     private final KafkaConsumerBot kafkaConsumerBot;
-    private final BotObjectMapperProvider objectMapperProvider;
+    private final EasygramObjectMapperProvider objectMapperProvider;
 
     /**
      * Receives a raw JSON Telegram update from Kafka, deserializes it, and delegates

@@ -11,8 +11,8 @@ import uz.osoncode.easygram.core.bot.BotTransportType;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
 import uz.osoncode.easygram.messaging.autoconfigure.MessagingAutoConfiguration;
 import uz.osoncode.easygram.messaging.rabbit.RabbitBotUpdatePublisher;
-import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitConnectionFactoryProvider;
-import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitTemplateProvider;
+import uz.osoncode.easygram.messaging.rabbit.provider.EasygramRabbitConnectionFactoryProvider;
+import uz.osoncode.easygram.messaging.rabbit.provider.EasygramRabbitTemplateProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -24,7 +24,6 @@ class RabbitMessagingAutoConfigurationTest {
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withPropertyValues(
-                    "easygram.messaging.type=PRODUCER",
                     "easygram.messaging.producer.type=RABBIT"
             )
             .withConfiguration(AutoConfigurations.of(
@@ -66,7 +65,6 @@ class RabbitMessagingAutoConfigurationTest {
     @Test
     void withoutProducerType_doesNotRegisterPublisher() {
         new ApplicationContextRunner()
-                .withPropertyValues("easygram.messaging.type=PRODUCER")
                 .withConfiguration(AutoConfigurations.of(RabbitMessagingAutoConfiguration.class))
                 .withBean(ConnectionFactory.class, () -> mock(CachingConnectionFactory.class))
                 .run(context -> assertThat(context).doesNotHaveBean(RabbitBotUpdatePublisher.class));
@@ -74,24 +72,24 @@ class RabbitMessagingAutoConfigurationTest {
 
     @Test
     void userProvidedTemplateProvider_suppressesDefault() {
-        BotRabbitTemplateProvider customProvider = () -> null;
+        EasygramRabbitTemplateProvider customProvider = () -> null;
 
-        runner.withBean(BotRabbitTemplateProvider.class, () -> customProvider)
+        runner.withBean(EasygramRabbitTemplateProvider.class, () -> customProvider)
                 .run(context -> {
-                    assertThat(context).hasSingleBean(BotRabbitTemplateProvider.class);
-                    assertThat(context.getBean(BotRabbitTemplateProvider.class))
+                    assertThat(context).hasSingleBean(EasygramRabbitTemplateProvider.class);
+                    assertThat(context.getBean(EasygramRabbitTemplateProvider.class))
                             .isSameAs(customProvider);
                 });
     }
 
     @Test
     void userProvidedConnectionFactoryProvider_suppressesDefault() {
-        BotRabbitConnectionFactoryProvider customProvider = () -> mock(CachingConnectionFactory.class);
+        EasygramRabbitConnectionFactoryProvider customProvider = () -> mock(CachingConnectionFactory.class);
 
-        runner.withBean(BotRabbitConnectionFactoryProvider.class, () -> customProvider)
+        runner.withBean(EasygramRabbitConnectionFactoryProvider.class, () -> customProvider)
                 .run(context -> {
-                    assertThat(context).hasSingleBean(BotRabbitConnectionFactoryProvider.class);
-                    assertThat(context.getBean(BotRabbitConnectionFactoryProvider.class))
+                    assertThat(context).hasSingleBean(EasygramRabbitConnectionFactoryProvider.class);
+                    assertThat(context.getBean(EasygramRabbitConnectionFactoryProvider.class))
                             .isSameAs(customProvider);
                 });
     }

@@ -1,6 +1,9 @@
 package uz.osoncode.easygram.webhook;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.validation.annotation.Validated;
@@ -30,8 +33,8 @@ import org.springframework.validation.annotation.Validated;
  * @param path                  the local HTTP endpoint path that receives webhook updates; defaults to {@code /webhook}
  * @param secretToken           an optional secret token sent by Telegram in the
  *                              {@code X-Telegram-Bot-Api-Secret-Token} header for request validation
- * @param maxConnections        optional maximum allowed number of simultaneous HTTPS connections
- *                              to the webhook (1–100); when {@code null} Telegram uses its default
+ * @param maxConnections        maximum allowed number of simultaneous HTTPS connections
+ *                              to the webhook (1–100); defaults to {@code 40} (Telegram's default)
  * @param dropPendingUpdates    when {@code true}, pending updates are dropped when the webhook
  *                              is registered; defaults to {@code false}
  * @param unregisterOnShutdown  when {@code true}, the webhook is deleted from Telegram when the
@@ -45,6 +48,8 @@ public record EasygramWebhookProperties(
 
         /** The public HTTPS URL to which Telegram delivers webhook updates. */
         @NotBlank(message = "easygram.update.webhook.url must not be blank")
+        @Pattern(regexp = "^https://.*",
+                 message = "easygram.update.webhook.url must be an HTTPS URL (must start with https://)")
         String url,
 
         /** Local server path that accepts incoming webhook POST requests. */
@@ -54,7 +59,10 @@ public record EasygramWebhookProperties(
         /** Optional secret token validated on every incoming webhook request. */
         String secretToken,
 
-        /** Maximum number of simultaneous Telegram-to-server connections (1–100). */
+        /** Maximum number of simultaneous Telegram-to-server connections (1–100). Defaults to {@code 40}. */
+        @DefaultValue("40")
+        @Min(value = 1, message = "easygram.update.webhook.max-connections must be >= 1")
+        @Max(value = 100, message = "easygram.update.webhook.max-connections must be <= 100")
         Integer maxConnections,
 
         /** Whether to discard queued updates when the webhook is registered. */

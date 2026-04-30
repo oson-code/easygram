@@ -16,7 +16,7 @@ import org.springframework.kafka.core.ConsumerFactory;
  * @since 0.0.6
  */
 @FunctionalInterface
-public interface BotKafkaConsumerFactoryProvider {
+public interface EasygramKafkaConsumerFactoryProvider {
 
     /**
      * Returns the {@link ConsumerFactory} to be used when building the listener container factory.

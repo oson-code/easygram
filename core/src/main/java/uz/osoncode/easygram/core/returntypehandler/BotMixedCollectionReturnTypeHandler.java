@@ -1,5 +1,6 @@
 package uz.osoncode.easygram.core.returntypehandler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
@@ -9,7 +10,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.Collection;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -19,7 +22,11 @@ import java.util.Objects;
  *
  * <p>Each element is dispatched at runtime to the first {@link BotReturnTypeHandler} in the
  * registered handler list whose {@link BotReturnTypeHandler#supportsElement(Object)} returns
- * {@code true}. Elements with no matching handler are silently skipped.</p>
+ * {@code true}. Elements with no matching handler are logged at WARN level.</p>
+ *
+ * <p>Handler selection is cached per element class to avoid re-scanning the handler list
+ * for every element, reducing dispatch cost from O(n×m) to O(n) after the first occurrence
+ * of each type in the collection.</p>
  *
  * <h2>Example</h2>
  * <pre>{@code
@@ -43,6 +50,7 @@ import java.util.Objects;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 public class BotMixedCollectionReturnTypeHandler implements BotReturnTypeHandler {
 
     private final List<BotReturnTypeHandler> handlers;
@@ -90,7 +98,8 @@ public class BotMixedCollectionReturnTypeHandler implements BotReturnTypeHandler
     /**
      * Iterates the collection and dispatches each non-null element to the first handler
      * whose {@link BotReturnTypeHandler#supportsElement(Object)} returns {@code true}.
-     * Elements with no matching handler are silently skipped.
+     * Handler selection is cached per element class (O(1) after first occurrence).
+     * Elements with no matching handler are logged at WARN level.
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -98,15 +107,26 @@ public class BotMixedCollectionReturnTypeHandler implements BotReturnTypeHandler
         if (Objects.isNull(returnValue)) {
             return;
         }
+        // Cache handler lookups by element class to avoid re-scanning for each element.
+        Map<Class<?>, BotReturnTypeHandler> handlerCache = new IdentityHashMap<>();
         for (Object element : (Collection<Object>) returnValue) {
             if (Objects.isNull(element)) {
                 continue;
             }
-            for (BotReturnTypeHandler handler : handlers) {
-                if (handler != this && handler.supportsElement(element)) {
-                    handler.handleReturnType(botRequest, botResponse, element);
-                    break;
+            BotReturnTypeHandler handler = handlerCache.computeIfAbsent(element.getClass(), cls -> {
+                for (BotReturnTypeHandler h : handlers) {
+                    if (h != this && h.supportsElement(element)) {
+                        return h;
+                    }
                 }
+                return null;
+            });
+            if (handler != null) {
+                handler.handleReturnType(botRequest, botResponse, element);
+            } else {
+                log.warn("No BotReturnTypeHandler found for collection element of type '{}' — element dropped. " +
+                         "Register a custom BotReturnTypeHandler bean to support this type.",
+                        element.getClass().getName());
             }
         }
     }

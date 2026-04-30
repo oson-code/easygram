@@ -13,7 +13,7 @@ import java.util.function.Function;
  *
  * <pre>{@code
  * @Bean
- * public BotGetUpdatesGeneratorProvider botGetUpdatesGeneratorProvider() {
+ * public EasygramGetUpdatesGeneratorProvider botGetUpdatesGeneratorProvider() {
  *     return () -> offset -> GetUpdates.builder()
  *             .offset(offset + 1)
  *             .limit(50)
@@ -27,7 +27,7 @@ import java.util.function.Function;
  * @since 0.0.1
  */
 @FunctionalInterface
-public interface BotGetUpdatesGeneratorProvider {
+public interface EasygramGetUpdatesGeneratorProvider {
 
     /**
      * Returns the function used to produce {@link GetUpdates} requests.

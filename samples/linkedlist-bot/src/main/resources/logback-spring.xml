@@ -7,13 +7,17 @@
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <!--
-        Pattern includes Easygram MDC fields injected by BotMdcFilter:
-          bot.transport  — active transport (LONG_POLLING, WEBHOOK, KAFKA_CONSUMER, …)
-          bot.update.id  — Telegram update ID (set per-update)
-          bot.chat.id    — Telegram chat ID   (set per-update)
-          bot.user.id    — Telegram user ID   (set per-update)
+        Pattern includes:
+          OTel trace context (populated by micrometer-tracing-bridge-otel):
+            traceId   — W3C trace ID shared across all spans in the same request
+            spanId    — current span ID (changes at each queue boundary)
+          Easygram MDC fields injected by BotMdcFilter:
+            bot.transport  — active transport (LONG_POLLING, WEBHOOK, KAFKA_CONSUMER, …)
+            bot.update.id  — Telegram update ID (set per-update)
+            bot.chat.id    — Telegram chat ID   (set per-update)
+            bot.user.id    — Telegram user ID   (set per-update)
       -->
-      <pattern>%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%X{bot.transport:--} upd=%-8X{bot.update.id:--} chat=%X{bot.chat.id:--} user=%X{bot.user.id:--}]){cyan} %clr(%logger{36}){blue} - %msg%n</pattern>
+      <pattern>%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([trace=%X{traceId:--} span=%X{spanId:--}]){yellow} %clr([%X{bot.transport:--} upd=%-8X{bot.update.id:--} chat=%X{bot.chat.id:--} user=%X{bot.user.id:--}]){cyan} %clr(%logger{36}){blue} - %msg%n</pattern>
     </encoder>
   </appender>
 

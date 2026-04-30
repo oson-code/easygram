@@ -291,6 +291,26 @@ public List<SendMessage> onError(Update update, Throwable ex) {
 
 `BotFilter` intercepts every update **before** it reaches handlers. Filters run in ascending `getOrder()` order.
 
+### Built-in filter execution order
+
+The following built-in filters are registered automatically (lower order = runs first):
+
+| Order constant | Value | Filter | Module | Description |
+|---|---|---|---|---|
+| `BotFilterOrder.MDC_CONTEXT` | `Integer.MIN_VALUE` | `BotMdcFilter` | `core` | Sets MDC keys `bot.update.id` and `bot.transport`; cleared in `finally` after the chain. |
+| `BotFilterOrder.CONTEXT_SETTER` | `Integer.MIN_VALUE + 1` | `BotContextSetterFilter` | `core` | Resolves `Chat` and `User` from the update; enriches MDC with `bot.chat.id` / `bot.user.id`. |
+| `BotFilterOrder.OBSERVATION` | `Integer.MIN_VALUE + 2` | `BotObservabilityFilter` | `core-observability` | Wraps the remaining pipeline in a Micrometer `Observation` (timer metric + trace span). |
+| `BotFilterOrder.API_SENDER` | `Integer.MIN_VALUE + 3` | `BotApiMethodsSenderFilter` | `core` | Calls downstream, then sends all accumulated `BotApiMethod` responses via `TelegramClient`. |
+| `BotFilterOrder.PUBLISHING` | `Integer.MIN_VALUE + 1000` | `BotUpdatePublishingFilter` | `messaging-api` | Forwards the raw update to a broker (Kafka / RabbitMQ). Only active when a broker is configured. |
+
+**Safe order ranges for custom filters:**
+
+| Where to run | Recommended range |
+|---|---|
+| Before all built-in logic (e.g. auth, rate-limiting) | `Integer.MIN_VALUE + 10` to `Integer.MIN_VALUE + 99` |
+| After context is set, before dispatch (e.g. metrics, A/B) | `Integer.MIN_VALUE + 100` to `Integer.MIN_VALUE + 499` |
+| After all built-in filters | `0` and above |
+
 ```java
 @Component
 public class AuthFilter implements BotFilter {

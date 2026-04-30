@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <!-- Inherit Spring Boot defaults (color support, system properties) -->
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <!--
+        Pattern shows both OTel trace context (traceId/spanId injected into MDC by
+        micrometer-tracing-bridge-otel) and Easygram per-update MDC fields
+        (bot.transport, bot.update.id, bot.chat.id, bot.user.id injected by BotMdcFilter).
+
+        Use the traceId to find the matching span in Grafana Tempo:
+          http://localhost:3000  →  Explore  →  Tempo  →  paste traceId
+      -->
+      <pattern>%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([trace=%X{traceId:--} span=%X{spanId:--}]){yellow} %clr([%X{bot.transport:--} upd=%-8X{bot.update.id:--} chat=%X{bot.chat.id:--}]){cyan} %clr(%logger{36}){blue} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Framework internals: DEBUG to observe dispatching, filter chain, and routing -->
+  <logger name="uz.osoncode" level="DEBUG"/>
+
+  <!-- OTel SDK internals: INFO to see exporter success/failure -->
+  <logger name="io.opentelemetry" level="INFO"/>
+
+  <!-- Suppress noisy broker client logs unless there is an actual problem -->
+  <logger name="org.springframework.kafka" level="WARN"/>
+  <logger name="org.apache.kafka" level="WARN"/>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+
+</configuration>

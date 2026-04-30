@@ -11,7 +11,7 @@ import org.telegram.telegrambots.longpolling.util.ExponentialBackOff;
  *
  * <pre>{@code
  * @Bean
- * public BotBackOffProvider botBackOffProvider() {
+ * public EasygramBackOffProvider botBackOffProvider() {
  *     // Fixed 5-second delay between retries
  *     return () -> new FixedBackOff(5_000L, Long.MAX_VALUE);
  * }
@@ -21,7 +21,7 @@ import org.telegram.telegrambots.longpolling.util.ExponentialBackOff;
  * @since 0.0.1
  */
 @FunctionalInterface
-public interface BotBackOffProvider {
+public interface EasygramBackOffProvider {
 
     /**
      * Returns the {@link BackOff} strategy to use when the long-poll request fails.

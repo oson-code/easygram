@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService;
  *
  * <pre>{@code
  * @Bean
- * public BotExecutorServiceProvider botExecutorServiceProvider() {
+ * public EasygramExecutorServiceProvider botExecutorServiceProvider() {
  *     ExecutorService executor = Executors.newFixedThreadPool(4,
  *             new ThreadFactoryBuilder().setNameFormat("bot-worker-%d").build());
  *     return () -> executor;
@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutorService;
  * @since 0.0.1
  */
 @FunctionalInterface
-public interface BotExecutorServiceProvider {
+public interface EasygramExecutorServiceProvider {
 
     /**
      * Returns the {@link ExecutorService} used to dispatch incoming Telegram updates.

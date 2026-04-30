@@ -15,9 +15,12 @@ import uz.osoncode.easygram.core.bind.annotation.BotExceptionHandler;
 import uz.osoncode.easygram.core.handler.invocation.MarkupApplicationFilter;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandlerFactory;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * {@link ApplicationRunner} that scans all {@link BotController}-annotated beans at
@@ -102,6 +105,8 @@ public class BotMethodExceptionHandlerLoader implements ApplicationRunner {
 
         applicationContext.getBeansWithAnnotation(BotControllerAdvice.class).values().forEach(bean -> {
             Class<?> targetClass = AopUtils.getTargetClass(bean);
+            BotControllerAdvice advice = AnnotationUtils.findAnnotation(targetClass, BotControllerAdvice.class);
+            Predicate<Class<?>> scopePredicate = buildScopePredicate(advice);
             BotChatState classChatState = AnnotationUtils.findAnnotation(targetClass, BotChatState.class);
             Arrays.stream(targetClass.getMethods())
                     .filter(method -> method.isAnnotationPresent(BotExceptionHandler.class))
@@ -113,9 +118,58 @@ public class BotMethodExceptionHandlerLoader implements ApplicationRunner {
                             botExceptionHandlerRegistry.register(new BotExceptionMethodHandler<>(
                                     aClass, 1, method, bean,
                                     botArgumentResolverFactory, botReturnTypeHandlerFactory,
-                                    stateService, effectiveChatState, markupApplicationFilter));
+                                    stateService, effectiveChatState, markupApplicationFilter, scopePredicate));
                         }
                     });
         });
+    }
+
+    /**
+     * Builds a controller-class scope predicate from a {@link BotControllerAdvice} annotation.
+     *
+     * <p>Returns an always-true predicate when all scoping arrays are empty (global advice).
+     * When multiple scoping criteria are set, a controller class must satisfy at least one
+     * ({@code OR} semantics, matching Spring MVC's {@code @ControllerAdvice} behaviour).</p>
+     *
+     * @param advice the annotation instance; may be {@code null} (returns always-true)
+     * @return a predicate that returns {@code true} for matching controller classes
+     */
+    private Predicate<Class<?>> buildScopePredicate(BotControllerAdvice advice) {
+        if (advice == null) {
+            return c -> true;
+        }
+        String[] basePackages = advice.basePackages();
+        Class<?>[] assignableTypes = advice.assignableTypes();
+        Class<? extends Annotation>[] annotations = advice.annotations();
+
+        boolean hasScope = basePackages.length > 0 || assignableTypes.length > 0 || annotations.length > 0;
+        if (!hasScope) {
+            return c -> true;
+        }
+
+        Predicate<Class<?>> predicate = c -> false;
+
+        if (basePackages.length > 0) {
+            Set<String> packages = Set.of(basePackages);
+            Predicate<Class<?>> pkgPredicate = c -> {
+                String pkg = c.getPackageName();
+                return packages.stream().anyMatch(pkg::startsWith);
+            };
+            predicate = predicate.or(pkgPredicate);
+        }
+
+        if (assignableTypes.length > 0) {
+            Predicate<Class<?>> typePredicate = c ->
+                    Arrays.stream(assignableTypes).anyMatch(t -> t.isAssignableFrom(c));
+            predicate = predicate.or(typePredicate);
+        }
+
+        if (annotations.length > 0) {
+            Predicate<Class<?>> annPredicate = c ->
+                    Arrays.stream(annotations).anyMatch(a -> AnnotationUtils.findAnnotation(c, a) != null);
+            predicate = predicate.or(annPredicate);
+        }
+
+        return predicate;
     }
 }

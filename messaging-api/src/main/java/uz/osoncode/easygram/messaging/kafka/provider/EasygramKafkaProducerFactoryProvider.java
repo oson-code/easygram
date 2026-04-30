@@ -16,7 +16,7 @@ import org.springframework.kafka.core.ProducerFactory;
  * @since 0.0.6
  */
 @FunctionalInterface
-public interface BotKafkaProducerFactoryProvider {
+public interface EasygramKafkaProducerFactoryProvider {
 
     /**
      * Returns the {@link ProducerFactory} to be used when building the Kafka template.

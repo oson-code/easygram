@@ -14,6 +14,7 @@ import uz.osoncode.easygram.core.model.BotResponse;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -89,14 +90,15 @@ class DefaultBotFilterChainTest {
     }
 
     @Test
-    void dispatcherThrows_noHandler_logsOnly() throws Exception {
+    void dispatcherThrows_noHandler_rethrows() throws Exception {
         RuntimeException ex = new RuntimeException("unhandled");
         doThrow(ex).when(dispatcher).dispatch(any(), any());
         when(exceptionRegistry.getBotHandlers()).thenReturn(List.of());
 
         DefaultBotFilterChain chain = new DefaultBotFilterChain(List.of(), dispatcher, exceptionRegistry);
-        // must not throw
-        chain.doFilter(request, response);
+        // Fix #4: must rethrow when no exception handler matches
+        assertThatThrownBy(() -> chain.doFilter(request, response))
+                .isSameAs(ex);
         assertThat(request.getThrowable()).isSameAs(ex);
     }
 }

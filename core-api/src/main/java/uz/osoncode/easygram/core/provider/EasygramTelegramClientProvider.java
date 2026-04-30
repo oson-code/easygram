@@ -14,7 +14,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
  *
  * <pre>{@code
  * @Bean
- * public BotTelegramClientProvider botTelegramClientProvider() {
+ * public EasygramTelegramClientProvider botTelegramClientProvider() {
  *     return botToken -> new OkHttpTelegramClient(
  *             customObjectMapper(),
  *             customHttpClient(),
@@ -25,14 +25,14 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
  *
  * <p>When no custom bean is present the framework registers a default implementation that builds
  * an {@link org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient} using the other
- * provider beans ({@link BotObjectMapperProvider}, {@link BotOkHttpClientProvider},
- * {@link BotTelegramUrlProvider}).</p>
+ * provider beans ({@link EasygramObjectMapperProvider}, {@link EasygramOkHttpClientProvider},
+ * {@link EasygramTelegramUrlProvider}).</p>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
 @FunctionalInterface
-public interface BotTelegramClientProvider {
+public interface EasygramTelegramClientProvider {
 
     /**
      * Creates (or returns) a {@link TelegramClient} for the given bot token.

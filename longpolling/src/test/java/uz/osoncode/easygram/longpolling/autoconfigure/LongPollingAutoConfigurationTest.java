@@ -12,8 +12,9 @@ import org.telegram.telegrambots.meta.api.methods.GetMe;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration;
-import uz.osoncode.easygram.core.provider.BotOkHttpClientProvider;
-import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
+import uz.osoncode.easygram.core.bot.BotTransportStartupValidator;
+import uz.osoncode.easygram.core.provider.EasygramOkHttpClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramClientProvider;
 import uz.osoncode.easygram.longpolling.LongPollingBot;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +25,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link LongPollingAutoConfiguration}.
  *
- * <p>Both {@link BotTelegramClientProvider} and {@link BotOkHttpClientProvider} are stubbed so
+ * <p>Both {@link EasygramTelegramClientProvider} and {@link EasygramOkHttpClientProvider} are stubbed so
  * that no real HTTP calls are made: {@code Bot.afterPropertiesSet()} gets a fake {@link User}
  * from the mocked {@code TelegramClient}, while {@code BotSession.start()} gets an
  * {@code OkHttpClient} whose interceptor returns {@code {"ok":true,"result":true}} for every
@@ -40,8 +41,8 @@ class LongPollingAutoConfigurationTest {
                     CoreAutoConfiguration.class,
                     LongPollingAutoConfiguration.class
             ))
-            .withBean(BotTelegramClientProvider.class, LongPollingAutoConfigurationTest::fakeTelegramClientProvider)
-            .withBean(BotOkHttpClientProvider.class, LongPollingAutoConfigurationTest::fakeOkHttpClientProvider);
+            .withBean(EasygramTelegramClientProvider.class, LongPollingAutoConfigurationTest::fakeTelegramClientProvider)
+            .withBean(EasygramOkHttpClientProvider.class, LongPollingAutoConfigurationTest::fakeOkHttpClientProvider);
 
     @Test
     void defaultTransport_registersLongPollingBot() {
@@ -66,10 +67,30 @@ class LongPollingAutoConfigurationTest {
                 .run(context -> assertThat(context).hasSingleBean(LongPollingBot.class));
     }
 
+    @Test
+    void kafkaConsumerTransport_doesNotRegisterLongPollingBot() {
+        runner.withBean(BotTransportStartupValidator.class, () -> mock(BotTransportStartupValidator.class))
+                .withPropertyValues("easygram.update.transport=KAFKA_CONSUMER")
+                .run(context -> assertThat(context).doesNotHaveBean(LongPollingBot.class));
+    }
+
+    @Test
+    void rabbitConsumerTransport_doesNotRegisterLongPollingBot() {
+        runner.withBean(BotTransportStartupValidator.class, () -> mock(BotTransportStartupValidator.class))
+                .withPropertyValues("easygram.update.transport=RABBIT_CONSUMER")
+                .run(context -> assertThat(context).doesNotHaveBean(LongPollingBot.class));
+    }
+
+    @Test
+    void noneTransport_doesNotRegisterLongPollingBot() {
+        runner.withPropertyValues("easygram.update.transport=NONE")
+                .run(context -> assertThat(context).doesNotHaveBean(LongPollingBot.class));
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     @SuppressWarnings("unchecked")
-    private static BotTelegramClientProvider fakeTelegramClientProvider() {
+    private static EasygramTelegramClientProvider fakeTelegramClientProvider() {
         TelegramClient client = mock(TelegramClient.class);
         User fakeUser = User.builder()
                 .id(123L)
@@ -86,7 +107,7 @@ class LongPollingAutoConfigurationTest {
     }
 
     /** Returns an {@link OkHttpClient} whose interceptor always responds with a Telegram OK body. */
-    private static BotOkHttpClientProvider fakeOkHttpClientProvider() {
+    private static EasygramOkHttpClientProvider fakeOkHttpClientProvider() {
         OkHttpClient fakeClient = new OkHttpClient.Builder()
                 .addInterceptor(chain -> new Response.Builder()
                         .request(chain.request())

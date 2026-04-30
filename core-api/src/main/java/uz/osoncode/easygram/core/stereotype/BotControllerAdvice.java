@@ -1,5 +1,6 @@
 package uz.osoncode.easygram.core.stereotype;
 
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.*;
@@ -29,9 +30,12 @@ public @interface BotControllerAdvice {
 
     /**
      * Alias for the Spring bean name of this advice component.
+     * Aliased to {@link Component#value()} so that the name is honoured
+     * by Spring's component-scan.
      *
      * @return the bean name; empty string means no explicit name
      */
+    @AliasFor(annotation = Component.class, attribute = "value")
     String value() default "";
 
     /**

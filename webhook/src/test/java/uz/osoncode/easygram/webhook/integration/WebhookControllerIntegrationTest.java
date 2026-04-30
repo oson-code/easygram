@@ -12,9 +12,9 @@ import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
 import uz.osoncode.easygram.core.handler.BotHandlerRegistry;
-import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
-import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
-import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramExecutorServiceProvider;
+import uz.osoncode.easygram.core.provider.EasygramObjectMapperProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramClientProvider;
 import uz.osoncode.easygram.webhook.EasygramWebhookProperties;
 import uz.osoncode.easygram.webhook.WebhookBot;
 import uz.osoncode.easygram.webhook.WebhookController;
@@ -37,7 +37,7 @@ class WebhookControllerIntegrationTest {
 
     private WebhookController controller;
     private EasygramWebhookProperties webhookProperties;
-    private BotObjectMapperProvider mapperProvider;
+    private EasygramObjectMapperProvider mapperProvider;
     private WebhookBot webhookBot;
 
     @BeforeEach

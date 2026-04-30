@@ -1,0 +1,40 @@
+easygram:
+  # Required: your Telegram Bot API token from @BotFather.
+  # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
+  token: "${BOT_TOKEN}"
+
+  update:
+    # Consume updates from Kafka (produced by a separate bot, e.g. samples/longpolling-as-producer).
+    transport: KAFKA_CONSUMER
+
+spring:
+  application:
+    name: tracing-bot
+
+  kafka:
+    # Run: docker compose up -d  (see docker-compose.yml)
+    bootstrap-servers: localhost:9092
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+management:
+  tracing:
+    # Sample every request so all updates appear in Tempo during the demo.
+    # In production, lower this to 0.1 (10 %) or use a head-based sampler.
+    sampling:
+      probability: 1.0
+
+  otlp:
+    tracing:
+      # Tempo listens for OTLP/HTTP on port 4318.  docker compose up -d exposes it on localhost.
+      endpoint: http://localhost:4318/v1/traces
+
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+server:
+  port: 8086

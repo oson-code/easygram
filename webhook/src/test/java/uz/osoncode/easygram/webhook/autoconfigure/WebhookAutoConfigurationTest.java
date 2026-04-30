@@ -7,7 +7,8 @@ import org.telegram.telegrambots.meta.api.methods.GetMe;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration;
-import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
+import uz.osoncode.easygram.core.bot.BotTransportStartupValidator;
+import uz.osoncode.easygram.core.provider.EasygramTelegramClientProvider;
 import uz.osoncode.easygram.webhook.WebhookBot;
 import uz.osoncode.easygram.webhook.WebhookController;
 
@@ -19,7 +20,7 @@ import static org.mockito.Mockito.doReturn;
 /**
  * Tests for {@link WebhookAutoConfiguration}.
  *
- * <p>All tests mock {@link BotTelegramClientProvider} so that {@code Bot.afterPropertiesSet()}
+ * <p>All tests mock {@link EasygramTelegramClientProvider} so that {@code Bot.afterPropertiesSet()}
  * returns a fake {@link User} without making real HTTP calls.</p>
  */
 class WebhookAutoConfigurationTest {
@@ -36,7 +37,7 @@ class WebhookAutoConfigurationTest {
                     CoreAutoConfiguration.class,
                     WebhookAutoConfiguration.class
             ))
-            .withBean(BotTelegramClientProvider.class, WebhookAutoConfigurationTest::fakeTelegramClientProvider);
+            .withBean(EasygramTelegramClientProvider.class, WebhookAutoConfigurationTest::fakeTelegramClientProvider);
 
     @Test
     void webhookTransport_registersWebhookBot() {
@@ -55,6 +56,19 @@ class WebhookAutoConfigurationTest {
     }
 
     @Test
+    void kafkaConsumerTransport_doesNotRegisterWebhookBot() {
+        runner.withBean(BotTransportStartupValidator.class, () -> mock(BotTransportStartupValidator.class))
+                .withPropertyValues("easygram.update.transport=KAFKA_CONSUMER")
+                .run(context -> assertThat(context).doesNotHaveBean(WebhookBot.class));
+    }
+
+    @Test
+    void noneTransport_doesNotRegisterWebhookBot() {
+        runner.withPropertyValues("easygram.update.transport=NONE")
+                .run(context -> assertThat(context).doesNotHaveBean(WebhookBot.class));
+    }
+
+    @Test
     void noTransportProperty_doesNotRegisterWebhookBot() {
         new ApplicationContextRunner()
                 .withPropertyValues("easygram.token=" + BOT_TOKEN)
@@ -65,10 +79,30 @@ class WebhookAutoConfigurationTest {
                 .run(context -> assertThat(context).doesNotHaveBean(WebhookBot.class));
     }
 
+    @Test
+    void userProvidedWebhookBot_suppressesDefault() {
+        WebhookBot custom = mock(WebhookBot.class);
+        runner.withBean(WebhookBot.class, () -> custom)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(WebhookBot.class);
+                    assertThat(context.getBean(WebhookBot.class)).isSameAs(custom);
+                });
+    }
+
+    @Test
+    void userProvidedWebhookController_suppressesDefault() {
+        WebhookController custom = mock(WebhookController.class);
+        runner.withBean(WebhookController.class, () -> custom)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(WebhookController.class);
+                    assertThat(context.getBean(WebhookController.class)).isSameAs(custom);
+                });
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     @SuppressWarnings("unchecked")
-    private static BotTelegramClientProvider fakeTelegramClientProvider() {
+    private static EasygramTelegramClientProvider fakeTelegramClientProvider() {
         TelegramClient client = mock(TelegramClient.class);
         User fakeUser = User.builder()
                 .id(123L)

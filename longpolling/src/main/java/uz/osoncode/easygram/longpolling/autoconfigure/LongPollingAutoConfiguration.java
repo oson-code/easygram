@@ -9,17 +9,17 @@ import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
-import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
-import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
-import uz.osoncode.easygram.core.provider.BotOkHttpClientProvider;
-import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
-import uz.osoncode.easygram.core.provider.BotTelegramUrlProvider;
+import uz.osoncode.easygram.core.provider.EasygramExecutorServiceProvider;
+import uz.osoncode.easygram.core.provider.EasygramObjectMapperProvider;
+import uz.osoncode.easygram.core.provider.EasygramOkHttpClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramUrlProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
 import uz.osoncode.easygram.longpolling.LongPollingBot;
 import uz.osoncode.easygram.longpolling.LongPollingBotConfig;
-import uz.osoncode.easygram.longpolling.provider.BotBackOffProvider;
-import uz.osoncode.easygram.longpolling.provider.BotGetUpdatesGeneratorProvider;
-import uz.osoncode.easygram.longpolling.provider.BotScheduledExecutorServiceProvider;
+import uz.osoncode.easygram.longpolling.provider.EasygramBackOffProvider;
+import uz.osoncode.easygram.longpolling.provider.EasygramGetUpdatesGeneratorProvider;
+import uz.osoncode.easygram.longpolling.provider.EasygramScheduledExecutorServiceProvider;
 
 import java.util.List;
 
@@ -28,29 +28,26 @@ import java.util.List;
  *
  * <p>This class is processed automatically by Spring Boot's auto-configuration mechanism.
  * It imports {@link LongPollingBotConfig} to ensure the long-polling-specific provider beans
- * ({@link BotScheduledExecutorServiceProvider}, {@link BotBackOffProvider},
- * {@link BotGetUpdatesGeneratorProvider}) are always present in the application context.</p>
+ * ({@link EasygramScheduledExecutorServiceProvider}, {@link EasygramBackOffProvider},
+ * {@link EasygramGetUpdatesGeneratorProvider}) are always present in the application context.</p>
  *
- * <p>Common infrastructure providers ({@link BotTelegramClientProvider},
- * {@link BotExecutorServiceProvider}, etc.) are registered by
+ * <p>Common infrastructure providers ({@link EasygramTelegramClientProvider},
+ * {@link EasygramExecutorServiceProvider}, etc.) are registered by
  * {@link uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration}.</p>
  *
  * <p>The {@link LongPollingBot} bean is guarded by {@link ConditionalOnMissingBean} so
  * applications can supply a customised subclass if needed.</p>
  *
- * <p>This auto-configuration activates when:</p>
- * <ul>
- *   <li>{@code easygram.update.transport} is {@code LONG_POLLING} or absent (default), AND</li>
- *   <li>{@code easygram.messaging.type} is NOT {@code CONSUMER} — the second condition prevents
- *       long-polling from starting when the bot receives updates from a broker instead.</li>
- * </ul>
+ * <p>This auto-configuration activates when {@code easygram.update.transport} is
+ * {@code LONG_POLLING} or absent (default). All other transport values
+ * ({@code WEBHOOK}, {@code KAFKA_CONSUMER}, {@code RABBIT_CONSUMER}, {@code NONE})
+ * suppress this configuration cleanly without any broker-topology dependency.</p>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "easygram.update", name = "transport", havingValue = "LONG_POLLING", matchIfMissing = true)
-@ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "PRODUCER", matchIfMissing = true)
 @Import(LongPollingBotConfig.class)
 public class LongPollingAutoConfiguration {
 
@@ -80,14 +77,14 @@ public class LongPollingAutoConfiguration {
             List<BotFilter> filters,
             BotDispatcher botDispatcher,
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
-            BotTelegramClientProvider telegramClientProvider,
-            BotExecutorServiceProvider executorServiceProvider,
-            BotObjectMapperProvider objectMapperProvider,
-            BotOkHttpClientProvider okHttpClientProvider,
-            BotTelegramUrlProvider telegramUrlProvider,
-            BotScheduledExecutorServiceProvider scheduledExecutorServiceProvider,
-            BotBackOffProvider backOffProvider,
-            BotGetUpdatesGeneratorProvider getUpdatesGeneratorProvider) {
+            EasygramTelegramClientProvider telegramClientProvider,
+            EasygramExecutorServiceProvider executorServiceProvider,
+            EasygramObjectMapperProvider objectMapperProvider,
+            EasygramOkHttpClientProvider okHttpClientProvider,
+            EasygramTelegramUrlProvider telegramUrlProvider,
+            EasygramScheduledExecutorServiceProvider scheduledExecutorServiceProvider,
+            EasygramBackOffProvider backOffProvider,
+            EasygramGetUpdatesGeneratorProvider getUpdatesGeneratorProvider) {
         return new LongPollingBot(
                 botProperties,
                 triggers,

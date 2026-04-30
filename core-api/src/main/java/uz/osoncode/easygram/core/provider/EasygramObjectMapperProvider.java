@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * <pre>{@code
  * @Bean
- * public BotObjectMapperProvider botObjectMapperProvider() {
+ * public EasygramObjectMapperProvider botObjectMapperProvider() {
  *     ObjectMapper mapper = new ObjectMapper()
  *             .registerModule(new JavaTimeModule())
  *             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @since 0.0.1
  */
 @FunctionalInterface
-public interface BotObjectMapperProvider {
+public interface EasygramObjectMapperProvider {
 
     /**
      * Returns the {@link ObjectMapper} to use for Telegram API payload serialisation and

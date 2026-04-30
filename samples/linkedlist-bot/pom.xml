@@ -6,7 +6,7 @@
     <parent>
         <groupId>uz.osoncode.easygram.samples</groupId>
         <artifactId>samples-parent</artifactId>
-        <version>0.0.6</version>
+        <version>0.0.7</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -18,6 +18,20 @@
         <dependency>
             <groupId>uz.osoncode.easygram</groupId>
             <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <!-- Tracing: actuator exposes /actuator/health + metrics; bridge wires OTel to Micrometer -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        </dependency>
+        <!-- OTLP exporter — sends spans to Grafana Tempo (see docker-compose.yml) -->
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

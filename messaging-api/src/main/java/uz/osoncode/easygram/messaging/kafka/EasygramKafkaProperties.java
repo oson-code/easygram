@@ -2,6 +2,7 @@ package uz.osoncode.easygram.messaging.kafka;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * Shared Kafka configuration for both producer and consumer bot integrations.
@@ -39,6 +40,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @author Islom Mirsaburov
  * @since 0.0.5
  */
+@Validated
 @ConfigurationProperties("easygram.messaging.kafka")
 public record EasygramKafkaProperties(
 

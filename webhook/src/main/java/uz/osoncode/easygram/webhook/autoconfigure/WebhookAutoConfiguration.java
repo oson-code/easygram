@@ -1,5 +1,6 @@
 package uz.osoncode.easygram.webhook.autoconfigure;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -9,9 +10,9 @@ import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
-import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
-import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
-import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramExecutorServiceProvider;
+import uz.osoncode.easygram.core.provider.EasygramObjectMapperProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramClientProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
 import uz.osoncode.easygram.webhook.WebhookBot;
 import uz.osoncode.easygram.webhook.EasygramWebhookProperties;
@@ -38,9 +39,15 @@ import java.util.List;
  * <p>All beans are guarded by {@link ConditionalOnMissingBean} so applications can supply
  * their own customised implementations.</p>
  *
+ * <p>This auto-configuration is suppressed for all transport values other than
+ * {@code WEBHOOK}. Broker consumer transports ({@code KAFKA_CONSUMER},
+ * {@code RABBIT_CONSUMER}) and {@code NONE} are all handled by their own
+ * autoconfiguration classes with no cross-dependency on this module.</p>
+ *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "easygram.update", name = "transport", havingValue = "WEBHOOK")
 @EnableConfigurationProperties(EasygramWebhookProperties.class)
@@ -68,8 +75,13 @@ public class WebhookAutoConfiguration {
             List<BotFilter> filters,
             BotDispatcher botDispatcher,
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
-            BotTelegramClientProvider telegramClientProvider,
-            BotExecutorServiceProvider executorServiceProvider) {
+            EasygramTelegramClientProvider telegramClientProvider,
+            EasygramExecutorServiceProvider executorServiceProvider) {
+        if (webhookBotProperties.secretToken() == null || webhookBotProperties.secretToken().isBlank()) {
+            log.warn("easygram: webhook secret-token is not configured — any client can POST fake updates "
+                    + "to {}. Set easygram.update.webhook.secret-token to secure your endpoint.",
+                    webhookBotProperties.path());
+        }
         return new WebhookBot(
                 botProperties,
                 webhookBotProperties,
@@ -94,7 +106,7 @@ public class WebhookAutoConfiguration {
     public WebhookController webhookController(
             WebhookBot webhookBot,
             EasygramWebhookProperties webhookBotProperties,
-            BotObjectMapperProvider objectMapperProvider) {
+            EasygramObjectMapperProvider objectMapperProvider) {
         return new WebhookController(webhookBot, webhookBotProperties, objectMapperProvider);
     }
 }

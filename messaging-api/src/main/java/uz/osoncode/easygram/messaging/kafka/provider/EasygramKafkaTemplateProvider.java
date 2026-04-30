@@ -12,7 +12,7 @@ import org.springframework.kafka.core.KafkaTemplate;
  * @since 0.0.1
  */
 @FunctionalInterface
-public interface BotKafkaTemplateProvider {
+public interface EasygramKafkaTemplateProvider {
 
     /**
      * Returns the {@link KafkaTemplate} to be used for publishing updates.

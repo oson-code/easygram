@@ -15,6 +15,7 @@ import uz.osoncode.easygram.core.handler.metadataresolver.BotMetaDataResolverFac
 import uz.osoncode.easygram.core.handler.metadataresolver.BotMetaDataSpecResolver;
 import uz.osoncode.easygram.core.stereotype.BotController;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -141,8 +142,9 @@ public class BotHandlerLoader implements ApplicationRunner {
             BotChatState classChatState,
             boolean useDefaultSlot) {
 
+        Method[] methods = targetClass.getMethods();
         for (BotMetaDataResolver<?> resolver : resolvers) {
-            Arrays.stream(targetClass.getMethods())
+            Arrays.stream(methods)
                     .filter(m -> m.isAnnotationPresent(resolver.getAnnotationType()))
                     .forEach(m -> {
                         BotChatState methodChatState = AnnotationUtils.findAnnotation(m, BotChatState.class);

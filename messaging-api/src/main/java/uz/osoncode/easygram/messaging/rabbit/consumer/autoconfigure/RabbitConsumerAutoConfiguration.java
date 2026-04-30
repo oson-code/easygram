@@ -21,29 +21,29 @@ import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
-import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
-import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
-import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramExecutorServiceProvider;
+import uz.osoncode.easygram.core.provider.EasygramObjectMapperProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramClientProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
 import uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitBotUpdateListener;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitConsumerBot;
-import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitConnectionFactoryProvider;
+import uz.osoncode.easygram.messaging.rabbit.provider.EasygramRabbitConnectionFactoryProvider;
 
 import java.util.List;
 
 /**
  * Spring Boot auto-configuration for the RabbitMQ consumer transport module.
  *
- * <p>Activated when {@link SimpleMessageListenerContainer} is present on the classpath,
- * {@code easygram.messaging.type=CONSUMER}, and {@code easygram.messaging.consumer.type=RABBIT}.
- * Enables {@link EasygramRabbitProperties} binding (prefix {@code easygram.messaging.rabbit})
+ * <p>Activated when {@link SimpleMessageListenerContainer} is present on the classpath
+ * and {@code easygram.update.transport=RABBIT_CONSUMER} is set. Enables
+ * {@link EasygramRabbitProperties} binding (prefix {@code easygram.messaging.rabbit})
  * and registers:</p>
  * <ul>
  *   <li>{@link RabbitConsumerBot} — the bot that authenticates with Telegram and processes updates.</li>
  *   <li>{@link RabbitBotUpdateListener} — the AMQP listener that feeds deserialized updates into the bot.</li>
  *   <li>{@code botRabbitListenerContainer} — the programmatic {@link SimpleMessageListenerContainer}
- *       wired from {@link BotRabbitConnectionFactoryProvider} and {@link EasygramRabbitProperties}.</li>
+ *       wired from {@link EasygramRabbitConnectionFactoryProvider} and {@link EasygramRabbitProperties}.</li>
  *   <li>A {@link TopicExchange}, {@link Queue}, and {@link Binding} — auto-created by
  *       {@link RabbitAdmin} on startup when {@code create-if-absent=true} (default).</li>
  * </ul>
@@ -53,13 +53,12 @@ import java.util.List;
  */
 @AutoConfiguration
 @ConditionalOnClass(SimpleMessageListenerContainer.class)
-@ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "CONSUMER")
-@ConditionalOnProperty(prefix = "easygram.messaging.consumer", name = "type", havingValue = "RABBIT")
+@ConditionalOnProperty(prefix = "easygram.update", name = "transport", havingValue = "RABBIT_CONSUMER")
 @EnableConfigurationProperties(EasygramRabbitProperties.class)
 public class RabbitConsumerAutoConfiguration {
 
     /**
-     * Registers the default {@link BotRabbitConnectionFactoryProvider} if none is defined.
+     * Registers the default {@link EasygramRabbitConnectionFactoryProvider} if none is defined.
      * This simply returns Spring Boot's auto-configured {@link ConnectionFactory}.
      *
      * <p>Override this bean to provide a custom connection factory.</p>
@@ -69,7 +68,7 @@ public class RabbitConsumerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotRabbitConnectionFactoryProvider botRabbitConnectionFactoryProvider(
+    public EasygramRabbitConnectionFactoryProvider botRabbitConnectionFactoryProvider(
             ConnectionFactory connectionFactory) {
         return () -> connectionFactory;
     }
@@ -77,7 +76,7 @@ public class RabbitConsumerAutoConfiguration {
     /**
      * Provides the default {@code botRabbitListenerContainer}: a programmatic
      * {@link SimpleMessageListenerContainer} wired from
-     * {@link BotRabbitConnectionFactoryProvider} and {@link EasygramRabbitProperties}.
+     * {@link EasygramRabbitConnectionFactoryProvider} and {@link EasygramRabbitProperties}.
      *
      * <p>This fallback container has no observation support. It is skipped when the
      * {@link RabbitConsumerObservationConfig} inner class registers its own observed variant
@@ -91,7 +90,7 @@ public class RabbitConsumerAutoConfiguration {
     @Bean(name = "botRabbitListenerContainer")
     @ConditionalOnMissingBean(name = "botRabbitListenerContainer")
     public SimpleMessageListenerContainer botRabbitListenerContainer(
-            BotRabbitConnectionFactoryProvider connectionFactoryProvider,
+            EasygramRabbitConnectionFactoryProvider connectionFactoryProvider,
             EasygramRabbitProperties rabbitProperties,
             RabbitBotUpdateListener rabbitBotUpdateListener) {
         SimpleMessageListenerContainer container =
@@ -128,7 +127,7 @@ public class RabbitConsumerAutoConfiguration {
         @Bean(name = "botRabbitListenerContainer")
         @ConditionalOnMissingBean(name = "botRabbitListenerContainer")
         public SimpleMessageListenerContainer botRabbitListenerContainer(
-                BotRabbitConnectionFactoryProvider connectionFactoryProvider,
+                EasygramRabbitConnectionFactoryProvider connectionFactoryProvider,
                 EasygramRabbitProperties rabbitProperties,
                 RabbitBotUpdateListener rabbitBotUpdateListener,
                 ObservationRegistry observationRegistry) {
@@ -163,8 +162,8 @@ public class RabbitConsumerAutoConfiguration {
             List<BotFilter> filters,
             BotDispatcher botDispatcher,
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
-            BotTelegramClientProvider telegramClientProvider,
-            BotExecutorServiceProvider executorServiceProvider) {
+            EasygramTelegramClientProvider telegramClientProvider,
+            EasygramExecutorServiceProvider executorServiceProvider) {
         return new RabbitConsumerBot(botProperties, rabbitProperties, triggers, filters, botDispatcher,
                 botExceptionHandlerRegistry, telegramClientProvider, executorServiceProvider);
     }
@@ -180,7 +179,7 @@ public class RabbitConsumerAutoConfiguration {
     @ConditionalOnMissingBean
     public RabbitBotUpdateListener rabbitBotUpdateListener(
             RabbitConsumerBot rabbitConsumerBot,
-            BotObjectMapperProvider objectMapperProvider) {
+            EasygramObjectMapperProvider objectMapperProvider) {
         return new RabbitBotUpdateListener(rabbitConsumerBot, objectMapperProvider);
     }
 

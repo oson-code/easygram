@@ -161,6 +161,7 @@ public class BotMethodHandler implements BotHandler {
     @Override
     public void handle(BotRequest botRequest, BotResponse botResponse) throws InvocationTargetException, IllegalAccessException {
         log.trace("Dispatching to handler: {}.{}()", bean.getClass().getSimpleName(), method.getName());
+        botRequest.setAttribute("easygram.controllerClass", bean.getClass());
         BotHandlerInvocationContext context = new BotHandlerInvocationContext(botRequest, botResponse, method, bean);
         new DefaultBotHandlerInvocationChain(invocationFilters).proceed(context);
     }

@@ -11,7 +11,7 @@ import java.util.concurrent.ScheduledExecutorService;
  *
  * <pre>{@code
  * @Bean
- * public BotScheduledExecutorServiceProvider botScheduledExecutorServiceProvider() {
+ * public EasygramScheduledExecutorServiceProvider botScheduledExecutorServiceProvider() {
  *     ScheduledExecutorService scheduler =
  *             Executors.newScheduledThreadPool(2,
  *                     new ThreadFactoryBuilder().setNameFormat("bot-scheduler-%d").build());
@@ -27,7 +27,7 @@ import java.util.concurrent.ScheduledExecutorService;
  * @since 0.0.1
  */
 @FunctionalInterface
-public interface BotScheduledExecutorServiceProvider {
+public interface EasygramScheduledExecutorServiceProvider {
 
     /**
      * Returns the {@link ScheduledExecutorService} to use for long-poll scheduling.

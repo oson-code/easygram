@@ -12,7 +12,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
  * @since 0.0.1
  */
 @FunctionalInterface
-public interface BotRabbitTemplateProvider {
+public interface EasygramRabbitTemplateProvider {
 
     /**
      * Returns the {@link RabbitTemplate} to be used for publishing updates.

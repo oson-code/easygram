@@ -7,10 +7,10 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import uz.osoncode.easygram.core.autoconfigure.CoreAutoConfiguration;
-import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramClientProvider;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitBotUpdateListener;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitConsumerBot;
-import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitConnectionFactoryProvider;
+import uz.osoncode.easygram.messaging.rabbit.provider.EasygramRabbitConnectionFactoryProvider;
 import org.telegram.telegrambots.meta.api.methods.GetMe;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
@@ -30,14 +30,13 @@ class RabbitConsumerAutoConfigurationTest {
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withPropertyValues(
                     "easygram.token=" + BOT_TOKEN,
-                    "easygram.messaging.type=CONSUMER",
-                    "easygram.messaging.consumer.type=RABBIT"
+                    "easygram.update.transport=RABBIT_CONSUMER"
             )
             .withConfiguration(AutoConfigurations.of(
                     CoreAutoConfiguration.class,
                     RabbitConsumerAutoConfiguration.class
             ))
-            .withBean(BotTelegramClientProvider.class, RabbitConsumerAutoConfigurationTest::fakeTelegramClientProvider)
+            .withBean(EasygramTelegramClientProvider.class, RabbitConsumerAutoConfigurationTest::fakeTelegramClientProvider)
             .withBean(ConnectionFactory.class, () -> mock(CachingConnectionFactory.class));
 
     @Test
@@ -65,37 +64,56 @@ class RabbitConsumerAutoConfigurationTest {
     }
 
     @Test
-    void withoutConsumerType_doesNotRegisterBot() {
+    void withoutRabbitConsumerTransport_doesNotRegisterBot() {
         new ApplicationContextRunner()
                 .withPropertyValues(
-                        "easygram.token=" + BOT_TOKEN,
-                        "easygram.messaging.type=CONSUMER"
+                        "easygram.token=" + BOT_TOKEN
                 )
                 .withConfiguration(AutoConfigurations.of(
                         CoreAutoConfiguration.class,
                         RabbitConsumerAutoConfiguration.class
                 ))
-                .withBean(BotTelegramClientProvider.class, RabbitConsumerAutoConfigurationTest::fakeTelegramClientProvider)
+                .withBean(EasygramTelegramClientProvider.class, RabbitConsumerAutoConfigurationTest::fakeTelegramClientProvider)
                 .withBean(ConnectionFactory.class, () -> mock(CachingConnectionFactory.class))
                 .run(context -> assertThat(context).doesNotHaveBean(RabbitConsumerBot.class));
     }
 
     @Test
     void userProvidedConnectionFactoryProvider_suppressesDefault() {
-        BotRabbitConnectionFactoryProvider customProvider = () -> mock(CachingConnectionFactory.class);
+        EasygramRabbitConnectionFactoryProvider customProvider = () -> mock(CachingConnectionFactory.class);
 
-        runner.withBean(BotRabbitConnectionFactoryProvider.class, () -> customProvider)
+        runner.withBean(EasygramRabbitConnectionFactoryProvider.class, () -> customProvider)
                 .run(context -> {
-                    assertThat(context).hasSingleBean(BotRabbitConnectionFactoryProvider.class);
-                    assertThat(context.getBean(BotRabbitConnectionFactoryProvider.class))
+                    assertThat(context).hasSingleBean(EasygramRabbitConnectionFactoryProvider.class);
+                    assertThat(context.getBean(EasygramRabbitConnectionFactoryProvider.class))
                             .isSameAs(customProvider);
+                });
+    }
+
+    @Test
+    void userProvidedRabbitListener_suppressesDefault() {
+        RabbitBotUpdateListener custom = mock(RabbitBotUpdateListener.class);
+        runner.withBean(RabbitBotUpdateListener.class, () -> custom)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(RabbitBotUpdateListener.class);
+                    assertThat(context.getBean(RabbitBotUpdateListener.class)).isSameAs(custom);
+                });
+    }
+
+    @Test
+    void userProvidedRabbitConsumerBot_suppressesDefault() {
+        RabbitConsumerBot custom = mock(RabbitConsumerBot.class);
+        runner.withBean(RabbitConsumerBot.class, () -> custom)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(RabbitConsumerBot.class);
+                    assertThat(context.getBean(RabbitConsumerBot.class)).isSameAs(custom);
                 });
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
 
     @SuppressWarnings("unchecked")
-    private static BotTelegramClientProvider fakeTelegramClientProvider() {
+    private static EasygramTelegramClientProvider fakeTelegramClientProvider() {
         TelegramClient client = mock(TelegramClient.class);
         User fakeUser = User.builder()
                 .id(123L)

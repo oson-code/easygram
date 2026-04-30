@@ -3,12 +3,11 @@ easygram:
   # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
   token: "${BOT_TOKEN}"
 
+  update:
+    # Consume updates from RabbitMQ (produced by a separate bot instance).
+    transport: RABBIT_CONSUMER
+
   messaging:
-    # Declare this bot as a CONSUMER: it receives updates from RabbitMQ, not from Telegram directly.
-    type: CONSUMER
-    consumer:
-      # Broker type to consume from: KAFKA | RABBIT
-      type: RABBIT
     rabbit:
       # RabbitMQ queue to consume Telegram updates from
       queue: easygram-updates

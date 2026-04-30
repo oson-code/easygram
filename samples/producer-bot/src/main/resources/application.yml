@@ -26,9 +26,6 @@ easygram:
 
   # ── Messaging ──────────────────────────────────────────────────────────────
   messaging:
-    # Always PRODUCER for this image.
-    type: PRODUCER
-
     # true  → publish to broker only; local @BotController handlers are skipped (default)
     # false → publish to broker AND run local handlers
     forward-only: true

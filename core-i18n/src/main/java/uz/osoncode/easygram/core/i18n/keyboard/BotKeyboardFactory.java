@@ -25,6 +25,24 @@ import java.util.UUID;
  * determined from the incoming {@link BotRequest} (or an explicitly supplied
  * {@link Locale}), so the same handler code produces the correct language for every user.</p>
  *
+ * <h2>Activation</h2>
+ * <p>This bean is registered automatically by
+ * {@link uz.osoncode.easygram.core.i18n.autoconfigure.BotI18nAutoConfiguration}.
+ * You must set the following in your {@code application.yml}:</p>
+ * <pre>{@code
+ * easygram:
+ *   i18n:
+ *     enabled: true          # activates BotKeyboardFactory and all other i18n beans
+ *
+ * spring:
+ *   messages:
+ *     basename: messages/bot  # points to your message bundle files
+ * }</pre>
+ * <p>Without {@code easygram.i18n.enabled=true}, the entire {@code BotI18nAutoConfiguration}
+ * class is skipped and no i18n beans — including {@code BotKeyboardFactory} — will be present
+ * in the application context. Injecting this bean without the property set will cause a
+ * {@code NoSuchBeanDefinitionException} at startup.</p>
+ *
  * <h2>Inline keyboard (fluent builder)</h2>
  * <pre>{@code
  * InlineKeyboardMarkup keyboard = keyboardFactory.inline(request)

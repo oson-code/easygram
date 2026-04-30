@@ -60,9 +60,14 @@ public class BotArgumentResolverFactory {
                     .orElse(null);
 
             if (matched == null) {
-                log.warn("No argument resolver found for parameter '{}' of type '{}' — injecting null",
-                        parameter.getName(), parameter.getType().getSimpleName());
-                objects.add(optional ? Optional.empty() : null);
+                if (optional) {
+                    objects.add(Optional.empty());
+                } else {
+                    throw new IllegalStateException(
+                            "No BotArgumentResolver found for required parameter '" + parameter.getName()
+                            + "' of type '" + parameter.getType().getName()
+                            + "'. Register a custom BotArgumentResolver bean that supports this parameter type.");
+                }
                 continue;
             }
 

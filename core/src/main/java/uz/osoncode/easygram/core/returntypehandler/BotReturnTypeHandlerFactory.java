@@ -52,6 +52,10 @@ public class BotReturnTypeHandlerFactory {
      * @throws IllegalArgumentException if no registered handler supports the value type
      */
     public BotReturnTypeHandler getReturnTypeHandler(Object value) {
+        if (value == null) {
+            throw new IllegalArgumentException(
+                    "Handler method returned null. Declare the method as void, or return a supported type.");
+        }
         return returnTypeHandlers.stream()
                 .filter(handler -> handler.supportsElement(value))
                 .findFirst()

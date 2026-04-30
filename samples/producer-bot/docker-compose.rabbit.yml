@@ -45,7 +45,6 @@ services:
       # easygram.update.webhook.secret-token: <secret>
 
       # ── Messaging ─────────────────────────────────────────────────────────
-      easygram.messaging.type: PRODUCER
       easygram.messaging.forward-only: "true"
       easygram.messaging.producer.type: RABBIT
       easygram.messaging.rabbit.exchange: easygram-exchange

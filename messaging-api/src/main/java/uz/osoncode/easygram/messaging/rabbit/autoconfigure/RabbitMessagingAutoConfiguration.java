@@ -22,15 +22,17 @@ import uz.osoncode.easygram.core.bot.BotConfigurer;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
 import uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties;
 import uz.osoncode.easygram.messaging.rabbit.RabbitBotUpdatePublisher;
-import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitConnectionFactoryProvider;
-import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitTemplateProvider;
+import uz.osoncode.easygram.messaging.rabbit.provider.EasygramRabbitConnectionFactoryProvider;
+import uz.osoncode.easygram.messaging.rabbit.provider.EasygramRabbitTemplateProvider;
 
 /**
  * Spring Boot auto-configuration for the RabbitMQ {@code BotUpdatePublisher} implementation.
  *
- * <p>Activated when {@link RabbitTemplate} is present on the classpath,
- * {@code easygram.messaging.type=PRODUCER}, and {@code easygram.messaging.producer.type=RABBIT}.
- * Enables {@link EasygramRabbitProperties} binding and registers:</p>
+ * <p>Activated when {@link RabbitTemplate} is present on the classpath and
+ * {@code easygram.messaging.producer.type=RABBIT} is set. This producer activates
+ * independently of the update transport — any transport (long-polling, webhook, or
+ * custom) can publish updates to RabbitMQ. Enables {@link EasygramRabbitProperties} binding
+ * and registers:</p>
  * <ul>
  *   <li>{@link RabbitBotUpdatePublisher} — forwards every update to the configured exchange.</li>
  *   <li>A {@link TopicExchange}, {@link Queue}, and {@link Binding} — auto-created by
@@ -44,12 +46,11 @@ import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitTemplateProvider;
 @AutoConfiguration
 @ConditionalOnClass(RabbitTemplate.class)
 @EnableConfigurationProperties(EasygramRabbitProperties.class)
-@ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "PRODUCER")
 @ConditionalOnProperty(prefix = "easygram.messaging.producer", name = "type", havingValue = "RABBIT")
 public class RabbitMessagingAutoConfiguration {
 
     /**
-     * Registers the default {@link BotRabbitConnectionFactoryProvider} if none is defined.
+     * Registers the default {@link EasygramRabbitConnectionFactoryProvider} if none is defined.
      * This simply returns Spring Boot's auto-configured {@link ConnectionFactory}.
      *
      * <p>Override this bean to provide a custom connection factory — for example one
@@ -60,14 +61,14 @@ public class RabbitMessagingAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotRabbitConnectionFactoryProvider botRabbitConnectionFactoryProvider(
+    public EasygramRabbitConnectionFactoryProvider botRabbitConnectionFactoryProvider(
             ConnectionFactory connectionFactory) {
         return () -> connectionFactory;
     }
 
     /**
-     * Registers the default {@link BotRabbitTemplateProvider} if none is defined.
-     * The template is created from the {@link BotRabbitConnectionFactoryProvider}, so
+     * Registers the default {@link EasygramRabbitTemplateProvider} if none is defined.
+     * The template is created from the {@link EasygramRabbitConnectionFactoryProvider}, so
      * customising the connection factory automatically affects the template.
      *
      * @param connectionFactoryProvider the provider for the RabbitMQ connection factory
@@ -75,8 +76,8 @@ public class RabbitMessagingAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotRabbitTemplateProvider botRabbitTemplateProvider(
-            BotRabbitConnectionFactoryProvider connectionFactoryProvider) {
+    public EasygramRabbitTemplateProvider botRabbitTemplateProvider(
+            EasygramRabbitConnectionFactoryProvider connectionFactoryProvider) {
         RabbitTemplate template = new RabbitTemplate(connectionFactoryProvider.provide());
         return () -> template;
     }
@@ -92,7 +93,7 @@ public class RabbitMessagingAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(BotUpdatePublisher.class)
     public RabbitBotUpdatePublisher rabbitBotUpdatePublisher(
-            BotRabbitTemplateProvider templateProvider,
+            EasygramRabbitTemplateProvider templateProvider,
             EasygramRabbitProperties rabbitProperties,
             BotConfigurer botConfigurer) {
         return new RabbitBotUpdatePublisher(templateProvider, rabbitProperties, botConfigurer.objectMapper());
@@ -184,7 +185,7 @@ public class RabbitMessagingAutoConfiguration {
          */
         @Bean
         public SmartInitializingSingleton botRabbitTemplateObservationConfigurer(
-                BotRabbitTemplateProvider templateProvider) {
+                EasygramRabbitTemplateProvider templateProvider) {
             return () -> templateProvider.provide().setObservationEnabled(true);
         }
     }

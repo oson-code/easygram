@@ -10,7 +10,7 @@ import org.telegram.telegrambots.meta.TelegramUrl;
  *
  * <pre>{@code
  * @Bean
- * public BotTelegramUrlProvider botTelegramUrlProvider() {
+ * public EasygramTelegramUrlProvider botTelegramUrlProvider() {
  *     return () -> new TelegramUrl("https://my-local-bot-api.example.com/");
  * }
  * }</pre>
@@ -21,7 +21,7 @@ import org.telegram.telegrambots.meta.TelegramUrl;
  * @since 0.0.1
  */
 @FunctionalInterface
-public interface BotTelegramUrlProvider {
+public interface EasygramTelegramUrlProvider {
 
     /**
      * Returns the {@link TelegramUrl} to use for all Telegram API requests.

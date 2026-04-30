@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.messaging.kafka.autoconfigure;
 
 import io.micrometer.observation.ObservationRegistry;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -18,15 +19,17 @@ import uz.osoncode.easygram.core.bot.BotConfigurer;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
 import uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties;
 import uz.osoncode.easygram.messaging.kafka.KafkaBotUpdatePublisher;
-import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaProducerFactoryProvider;
-import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
+import uz.osoncode.easygram.messaging.kafka.provider.EasygramKafkaProducerFactoryProvider;
+import uz.osoncode.easygram.messaging.kafka.provider.EasygramKafkaTemplateProvider;
 
 /**
  * Spring Boot auto-configuration for the Kafka {@code BotUpdatePublisher} implementation.
  *
- * <p>Activated when {@link KafkaTemplate} is present on the classpath,
- * {@code easygram.messaging.type=PRODUCER}, and {@code easygram.messaging.producer.type=KAFKA}.
- * Enables {@link EasygramKafkaProperties} binding and registers:</p>
+ * <p>Activated when {@link KafkaTemplate} is present on the classpath and
+ * {@code easygram.messaging.producer.type=KAFKA} is set. This producer activates
+ * independently of the update transport — any transport (long-polling, webhook, or
+ * custom) can publish updates to Kafka. Enables {@link EasygramKafkaProperties} binding
+ * and registers:</p>
  * <ul>
  *   <li>{@link KafkaBotUpdatePublisher} — forwards every update to the configured topic.</li>
  *   <li>{@code NewTopic} — auto-creates the topic if {@code create-if-absent=true} (default)
@@ -37,15 +40,15 @@ import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 @AutoConfiguration
 @ConditionalOnClass(KafkaTemplate.class)
 @EnableConfigurationProperties(EasygramKafkaProperties.class)
-@ConditionalOnProperty(prefix = "easygram.messaging", name = "type", havingValue = "PRODUCER")
 @ConditionalOnProperty(prefix = "easygram.messaging.producer", name = "type", havingValue = "KAFKA")
 public class KafkaMessagingAutoConfiguration {
 
     /**
-     * Registers the default {@link BotKafkaProducerFactoryProvider} if none is defined.
+     * Registers the default {@link EasygramKafkaProducerFactoryProvider} if none is defined.
      * This simply returns Spring Boot's auto-configured {@link ProducerFactory}.
      *
      * <p>Override this bean to provide a custom producer factory — for example one
@@ -56,14 +59,14 @@ public class KafkaMessagingAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotKafkaProducerFactoryProvider botKafkaProducerFactoryProvider(
+    public EasygramKafkaProducerFactoryProvider botKafkaProducerFactoryProvider(
             ProducerFactory<String, String> producerFactory) {
         return () -> producerFactory;
     }
 
     /**
-     * Registers the default {@link BotKafkaTemplateProvider} if none is defined.
-     * The template is created from the {@link BotKafkaProducerFactoryProvider}, so
+     * Registers the default {@link EasygramKafkaTemplateProvider} if none is defined.
+     * The template is created from the {@link EasygramKafkaProducerFactoryProvider}, so
      * customising the producer factory automatically affects the template.
      *
      * @param producerFactoryProvider the provider for the Kafka producer factory
@@ -71,8 +74,8 @@ public class KafkaMessagingAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotKafkaTemplateProvider botKafkaTemplateProvider(
-            BotKafkaProducerFactoryProvider producerFactoryProvider) {
+    public EasygramKafkaTemplateProvider botKafkaTemplateProvider(
+            EasygramKafkaProducerFactoryProvider producerFactoryProvider) {
         KafkaTemplate<String, String> template = new KafkaTemplate<>(producerFactoryProvider.provide());
         return () -> template;
     }
@@ -88,10 +91,17 @@ public class KafkaMessagingAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(BotUpdatePublisher.class)
     public KafkaBotUpdatePublisher kafkaBotUpdatePublisher(
-            BotKafkaTemplateProvider templateProvider,
+            EasygramKafkaTemplateProvider templateProvider,
             EasygramKafkaProperties kafkaProperties,
             BotConfigurer botConfigurer) {
-        return new KafkaBotUpdatePublisher(templateProvider, kafkaProperties, botConfigurer.objectMapper());
+        KafkaBotUpdatePublisher publisher =
+                new KafkaBotUpdatePublisher(templateProvider, kafkaProperties, botConfigurer.objectMapper());
+        if (kafkaProperties.replicationFactor() < 2) {
+            log.warn("easygram: kafka replication-factor is {} — topic '{}' has no fault tolerance. "
+                    + "Set easygram.messaging.kafka.replication-factor >= 2 for production environments.",
+                    kafkaProperties.replicationFactor(), kafkaProperties.topic());
+        }
+        return publisher;
     }
 
     /**
@@ -142,7 +152,7 @@ public class KafkaMessagingAutoConfiguration {
          */
         @Bean
         public SmartInitializingSingleton botKafkaTemplateObservationConfigurer(
-                BotKafkaTemplateProvider templateProvider) {
+                EasygramKafkaTemplateProvider templateProvider) {
             return () -> templateProvider.provide().setObservationEnabled(true);
         }
     }

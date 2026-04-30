@@ -18,7 +18,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
  * @since 0.0.6
  */
 @FunctionalInterface
-public interface BotRabbitConnectionFactoryProvider {
+public interface EasygramRabbitConnectionFactoryProvider {
 
     /**
      * Returns the {@link ConnectionFactory} to be used for both publishing and consuming.

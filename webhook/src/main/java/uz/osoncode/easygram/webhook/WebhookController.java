@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
+import uz.osoncode.easygram.core.provider.EasygramObjectMapperProvider;
 import uz.osoncode.easygram.core.util.Strings;
 
 import java.util.Objects;
@@ -26,7 +26,7 @@ import java.util.Objects;
  * the {@code X-Telegram-Bot-Api-Secret-Token} header that Telegram attaches to each delivery.
  * Requests with a missing or mismatched token are rejected with {@code 401 Unauthorized}.</p>
  *
- * <p>Accepted updates are deserialized via {@link BotObjectMapperProvider} and forwarded to
+ * <p>Accepted updates are deserialized via {@link EasygramObjectMapperProvider} and forwarded to
  * {@link WebhookBot#handleUpdate(Update)} for processing.</p>
  *
  * @author Islom Mirsaburov
@@ -39,7 +39,7 @@ public class WebhookController {
 
     private final WebhookBot webhookBot;
     private final EasygramWebhookProperties webhookBotProperties;
-    private final BotObjectMapperProvider objectMapperProvider;
+    private final EasygramObjectMapperProvider objectMapperProvider;
 
     /**
      * Handles an incoming Telegram update delivered via webhook.

@@ -9,8 +9,8 @@ import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
-import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
-import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramExecutorServiceProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramClientProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
 import uz.osoncode.easygram.messaging.kafka.EasygramKafkaProperties;
 
@@ -61,8 +61,8 @@ public class KafkaConsumerBot extends Bot implements InitializingBean, Disposabl
             List<BotFilter> filters,
             BotDispatcher botDispatcher,
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
-            BotTelegramClientProvider telegramClientProvider,
-            BotExecutorServiceProvider executorServiceProvider) {
+            EasygramTelegramClientProvider telegramClientProvider,
+            EasygramExecutorServiceProvider executorServiceProvider) {
         super(
                 botProperties.token(),
                 triggers,
