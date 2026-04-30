@@ -33,7 +33,14 @@ public class RabbitBotUpdateListener implements MessageListener {
      * as a Telegram {@link Update} JSON payload, and delegates processing to
      * {@link RabbitConsumerBot#handleUpdate(Update)}.
      *
+     * <p><strong>Error handling:</strong> any exception during deserialization or processing is
+     * logged and then rethrown so that the
+     * {@link org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer} can apply
+     * its configured error handler (nack, DLQ routing, etc.) instead of silently auto-acking a
+     * failed message and losing it permanently.</p>
+     *
      * @param message the raw AMQP message from RabbitMQ
+     * @throws RuntimeException wrapping the original cause so the AMQP container error-handler fires
      */
     @Override
     public void onMessage(Message message) {
@@ -42,7 +49,10 @@ public class RabbitBotUpdateListener implements MessageListener {
             Update update = objectMapperProvider.provide().readValue(message.getBody(), Update.class);
             rabbitConsumerBot.handleUpdate(update);
         } catch (Exception e) {
-            log.error("Failed to process RabbitMQ message: messageId={}", message.getMessageProperties().getMessageId(), e);
+            log.error("Failed to process RabbitMQ message (message will be nacked/requeued): messageId={}",
+                    message.getMessageProperties().getMessageId(), e);
+            if (e instanceof RuntimeException re) throw re;
+            throw new RuntimeException("Failed to process RabbitMQ message", e);
         }
     }
 }

@@ -777,4 +777,26 @@ public final class PlainReply implements MarkupAware {
     public PlainReply withLinkPreviewOptions(LinkPreviewOptions linkPreviewOptions) {
         return new PlainReply(this.text, this.args, options.withLinkPreviewOptions(linkPreviewOptions));
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PlainReply that)) return false;
+        return Objects.equals(text, that.text)
+                && java.util.Arrays.equals(args, that.args)
+                && Objects.equals(options, that.options);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(text, options);
+        result = 31 * result + java.util.Arrays.hashCode(args);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "PlainReply{text='" + text + "', args=" + java.util.Arrays.toString(args)
+                + ", options=" + options + '}';
+    }
 }

@@ -76,8 +76,10 @@ public class WebhookController {
             Update update = objectMapperProvider.provide().readValue(body, Update.class);
             webhookBot.handleUpdate(update);
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            log.error("Failed to deserialize webhook update", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            // Permanently malformed JSON — return 200 so Telegram does NOT retry.
+            // Retrying is pointless and wastes resources; log ERROR for operator visibility.
+            log.error("Discarding webhook update: failed to deserialize JSON payload (Telegram will NOT retry) — body={}", body, e);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error("Failed to process webhook update — returning 500 so Telegram will retry", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

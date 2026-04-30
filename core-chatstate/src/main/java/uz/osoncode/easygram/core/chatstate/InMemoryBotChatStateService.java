@@ -35,6 +35,11 @@ public class InMemoryBotChatStateService implements BotChatStateService, SmartIn
     /** Thread-safe map from chat ID to the current state string. */
     private final ConcurrentHashMap<Long, String> stateMap = new ConcurrentHashMap<>();
 
+    /** Emitted once when the map exceeds the soft threshold; avoids log spam. */
+    private final java.util.concurrent.atomic.AtomicBoolean sizeWarnEmitted = new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    private static final int SIZE_WARN_THRESHOLD = 10_000;
+
     private final Counter getHitCounter;
     private final Counter getMissCounter;
     private final Counter setCounter;
@@ -82,6 +87,7 @@ public class InMemoryBotChatStateService implements BotChatStateService, SmartIn
      */
     @Override
     public String getState(Long chatId) {
+        Objects.requireNonNull(chatId, "chatId must not be null");
         String state = stateMap.get(chatId);
         log.trace("Chat state get: chatId={} state={}", chatId, state);
         if (state != null) {
@@ -102,12 +108,20 @@ public class InMemoryBotChatStateService implements BotChatStateService, SmartIn
      */
     @Override
     public void setState(Long chatId, String state) {
+        Objects.requireNonNull(chatId, "chatId must not be null");
         if (Objects.isNull(state)) {
             throw new IllegalArgumentException("state must not be null — use clearState(chatId) to remove the current state");
         }
         String previous = stateMap.put(chatId, state);
         if (setCounter != null) setCounter.increment();
         log.debug("Chat state set: chatId={} previousState={} newState={}", chatId, previous, state);
+
+        int size = stateMap.size();
+        if (size > SIZE_WARN_THRESHOLD && sizeWarnEmitted.compareAndSet(false, true)) {
+            log.warn("InMemoryBotChatStateService: state map has grown to {} entries (threshold={})." +
+                     " This implementation is not suitable for large-scale deployments — consider replacing it" +
+                     " with a Redis-backed BotChatStateService bean.", size, SIZE_WARN_THRESHOLD);
+        }
     }
 
     /**
@@ -118,6 +132,7 @@ public class InMemoryBotChatStateService implements BotChatStateService, SmartIn
      */
     @Override
     public void clearState(Long chatId) {
+        Objects.requireNonNull(chatId, "chatId must not be null");
         String removed = stateMap.remove(chatId);
         if (clearCounter != null) clearCounter.increment();
         log.debug("Chat state cleared: chatId={} removedState={}", chatId, removed);

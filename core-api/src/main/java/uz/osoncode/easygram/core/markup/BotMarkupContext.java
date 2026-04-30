@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.markup;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -57,6 +58,9 @@ public final class BotMarkupContext {
     /**
      * Creates a {@code BotMarkupContext} from the given parameter map.
      *
+     * <p>The provided map is defensively copied so that subsequent mutations of the
+     * caller's map do not affect this context. The resulting instance is fully immutable.</p>
+     *
      * @param params the parameters; may be {@code null} or empty (returns {@link #EMPTY})
      * @return a new immutable {@code BotMarkupContext}
      */
@@ -64,7 +68,7 @@ public final class BotMarkupContext {
         if (Objects.isNull(params) || params.isEmpty()) {
             return EMPTY;
         }
-        return new BotMarkupContext(params);
+        return new BotMarkupContext(new HashMap<>(params));
     }
 
     /**

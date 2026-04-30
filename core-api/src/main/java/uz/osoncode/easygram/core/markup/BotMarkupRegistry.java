@@ -3,6 +3,7 @@ package uz.osoncode.easygram.core.markup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import uz.osoncode.easygram.core.model.BotRequest;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -42,6 +43,26 @@ public interface BotMarkupRegistry {
      * @param factory the factory function; must not be {@code null}
      */
     void register(String id, Function<BotRequest, ReplyKeyboard> factory);
+
+    /**
+     * Resolves the markup for the given ID as an {@link Optional}, avoiding null checks at call sites.
+     *
+     * <p>Returns an empty {@link Optional} when the ID is not registered, making it easy to
+     * compose with {@code .ifPresent()}, {@code .orElseGet()}, or other {@code Optional} combinators:</p>
+     * <pre>{@code
+     * registry.resolveOptional("main_menu", request)
+     *         .ifPresent(keyboard -> sendMessage.setReplyMarkup(keyboard));
+     * }</pre>
+     *
+     * @param id      the markup ID to look up; must not be {@code null}
+     * @param request the current bot request for locale resolution; may be {@code null}
+     *                for static markups
+     * @return an {@link Optional} containing the resolved keyboard, or empty if not registered
+     * @since 0.0.7
+     */
+    default Optional<ReplyKeyboard> resolveOptional(String id, BotRequest request) {
+        return Optional.ofNullable(resolve(id, request));
+    }
 
     /**
      * Resolves the markup for the given ID using the provided request context.

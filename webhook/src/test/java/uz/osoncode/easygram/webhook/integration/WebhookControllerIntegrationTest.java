@@ -97,10 +97,11 @@ class WebhookControllerIntegrationTest {
     }
 
     @Test
-    void invalidJson_returns500() {
+    void invalidJson_returns200() {
+        // Permanently bad JSON → 200 so Telegram does NOT retry (retrying is pointless)
         ResponseEntity<Void> response = controller.receiveUpdate("{ invalid json }", null);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
