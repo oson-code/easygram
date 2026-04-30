@@ -67,13 +67,21 @@ public class BotApiMethodsSenderFilter implements BotFilter {
             return;
         }
 
+        RuntimeException sendFailure = null;
         for (BotApiMethod<?> botApiMethod : botResponse.getBotApiMethods()) {
             try {
                 telegramClient.execute(botApiMethod);
             } catch (Throwable e) {
-                log.error("Error while sending BotApiMethod: {} for update: {}",
-                        botApiMethod, botRequest.getUpdate(), e);
+                log.error("Failed to send BotApiMethod '{}' for update {} — will rethrow after all methods are attempted",
+                        botApiMethod.getClass().getSimpleName(), botRequest.getUpdate().getUpdateId(), e);
+                // Wrap and remember; attempt remaining methods before propagating.
+                sendFailure = (e instanceof RuntimeException re) ? re
+                        : new RuntimeException("Telegram send failure for update " + botRequest.getUpdate().getUpdateId(), e);
             }
+        }
+
+        if (sendFailure != null) {
+            throw sendFailure;
         }
     }
 }

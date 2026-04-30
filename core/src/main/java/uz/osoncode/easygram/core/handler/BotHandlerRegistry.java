@@ -2,9 +2,9 @@ package uz.osoncode.easygram.core.handler;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Registry that stores and maintains sorted lists of {@link BotHandler} instances.
@@ -30,13 +30,13 @@ import java.util.List;
 public class BotHandlerRegistry {
 
     /** State-specific handlers sorted by priority, evaluated before all other handlers. */
-    private final List<BotHandler> stateHandlers = new ArrayList<>();
+    private final List<BotHandler> stateHandlers = new CopyOnWriteArrayList<>();
 
     /** Specific handlers sorted by priority, evaluated after state handlers. */
-    private final List<BotHandler> botHandlers = new ArrayList<>();
+    private final List<BotHandler> botHandlers = new CopyOnWriteArrayList<>();
 
     /** Fallback handlers sorted by priority, evaluated when no state or specific handler matches. */
-    private final List<BotHandler> defaultHandlers = new ArrayList<>();
+    private final List<BotHandler> defaultHandlers = new CopyOnWriteArrayList<>();
 
     /**
      * Returns an unmodifiable view of the state-specific handler list.

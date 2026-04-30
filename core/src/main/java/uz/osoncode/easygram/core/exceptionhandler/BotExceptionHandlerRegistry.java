@@ -64,7 +64,12 @@ public class BotExceptionHandlerRegistry {
     ) {
         int depthCompare = getDepth(b.getExceptionType()) - getDepth(a.getExceptionType());
         if (depthCompare != 0) return depthCompare;
-        return Integer.compare(a.getPriority(), b.getPriority());
+        int priorityCompare = Integer.compare(a.getPriority(), b.getPriority());
+        if (priorityCompare != 0) return priorityCompare;
+        // Stable tiebreak: canonical class name ensures deterministic ordering across JVM runs.
+        String aName = a.getClass().getCanonicalName();
+        String bName = b.getClass().getCanonicalName();
+        return aName != null ? aName.compareTo(bName != null ? bName : "") : 0;
     }
 
     /**

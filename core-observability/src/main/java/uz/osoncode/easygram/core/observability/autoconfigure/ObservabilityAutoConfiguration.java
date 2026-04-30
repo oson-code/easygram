@@ -1,5 +1,6 @@
 package uz.osoncode.easygram.core.observability.autoconfigure;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.observation.ObservationRegistry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -9,6 +10,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import uz.osoncode.easygram.core.bot.BotConfigurer;
 import uz.osoncode.easygram.core.observability.BotObservabilityFilter;
+
+import java.util.Optional;
 
 /**
  * Spring Boot auto-configuration for the {@code core-observability} module.
@@ -49,13 +52,16 @@ public class ObservabilityAutoConfiguration {
      *
      * @param observationRegistry the Micrometer registry to record observations into
      * @param botConfigurer       provides the active transport type for the {@code transport.type} tag
+     * @param meterRegistry       optional {@link MeterRegistry} for the dedicated
+     *                            {@code easygram.handler.errors} counter
      * @return a configured {@link BotObservabilityFilter} instance
      */
     @Bean
     @ConditionalOnMissingBean
     public BotObservabilityFilter botObservabilityFilter(
             ObservationRegistry observationRegistry,
-            BotConfigurer botConfigurer) {
-        return new BotObservabilityFilter(observationRegistry, botConfigurer);
+            BotConfigurer botConfigurer,
+            Optional<MeterRegistry> meterRegistry) {
+        return new BotObservabilityFilter(observationRegistry, botConfigurer, meterRegistry.orElse(null));
     }
 }

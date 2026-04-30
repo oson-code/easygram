@@ -12,7 +12,7 @@
 
     <groupId>uz.osoncode.easygram.samples</groupId>
     <artifactId>producer-bot</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.7</version>
     <name>sample :: producer-bot</name>
     <description>
         Docker-ready Telegram bot that forwards every incoming update to Kafka or RabbitMQ.
@@ -22,7 +22,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <library.version>0.0.5</library.version>
+        <library.version>0.0.7</library.version>
     </properties>
 
     <dependencies>

@@ -33,6 +33,12 @@ import org.springframework.validation.annotation.Validated;
  * @param path                  the local HTTP endpoint path that receives webhook updates; defaults to {@code /webhook}
  * @param secretToken           an optional secret token sent by Telegram in the
  *                              {@code X-Telegram-Bot-Api-Secret-Token} header for request validation
+ * @param requireSecretToken    when {@code true}, the application fails to start if
+ *                              {@code secretToken} is blank, ensuring the endpoint is never left
+ *                              unprotected in production; defaults to {@code false}
+ * @param maxBodyBytes          maximum allowed size of the incoming webhook request body in bytes;
+ *                              requests exceeding this limit are rejected with {@code 413}; defaults
+ *                              to {@code 1048576} (1 MB) to guard against malicious large payloads
  * @param maxConnections        maximum allowed number of simultaneous HTTPS connections
  *                              to the webhook (1–100); defaults to {@code 40} (Telegram's default)
  * @param dropPendingUpdates    when {@code true}, pending updates are dropped when the webhook
@@ -58,6 +64,21 @@ public record EasygramWebhookProperties(
 
         /** Optional secret token validated on every incoming webhook request. */
         String secretToken,
+
+        /**
+         * When {@code true}, the application refuses to start if {@code secretToken} is blank.
+         * Use this in production to ensure the endpoint is never left unprotected.
+         */
+        @DefaultValue("false")
+        Boolean requireSecretToken,
+
+        /**
+         * Maximum allowed request-body size in bytes.
+         * Requests exceeding this limit are rejected with {@code 413 Payload Too Large}.
+         * Defaults to 1 MB (1,048,576 bytes).
+         */
+        @DefaultValue("1048576")
+        Long maxBodyBytes,
 
         /** Maximum number of simultaneous Telegram-to-server connections (1–100). Defaults to {@code 40}. */
         @DefaultValue("40")

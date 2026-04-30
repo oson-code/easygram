@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.webhook.autoconfigure;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -77,6 +78,12 @@ public class WebhookAutoConfiguration {
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
             EasygramTelegramClientProvider telegramClientProvider,
             EasygramExecutorServiceProvider executorServiceProvider) {
+        if (webhookBotProperties.requireSecretToken() != null && webhookBotProperties.requireSecretToken()
+                && (webhookBotProperties.secretToken() == null || webhookBotProperties.secretToken().isBlank())) {
+            throw new BeanCreationException("webhookBot",
+                    "easygram.update.webhook.require-secret-token is true but secret-token is blank. "
+                    + "Set easygram.update.webhook.secret-token to a non-blank value or disable the check.");
+        }
         if (webhookBotProperties.secretToken() == null || webhookBotProperties.secretToken().isBlank()) {
             log.warn("easygram: webhook secret-token is not configured — any client that knows your "
                     + "webhook URL can POST fake updates to {}. "

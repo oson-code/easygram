@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import uz.osoncode.easygram.core.provider.EasygramObjectMapperProvider;
 import uz.osoncode.easygram.core.util.Strings;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
@@ -70,6 +71,13 @@ public class WebhookController {
                 && !webhookBotProperties.secretToken().equals(secretToken)) {
             log.warn("Rejected webhook request: invalid or missing secret token");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        long bodyBytes = body.getBytes(StandardCharsets.UTF_8).length;
+        long maxBytes = Objects.requireNonNullElse(webhookBotProperties.maxBodyBytes(), 1_048_576L);
+        if (bodyBytes > maxBytes) {
+            log.warn("Rejected webhook request: body size {} bytes exceeds limit of {} bytes", bodyBytes, maxBytes);
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).build();
         }
 
         try {

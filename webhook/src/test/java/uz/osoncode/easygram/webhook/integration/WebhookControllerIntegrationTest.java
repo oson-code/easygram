@@ -57,7 +57,7 @@ class WebhookControllerIntegrationTest {
 
         EasygramProperties props = new EasygramProperties("test-token");
         webhookProperties = new EasygramWebhookProperties(
-                "https://example.com/webhook", "/webhook", null, 40, false, false);
+                "https://example.com/webhook", "/webhook", null, false, 1_048_576L, 40, false, false);
 
         BotHandlerRegistry registry = new BotHandlerRegistry();
         // Register a no-op default handler so the dispatcher doesn't throw for valid updates
@@ -144,7 +144,7 @@ class WebhookControllerIntegrationTest {
     @Test
     void withSecretToken_correctToken_returns200() {
         webhookProperties = new EasygramWebhookProperties(
-                "https://example.com/webhook", "/webhook", "my-secret", 40, false, false);
+                "https://example.com/webhook", "/webhook", "my-secret", false, 1_048_576L, 40, false, false);
         controller = new WebhookController(webhookBot, webhookProperties, mapperProvider);
 
         String updateJson = """
@@ -160,7 +160,7 @@ class WebhookControllerIntegrationTest {
     @Test
     void withSecretToken_wrongToken_returns401() {
         webhookProperties = new EasygramWebhookProperties(
-                "https://example.com/webhook", "/webhook", "my-secret", 40, false, false);
+                "https://example.com/webhook", "/webhook", "my-secret", false, 1_048_576L, 40, false, false);
         controller = new WebhookController(webhookBot, webhookProperties, mapperProvider);
 
         String updateJson = """
@@ -176,7 +176,7 @@ class WebhookControllerIntegrationTest {
     @Test
     void withSecretToken_missingHeader_returns401() {
         webhookProperties = new EasygramWebhookProperties(
-                "https://example.com/webhook", "/webhook", "my-secret", 40, false, false);
+                "https://example.com/webhook", "/webhook", "my-secret", false, 1_048_576L, 40, false, false);
         controller = new WebhookController(webhookBot, webhookProperties, mapperProvider);
 
         String updateJson = """
@@ -187,5 +187,18 @@ class WebhookControllerIntegrationTest {
 
         ResponseEntity<Void> response = controller.receiveUpdate(updateJson, null);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void oversizedBody_returns413() {
+        webhookProperties = new EasygramWebhookProperties(
+                "https://example.com/webhook", "/webhook", null, false, 10L, 40, false, false);
+        controller = new WebhookController(webhookBot, webhookProperties, mapperProvider);
+
+        // Body longer than 10 bytes
+        String bigBody = "x".repeat(100);
+
+        ResponseEntity<Void> response = controller.receiveUpdate(bigBody, null);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE);
     }
 }

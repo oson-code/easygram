@@ -41,6 +41,9 @@ public class UserLanguageCodeLocaleResolver implements BotLocaleResolver {
      */
     @Override
     public Locale resolve(BotRequest request) {
+        if (request == null) {
+            return defaultLocale;
+        }
         User user = request.getUser();
         if (Objects.nonNull(user)) {
             String langCode = user.getLanguageCode();

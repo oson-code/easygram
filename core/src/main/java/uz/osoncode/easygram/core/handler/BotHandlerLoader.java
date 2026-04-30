@@ -3,11 +3,15 @@ package uz.osoncode.easygram.core.handler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.util.StringUtils;
 import uz.osoncode.easygram.core.annotation.BotOrder;
+import uz.osoncode.easygram.core.bind.annotation.BotForwardChatState;
+import uz.osoncode.easygram.core.bind.annotation.BotReplyMarkup;
 import uz.osoncode.easygram.core.chatstate.BotChatState;
 import uz.osoncode.easygram.core.handler.metadataresolver.BotMetaDataDefaultResolver;
 import uz.osoncode.easygram.core.handler.metadataresolver.BotMetaDataResolver;
@@ -153,6 +157,22 @@ public class BotHandlerLoader implements ApplicationRunner {
 
                         BotOrder botOrderAnnotation = AnnotationUtils.findAnnotation(m, BotOrder.class);
                         int order = Objects.nonNull(botOrderAnnotation) ? botOrderAnnotation.value() : Integer.MAX_VALUE;
+
+                        BotReplyMarkup replyMarkup = AnnotationUtils.findAnnotation(m, BotReplyMarkup.class);
+                        if (Objects.nonNull(replyMarkup) && !StringUtils.hasText(replyMarkup.value())) {
+                            throw new BeanCreationException(
+                                    "BotHandlerLoader",
+                                    "@BotReplyMarkup on method '" + targetClass.getName() + "#" + m.getName()
+                                    + "' has a blank value. Provide the name of a registered @BotMarkup.");
+                        }
+
+                        BotForwardChatState forwardChatState = AnnotationUtils.findAnnotation(m, BotForwardChatState.class);
+                        if (Objects.nonNull(forwardChatState) && !StringUtils.hasText(forwardChatState.value())) {
+                            throw new BeanCreationException(
+                                    "BotHandlerLoader",
+                                    "@BotForwardChatState on method '" + targetClass.getName() + "#" + m.getName()
+                                    + "' has a blank value. Provide a non-blank state name.");
+                        }
 
                         Consumer<BotHandler> registrar = hasSpecificState
                                 ? botHandlerRegistry::registerState

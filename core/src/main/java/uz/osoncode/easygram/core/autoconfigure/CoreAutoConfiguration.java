@@ -135,8 +135,11 @@ import uz.osoncode.easygram.core.bot.BotTransportStartupValidator;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.context.ApplicationContext;
 
@@ -1333,29 +1336,39 @@ public class CoreAutoConfiguration {
     }
 
     /**
-     * Default {@link EasygramExecutorServiceProvider} backed by a fixed-size thread pool.
+     * Default {@link EasygramExecutorServiceProvider} backed by a bounded thread pool
+     * with {@link ThreadPoolExecutor.CallerRunsPolicy} to provide natural backpressure.
      *
      * <p>The pool size is {@code max(2, availableProcessors())} so that every update is processed
      * concurrently on multi-core hosts. Telegram delivers up to 100 updates per long-poll request;
      * a single-threaded executor would serialize all of them and cap throughput to roughly
      * {@code 1000 / handlerLatencyMs} updates per second.</p>
      *
+     * <p>The work queue is capped at 500 tasks. When the queue is full the polling thread
+     * itself processes the update ({@link ThreadPoolExecutor.CallerRunsPolicy}), preventing
+     * unbounded heap growth under sustained high load.</p>
+     *
      * <p>Override this bean to supply a different {@link ExecutorService} — for example a virtual-
      * thread executor on JDK 21+, or a pool with custom rejection policy.</p>
      *
-     * @return a {@link EasygramExecutorServiceProvider} backed by a fixed thread pool
+     * @return a {@link EasygramExecutorServiceProvider} backed by a bounded thread pool
      */
     @Bean
     @ConditionalOnMissingBean
     public EasygramExecutorServiceProvider botExecutorServiceProvider() {
         int poolSize = Math.max(2, Runtime.getRuntime().availableProcessors());
-        java.util.concurrent.atomic.AtomicInteger counter = new java.util.concurrent.atomic.AtomicInteger(1);
-        ExecutorService executor = Executors.newFixedThreadPool(poolSize,
+        AtomicInteger counter = new AtomicInteger(1);
+        ExecutorService executor = new ThreadPoolExecutor(
+                poolSize,
+                poolSize,
+                0L, TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(500),
                 r -> {
                     Thread t = new Thread(r, "easygram-update-" + counter.getAndIncrement());
                     t.setDaemon(false);
                     return t;
-                });
+                },
+                new ThreadPoolExecutor.CallerRunsPolicy());
         return () -> executor;
     }
 

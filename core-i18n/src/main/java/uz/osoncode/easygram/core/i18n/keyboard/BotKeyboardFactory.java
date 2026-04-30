@@ -122,6 +122,7 @@ public class BotKeyboardFactory {
      * @return a fully-built {@link InlineKeyboardButton}
      */
     public InlineKeyboardButton inlineButton(String textCode, String callbackData, BotRequest request) {
+        Objects.requireNonNull(request, "request must not be null — use inlineButton(textCode, callbackData, Locale) if no request is available");
         return InlineKeyboardButton.builder()
                 .text(messageSource.getMessage(textCode, request))
                 .callbackData(callbackData)
@@ -166,6 +167,7 @@ public class BotKeyboardFactory {
      */
     public InlineKeyboardButton dynamicInlineButton(String textCode, BotDynamicCallbackData payload,
                                                     BotRequest request) {
+        Objects.requireNonNull(request, "request must not be null — use dynamicInlineButton(textCode, payload, Locale) if no request is available");
         return buildDynamicButton(textCode, payload, messageSource.getMessage(textCode, request));
     }
 
@@ -237,6 +239,7 @@ public class BotKeyboardFactory {
      * @return a new builder instance
      */
     public InlineKeyboardBuilder inline(BotRequest request) {
+        Objects.requireNonNull(request, "request must not be null — use inline(Locale) if no request is available");
         return new InlineKeyboardBuilder(request, null);
     }
 
@@ -264,6 +267,7 @@ public class BotKeyboardFactory {
      * @return a fully-built {@link KeyboardButton}
      */
     public KeyboardButton replyButton(String textCode, BotRequest request) {
+        Objects.requireNonNull(request, "request must not be null — use replyButton(textCode, Locale) if no request is available");
         return KeyboardButton.builder()
                 .text(messageSource.getMessage(textCode, request))
                 .build();
@@ -294,6 +298,7 @@ public class BotKeyboardFactory {
      * @return a new builder instance
      */
     public ReplyKeyboardBuilder reply(BotRequest request) {
+        Objects.requireNonNull(request, "request must not be null — use reply(Locale) if no request is available");
         return new ReplyKeyboardBuilder(request, null);
     }
 

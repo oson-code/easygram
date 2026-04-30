@@ -34,6 +34,18 @@
         </dependency>
 
         <!--
+            micrometer-core provides MeterRegistry and Counter for the dedicated
+            easygram.handler.errors counter. Marked optional — BotObservabilityFilter
+            accepts a nullable MeterRegistry, so the counter is silently disabled when
+            micrometer-core is absent.
+        -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!--
             micrometer-tracing bridges the Observation API to distributed tracing systems.
             When micrometer-tracing-bridge-otel (or brave) is on the classpath, every
             easygram.update observation automatically becomes an OTel / Brave span.
