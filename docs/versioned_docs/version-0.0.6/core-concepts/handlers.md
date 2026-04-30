@@ -596,60 +596,6 @@ handler (with a higher `@BotOrder` value). Use this pattern to implement priorit
 control without early return logic.
 :::
 
-## Duplicate Mapping Detection
-
-Easygram detects ambiguous handler registrations **at startup**, analogous to Spring MVC
-failing when two `@GetMapping` methods share the same path.
-
-If two handler methods share the same routing condition — same annotation type, same value,
-and same effective `@BotChatState` — the application fails to start with a
-`BeanCreationException` that identifies both conflicting methods:
-
-```
-Duplicate handler mapping detected for condition [specific:BotCommand:/start:state:]:
-  First  : com.example.BotA#onStart
-  Second : com.example.BotB#onStart
-Remove or rename one of the conflicting handler methods.
-```
-
-This check spans **all** `@BotController` beans — placing conflicting methods in different
-controllers does not avoid the error.
-
-### Non-conflicting cases
-
-```java
-// ✅ Different @BotChatState — different tiers
-@BotCommand("/start")
-@BotChatState("ONBOARDING")
-public String onStartOnboarding() { ... }
-
-@BotCommand("/start")
-@BotChatState("MAIN_MENU")
-public String onStartMainMenu() { ... }
-
-// ✅ Different values
-@BotCommand("/start")
-public String onStart() { ... }
-
-@BotCommand("/help")
-public String onHelp() { ... }
-
-// ✅ Same condition, different @BotOrder — valid priority-based dispatch
-@BotCommand("/admin")
-@BotOrder(1)
-public String onAdminForAdmins(User user) { ... }
-
-@BotCommand("/admin")
-@BotOrder(100)
-public String onAdminFallback() { ... }
-```
-
-`@BotOrder` is intentionally excluded from the conflict key — two methods with different
-`@BotOrder` values and the same routing condition are resolved by priority and are **not** an
-error.
-
----
-
 ## Handler Dispatch Order
 
 When an update arrives, Easygram searches in this order:

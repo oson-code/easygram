@@ -123,38 +123,6 @@ tracing bridge is on the classpath, traced.
 | `update_type` | `message`, `callback_query`, `inline_query`, `edited_message`, `channel_post`, `poll`, `poll_answer`, `my_chat_member`, `chat_member`, `chat_join_request`, `business_connection`, `business_message`, `edited_business_message`, `deleted_business_message`, `paid_media_purchased`, … | Type of the incoming Telegram Update |
 | `transport_type` | `LONG_POLLING`, `WEBHOOK` | Active transport (broker consumer bots emit the broker type via MDC) |
 
-### Error counter
-
-In addition to the timing observation, a **`easygram.update.error_total`** counter is
-incremented for each update that ends in an unhandled exception. Since **0.0.7**, this counter
-carries an **`exception`** tag (the simple class name of the thrown exception):
-
-| Metric | Tag | Description |
-|---|---|---|
-| `easygram.update.error_total` | `exception` | Number of failed updates, broken down by exception type |
-
-**PromQL examples:**
-
-```promql
-# Total error rate across all exception types
-rate(easygram_update_error_total_total[1m])
-
-# Error rate by exception type (useful for dashboards)
-sum(rate(easygram_update_error_total_total[1m])) by (exception)
-
-# Alert if TelegramApiException rate exceeds 5/min
-rate(easygram_update_error_total_total{exception="TelegramApiException"}[1m]) > 5
-
-# Top error types over the last hour
-topk(5, sum(increase(easygram_update_error_total_total[1h])) by (exception))
-```
-
-:::note Optional MeterRegistry (0.0.7+)
-The `core-observability` module now starts without a `MeterRegistry` bean on the classpath.
-Metrics become no-ops. You can include the module without Micrometer for the health indicator
-and MDC tracing benefits alone.
-:::
-
 **High-cardinality** (present in spans/traces only — not in Prometheus labels):
 
 | Tag | Description |
