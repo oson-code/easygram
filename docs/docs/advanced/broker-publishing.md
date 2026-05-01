@@ -36,7 +36,7 @@ BotUpdatePublishingFilter ← messaging-api (producer auto-config)
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-api</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
 </dependency>
 
 <!-- Required for Kafka: spring-kafka is optional in messaging-api -->

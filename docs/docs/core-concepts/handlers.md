@@ -650,7 +650,37 @@ error.
 
 ---
 
-## Handler Dispatch Order
+## Startup Annotation Validation
+
+In addition to duplicate mapping detection, Easygram validates annotation values at startup
+and rejects **blank** names that would create untriggerable or ambiguous handlers.
+
+The following throw `BeanCreationException` on application startup if the value is empty or
+blank:
+
+| Annotation | Field validated |
+|---|---|
+| `@BotMarkup("name")` | `name` — the markup registry key |
+| `@BotReplyMarkup("name")` | `value` — references a registered markup by name |
+| `@BotForwardChatState("state")` | `value` — the target chat state to transition to |
+
+**Example error:**
+
+```
+BeanCreationException: @BotMarkup name must not be blank on:
+  com.example.config.KeyboardConfig#mainMenu
+```
+
+This prevents subtle runtime bugs where a handler silently fails to attach a keyboard or
+transition state because an accidental empty string was passed.
+
+:::tip Pair with duplicate detection
+Both validation checks fire during the same startup scan in `BotHandlerLoader`. The
+application fails at the first detected problem; fix all violations and restart to confirm
+all issues are resolved.
+:::
+
+
 
 When an update arrives, Easygram searches in this order:
 

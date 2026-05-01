@@ -1883,11 +1883,16 @@ public class RequiresAdminContributor implements BotHandlerConditionContributor 
 
 Executed once at application startup after the bot's own `User` object and `TelegramClient` become available. Use for initial setup — registering webhook, sending notifications, etc.
 
+Since **0.0.7**, `BotStartTrigger` is a `@FunctionalInterface` — you can define it as a lambda in any `@Bean` method.
+
 ```java
+@FunctionalInterface
 public interface BotStartTrigger {
     void execute(User bot, TelegramClient telegramClient);
 }
 ```
+
+**Class-based (all versions):**
 
 ```java
 @Component
@@ -1902,6 +1907,29 @@ public class RegisterCommandsTrigger implements BotStartTrigger {
     }
 }
 ```
+
+**Lambda-style (since 0.0.7):**
+
+```java
+@Configuration
+public class BotStartupConfig {
+
+    @Bean
+    public BotStartTrigger registerCommandsTrigger() {
+        return (bot, client) -> client.execute(
+            SetMyCommands.builder()
+                .command(BotCommand.builder().command("/start").description("Start").build())
+                .build());
+    }
+
+    @Bean
+    public BotStartTrigger logBotInfoTrigger() {
+        return (bot, client) -> log.info("Bot started: @{} (id={})", bot.getUserName(), bot.getId());
+    }
+}
+```
+
+Multiple `BotStartTrigger` beans are all executed at startup — there is no ordering constraint between them.
 
 ---
 
@@ -2069,7 +2097,7 @@ public interface MarkupAware {
 
 ---
 
-
+## i18n Services *(core-i18n)*
 
 All i18n services live in `uz.osoncode.easygram.core.i18n` and are auto-configured by `BotI18nAutoConfiguration` when `core-i18n` is on the classpath. All are `@ConditionalOnMissingBean` — override any with your own `@Bean`.
 
@@ -2558,7 +2586,7 @@ Auto-configured when `core-observability` is on the classpath via `BotActuatorAu
 |---|---|
 | `BotHealthIndicator` | Spring Boot actuator health check — reports `UP`/`DOWN` based on bot connectivity |
 | `BotInfoContributor` | Actuator `/info` endpoint — exposes bot username, id, and active transport type |
-| `BotObservabilityFilter` | `BotFilter` at `BotFilterOrder.OBSERVATION` — wraps every update in a Micrometer observation span; emits `easygram.update` metric |
+| `BotObservabilityFilter` | `BotFilter` at `BotFilterOrder.OBSERVATION` — wraps every update in a Micrometer observation span; emits `easygram.update` timing metric and `easygram.update.error_total` counter (tagged with `exception` class name since 0.0.7). `MeterRegistry` is optional since 0.0.7 — module starts gracefully without Micrometer. |
 
 All three beans are `@ConditionalOnMissingBean` — replace any with a custom `@Bean`.
 
@@ -2626,6 +2654,8 @@ easygram:
       url: https://my-bot.example.com/webhook # Required — publicly reachable HTTPS URL
       path: /webhook                           # Local handler path (default: /webhook)
       secret-token: ${WEBHOOK_SECRET}          # Recommended — validates Telegram requests
+      require-secret-token: false              # true → fail fast at startup if secret-token is blank (since 0.0.7)
+      max-body-bytes: 0                        # 0 = unlimited; e.g. 1048576 for 1 MB limit → HTTP 413 (since 0.0.7)
       max-connections: 40
       drop-pending-updates: false
       unregister-on-shutdown: false
