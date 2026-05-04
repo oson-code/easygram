@@ -1,0 +1,50 @@
+# Grafana Loki configuration for the tracing-bot sample.
+# Mounted at /etc/loki/loki.yml inside the container.
+# Reference: https://grafana.com/docs/loki/latest/configure/
+#
+# Single-binary mode using the local filesystem.
+# For production, replace "filesystem" with an object store (S3, GCS, Azure).
+
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+  log_level: warn
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+query_range:
+  results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 100
+
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+limits_config:
+  # Allow out-of-order log ingestion (useful for local dev where app restarts may cause gaps).
+  allow_structured_metadata: true
+  volume_enabled: true
+
+ruler:
+  alertmanager_url: http://localhost:9093

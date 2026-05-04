@@ -1,6 +1,10 @@
 # Grafana Tempo configuration for the tracing-bot sample.
 # Mounted at /etc/tempo.yml inside the container.
 # Reference: https://grafana.com/docs/tempo/latest/configuration/
+#
+# NOTE: top-level `ingester` and `compactor` keys are NOT valid in the latest
+# Grafana Tempo — they were removed from app.Config. Configuration for storage
+# retention lives under storage.trace.block.retention instead.
 
 stream_over_http_enabled: true
 
@@ -24,14 +28,6 @@ distributor:
         grpc:
           endpoint: 0.0.0.0:4317
 
-ingester:
-  max_block_bytes: 1_000_000
-  max_block_duration: 5m
-
-compactor:
-  compaction:
-    block_retention: 1h
-
 storage:
   trace:
     backend: local
@@ -39,3 +35,4 @@ storage:
       path: /var/tempo/traces
     wal:
       path: /var/tempo/wal
+    # No block: section needed — default retention is 336 h (14 days), fine for a demo.

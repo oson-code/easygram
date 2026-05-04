@@ -1,0 +1,23 @@
+# Grafana datasource provisioning — Loki
+# Mounted at /etc/grafana/provisioning/datasources/ inside the Grafana container.
+
+apiVersion: 1
+
+datasources:
+  - name: Loki
+    type: loki
+    uid: loki
+    url: http://loki:3100
+    access: proxy
+    isDefault: false
+    version: 1
+    editable: false
+    jsonData:
+      # Extract traceId from log lines and render a link to the matching Tempo trace.
+      # The bot's logback pattern emits: traceId=<32-char-hex>
+      derivedFields:
+        - name: TraceID
+          matcherRegex: "traceId=(\\w+)"
+          url: "$${__value.raw}"
+          datasourceUid: tempo
+          urlDisplayLabel: "Open in Tempo"

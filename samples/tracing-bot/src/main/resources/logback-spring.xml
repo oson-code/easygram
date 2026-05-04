@@ -18,6 +18,37 @@
     </encoder>
   </appender>
 
+  <!--
+    Loki appender: pushes log lines directly to Grafana Loki via HTTP.
+    The bot runs on the host, so we connect to localhost:3100 (exposed by docker-compose).
+    Labels become Loki stream selectors; traceId/spanId enable log↔trace correlation in Grafana.
+  -->
+  <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+    <http>
+      <url>http://localhost:3100/loki/api/v1/push</url>
+      <!-- Don't block app startup if Loki isn't ready yet. -->
+      <connectionTimeoutMs>5000</connectionTimeoutMs>
+      <requestTimeoutMs>5000</requestTimeoutMs>
+    </http>
+    <format>
+      <label>
+        <!--
+          Stream labels — keep cardinality low; one stream per level is fine for a demo.
+          'application' matches the label used by the pre-built Logs dashboard.
+        -->
+        <pattern>application=tracing-bot,level=%level</pattern>
+        <sortByTime>true</sortByTime>
+      </label>
+      <message>
+        <!--
+          Structured log line.  traceId and spanId are emitted so Loki derived-fields
+          can extract them and show a "Open in Tempo" link in Grafana Explore.
+        -->
+        <pattern>level=%level traceId=%X{traceId:--} spanId=%X{spanId:--} transport=%X{bot.transport:--} updateId=%X{bot.update.id:--} chatId=%X{bot.chat.id:--} logger=%logger{36} msg=%msg%n</pattern>
+      </message>
+    </format>
+  </appender>
+
   <!-- Framework internals: DEBUG to observe dispatching, filter chain, and routing -->
   <logger name="uz.osoncode" level="DEBUG"/>
 
@@ -28,8 +59,12 @@
   <logger name="org.springframework.kafka" level="WARN"/>
   <logger name="org.apache.kafka" level="WARN"/>
 
+  <!-- Loki4j internal logs at WARN to avoid recursive logging noise -->
+  <logger name="com.github.loki4j" level="WARN"/>
+
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="LOKI"/>
   </root>
 
 </configuration>

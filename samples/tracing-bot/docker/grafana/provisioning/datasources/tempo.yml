@@ -25,3 +25,15 @@ datasources:
         timeShiftEnabled: true
         spanStartTimeShift: "1h"
         spanEndTimeShift: "-1h"
+      # Link from a Tempo span to the matching Loki logs for that trace.
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: "-1m"
+        spanEndTimeShift: "1m"
+        tags:
+          - key: "application"
+            value: "application"
+        filterByTraceID: true
+        filterBySpanID: false
+        customQuery: true
+        query: '{application="tracing-bot"} |= "${__trace.traceId}"'
