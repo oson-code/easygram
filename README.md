@@ -57,6 +57,9 @@ easygram/
 │
 ├── core-i18n/                  # Optional: i18n support (BotMessageSource, keyboards, Locale injection)
 │
+├── core-observability/         # Optional: Actuator health/info + Micrometer metrics
+│                               # (NOT pulled by the starter — add explicitly when needed)
+│
 ├── core/                       # Engine: dispatching, filter chain, argument resolvers,
 │                               # return-type handlers, Bot abstract class, autoconfiguration
 │
@@ -85,6 +88,7 @@ graph TD
     LP --> SBS
     WH --> SBS
     CI --> SBS
+    CO -. optional .-> SBS
 ```
 
 ---

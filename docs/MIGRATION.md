@@ -1,5 +1,47 @@
 # Easygram — Migration Guide
 
+## 0.0.6 → 0.0.7
+
+### BREAKING: `core-observability` no longer pulled transitively by `spring-boot-starter`
+
+`core-observability` is now declared with `<optional>true</optional>` in
+`spring-boot-starter/pom.xml`. Projects that relied on it being pulled in automatically
+will no longer have `BotHealthIndicator`, `BotInfoContributor`, or `BotObservabilityFilter`
+without an explicit dependency.
+
+**Affected if**: you see `BotHealthIndicator` contributions missing from `/actuator/health`,
+or if your application previously failed to start without `micrometer-core` on the classpath.
+
+**Migration**: Add the module explicitly to restore the previous behavior:
+
+```xml
+<dependency>
+    <groupId>uz.osoncode.easygram</groupId>
+    <artifactId>core-observability</artifactId>
+    <version>0.0.7</version>
+</dependency>
+```
+
+You will also need `spring-boot-actuator` (usually via `spring-boot-starter-actuator`) and
+`micrometer-core` (usually pulled by a registry implementation like `micrometer-registry-prometheus`).
+
+### New (non-breaking): `BotChatStateMetrics` SPI
+
+A new `BotChatStateMetrics` public interface has been added to `core-chatstate`. It
+decouples the in-memory chat state service from any specific metrics library. When
+`micrometer-core` is on the classpath, `MicrometerBotChatStateMetrics` is wired
+automatically and emits the following counters:
+
+| Metric | Tags | Description |
+|---|---|---|
+| `easygram.chatstate.get` | `result=hit\|miss` | State look-up results |
+| `easygram.chatstate.set` | — | State writes |
+| `easygram.chatstate.clear` | — | State removals |
+
+No action required — this is purely additive.
+
+---
+
 ## 0.0.5 → 0.0.6
 
 ### BREAKING: `PlainTextTemplate` removed

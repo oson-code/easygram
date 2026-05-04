@@ -23,6 +23,9 @@
 - [Replacing the Default with a Persistent Backend](#replacing-the-default-with-a-persistent-backend)
   - [Redis](#redis)
   - [JDBC / JPA](#jdbc--jpa)
+- [Micrometer Metrics](#micrometer-metrics)
+  - [Counters](#counters)
+  - [Custom BotChatStateMetrics implementation](#custom-botchatstatemetrics-implementation)
 - [See Also](#see-also)
 
 ---
@@ -449,6 +452,61 @@ public BotChatStateService jdbcChatStateService(JdbcTemplate jdbc) {
     };
 }
 ```
+
+---
+
+## Micrometer Metrics
+
+`InMemoryBotChatStateService` emits counters automatically when `micrometer-core` and a
+`MeterRegistry` bean are on the classpath. No configuration is required — the instrumented
+variant is wired by `ChatStateAutoConfiguration` only when Micrometer is present. When
+Micrometer is absent the service starts with no-op metrics and the application context is
+unaffected.
+
+### Counters
+
+| Metric name | Tags | Description |
+|---|---|---|
+| `easygram.chatstate.get` | `result=hit` | State look-ups that returned a non-null value |
+| `easygram.chatstate.get` | `result=miss` | State look-ups where no state was stored |
+| `easygram.chatstate.set` | — | State writes (`setState(chatId, value)`) |
+| `easygram.chatstate.clear` | — | State removals (`setState(chatId, null)`) |
+
+Enable the Prometheus endpoint to scrape these counters:
+
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
+```
+
+### Custom BotChatStateMetrics implementation
+
+`BotChatStateMetrics` is a public SPI. Implement it if you want to plug in a different
+metrics back-end (e.g. Dropwizard, StatsD) or extend the set of tags:
+
+```java
+@Configuration
+public class MyMetricsConfig {
+
+    @Bean
+    @ConditionalOnMissingBean(BotChatStateService.class)
+    public BotChatStateService chatStateService() {
+        return new InMemoryBotChatStateService(new MyCustomMetrics());
+    }
+
+    static class MyCustomMetrics implements BotChatStateMetrics {
+        @Override public void recordGet(boolean hit) { /* your impl */ }
+        @Override public void recordSet()           { /* your impl */ }
+        @Override public void recordClear()         { /* your impl */ }
+    }
+}
+```
+
+> When you supply your own `BotChatStateService` bean, `ChatStateAutoConfiguration` is
+> skipped entirely — declare `BotChatStateMetrics` handling inline as shown above.
 
 ---
 

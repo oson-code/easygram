@@ -81,6 +81,23 @@ Micrometer for every processed update. The following metrics are emitted:
 | `easygram.update.errors` | Counter | `transport`, `exception` | Total processing errors |
 | `easygram.update.duration` | Timer | `transport`, `update_type` | Processing time per update |
 
+### Chat State Metrics
+
+`core-chatstate` emits per-operation counters automatically whenever `micrometer-core` and
+a `MeterRegistry` bean are present. No additional dependency is required — the instrumented
+service is wired by `ChatStateAutoConfiguration` only when Micrometer is on the classpath.
+
+| Metric | Type | Tags | Description |
+|--------|------|------|-------------|
+| `easygram.chatstate.get` | Counter | `result=hit` | State look-ups that returned a value |
+| `easygram.chatstate.get` | Counter | `result=miss` | State look-ups with no stored value |
+| `easygram.chatstate.set` | Counter | — | State writes |
+| `easygram.chatstate.clear` | Counter | — | State removals |
+
+These counters are useful for tracking conversation funnel depth and identifying stuck
+chat sessions. Use them in dashboards alongside the per-update `easygram.update.duration`
+timer to correlate processing time with state-machine activity.
+
 ### Spring Boot Actuator endpoint
 
 A custom `/actuator/telegram-bot` endpoint is registered when `core-observability` is
