@@ -3,8 +3,6 @@ package uz.osoncode.easygram.core.chatstate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
@@ -14,7 +12,7 @@ class InMemoryBotChatStateServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new InMemoryBotChatStateService(Optional.empty());
+        service = new InMemoryBotChatStateService();
     }
 
     @Test

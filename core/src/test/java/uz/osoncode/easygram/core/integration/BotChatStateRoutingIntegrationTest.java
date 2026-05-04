@@ -43,7 +43,7 @@ class BotChatStateRoutingIntegrationTest {
             .withPropertyValues("easygram.token=test-token")
             .withConfiguration(AutoConfigurations.of(CoreAutoConfiguration.class))
             .withUserConfiguration(ChatStateController.class)
-            .withBean(BotChatStateService.class, () -> new InMemoryBotChatStateService(java.util.Optional.empty()));
+            .withBean(BotChatStateService.class, () -> new InMemoryBotChatStateService());
 
     @Test
     void startCommand_noState_triggersStartHandler() throws Exception {

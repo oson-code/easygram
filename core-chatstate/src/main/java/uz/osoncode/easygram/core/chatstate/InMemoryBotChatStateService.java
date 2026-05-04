@@ -1,12 +1,10 @@
 package uz.osoncode.easygram.core.chatstate;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.lang.Nullable;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -40,29 +38,30 @@ public class InMemoryBotChatStateService implements BotChatStateService, SmartIn
 
     private static final int SIZE_WARN_THRESHOLD = 10_000;
 
-    private final Counter getHitCounter;
-    private final Counter getMissCounter;
-    private final Counter setCounter;
-    private final Counter clearCounter;
+    @Nullable
+    private final BotChatStateMetrics metrics;
 
     /**
-     * Creates an instance with optional Micrometer instrumentation.
+     * Creates an instance without metrics instrumentation.
      *
-     * @param meterRegistry an {@link Optional} {@link MeterRegistry}; when present, records
-     *                      {@code easygram.chatstate.get}, {@code easygram.chatstate.set},
-     *                      and {@code easygram.chatstate.clear} counters
      * @since 0.0.7
      */
-    public InMemoryBotChatStateService(Optional<MeterRegistry> meterRegistry) {
-        MeterRegistry registry = meterRegistry.orElse(null);
-        if (registry != null) {
-            getHitCounter  = Counter.builder("easygram.chatstate.get").tag("result", "hit").register(registry);
-            getMissCounter = Counter.builder("easygram.chatstate.get").tag("result", "miss").register(registry);
-            setCounter     = Counter.builder("easygram.chatstate.set").register(registry);
-            clearCounter   = Counter.builder("easygram.chatstate.clear").register(registry);
-        } else {
-            getHitCounter = getMissCounter = setCounter = clearCounter = null;
-        }
+    public InMemoryBotChatStateService() {
+        this(null);
+    }
+
+    /**
+     * Creates an instance with an optional metrics hook.
+     *
+     * <p>Pass a {@link MicrometerBotChatStateMetrics} instance when Micrometer is on the
+     * classpath, or {@code null} to disable instrumentation entirely.</p>
+     *
+     * @param metrics a {@link BotChatStateMetrics} to record counters into;
+     *                {@code null} disables all instrumentation
+     * @since 0.0.7
+     */
+    public InMemoryBotChatStateService(@Nullable BotChatStateMetrics metrics) {
+        this.metrics = metrics;
     }
 
     /**
@@ -90,11 +89,7 @@ public class InMemoryBotChatStateService implements BotChatStateService, SmartIn
         Objects.requireNonNull(chatId, "chatId must not be null");
         String state = stateMap.get(chatId);
         log.trace("Chat state get: chatId={} state={}", chatId, state);
-        if (state != null) {
-            if (getHitCounter != null) getHitCounter.increment();
-        } else {
-            if (getMissCounter != null) getMissCounter.increment();
-        }
+        if (metrics != null) metrics.recordGet(state != null);
         return state;
     }
 
@@ -113,7 +108,7 @@ public class InMemoryBotChatStateService implements BotChatStateService, SmartIn
             throw new IllegalArgumentException("state must not be null — use clearState(chatId) to remove the current state");
         }
         String previous = stateMap.put(chatId, state);
-        if (setCounter != null) setCounter.increment();
+        if (metrics != null) metrics.recordSet();
         log.debug("Chat state set: chatId={} previousState={} newState={}", chatId, previous, state);
 
         int size = stateMap.size();
@@ -134,7 +129,7 @@ public class InMemoryBotChatStateService implements BotChatStateService, SmartIn
     public void clearState(Long chatId) {
         Objects.requireNonNull(chatId, "chatId must not be null");
         String removed = stateMap.remove(chatId);
-        if (clearCounter != null) clearCounter.increment();
+        if (metrics != null) metrics.recordClear();
         log.debug("Chat state cleared: chatId={} removedState={}", chatId, removed);
     }
 }
