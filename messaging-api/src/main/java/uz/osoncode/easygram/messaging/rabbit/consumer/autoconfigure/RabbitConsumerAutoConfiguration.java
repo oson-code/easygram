@@ -29,6 +29,7 @@ import uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitBotUpdateListener;
 import uz.osoncode.easygram.messaging.rabbit.consumer.RabbitConsumerBot;
 import uz.osoncode.easygram.messaging.rabbit.provider.EasygramRabbitConnectionFactoryProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.List;
 
@@ -239,8 +240,8 @@ public class RabbitConsumerAutoConfiguration {
             havingValue = "true",
             matchIfMissing = true)
     public Binding rabbitConsumerBinding(
-            Queue rabbitConsumerQueue,
-            TopicExchange rabbitConsumerExchange,
+            @Qualifier("rabbitConsumerQueue") Queue rabbitConsumerQueue,
+            @Qualifier("rabbitConsumerExchange") TopicExchange rabbitConsumerExchange,
             EasygramRabbitProperties props) {
         return BindingBuilder.bind(rabbitConsumerQueue).to(rabbitConsumerExchange).with(props.routingKey());
     }

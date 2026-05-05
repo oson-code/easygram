@@ -17,6 +17,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import uz.osoncode.easygram.core.bot.BotConfigurer;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
@@ -156,8 +157,8 @@ public class RabbitMessagingAutoConfiguration {
             havingValue = "true",
             matchIfMissing = true)
     public Binding rabbitPublisherBinding(
-            Queue rabbitPublisherQueue,
-            TopicExchange rabbitPublisherExchange,
+            @Qualifier("rabbitPublisherQueue") Queue rabbitPublisherQueue,
+            @Qualifier("rabbitPublisherExchange") TopicExchange rabbitPublisherExchange,
             EasygramRabbitProperties props) {
         return BindingBuilder.bind(rabbitPublisherQueue).to(rabbitPublisherExchange).with(props.routingKey());
     }
