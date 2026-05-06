@@ -32,11 +32,57 @@ class MessagingAutoConfigurationTest {
     @Test
     void userProvidedFilter_suppressesDefault() {
         BotUpdatePublisher publisher = update -> {};
-        BotUpdatePublishingFilter customFilter = null;
         // Provide the filter bean directly — conditionalOnMissingBean must suppress autoconfig
         runner.withBean(BotUpdatePublisher.class, () -> publisher)
                 .withBean(BotUpdatePublishingFilter.class,
                         () -> new BotUpdatePublishingFilter(publisher, null))
                 .run(context -> assertThat(context).hasSingleBean(BotUpdatePublishingFilter.class));
+    }
+
+    @Test
+    void withRabbitConsumerTransport_doesNotRegisterFilter_evenWithPublisher() {
+        BotUpdatePublisher publisher = update -> {};
+
+        runner.withBean(BotUpdatePublisher.class, () -> publisher)
+                .withPropertyValues("easygram.update.transport=RABBIT_CONSUMER")
+                .run(context -> assertThat(context)
+                        .as("BotUpdatePublishingFilter must be suppressed for RABBIT_CONSUMER to prevent update re-publish loop")
+                        .doesNotHaveBean(BotUpdatePublishingFilter.class));
+    }
+
+    @Test
+    void withKafkaConsumerTransport_doesNotRegisterFilter_evenWithPublisher() {
+        BotUpdatePublisher publisher = update -> {};
+
+        runner.withBean(BotUpdatePublisher.class, () -> publisher)
+                .withPropertyValues("easygram.update.transport=KAFKA_CONSUMER")
+                .run(context -> assertThat(context)
+                        .as("BotUpdatePublishingFilter must be suppressed for KAFKA_CONSUMER to prevent update re-publish loop")
+                        .doesNotHaveBean(BotUpdatePublishingFilter.class));
+    }
+
+    @Test
+    void withLongPollingTransport_registersFilter_withPublisher() {
+        BotUpdatePublisher publisher = update -> {};
+
+        runner.withBean(BotUpdatePublisher.class, () -> publisher)
+                .withPropertyValues("easygram.update.transport=LONG_POLLING")
+                .run(context -> assertThat(context)
+                        .as("BotUpdatePublishingFilter must be registered for LONG_POLLING transport")
+                        .hasSingleBean(BotUpdatePublishingFilter.class));
+    }
+
+    @Test
+    void withRabbitConsumerTransport_userProvidedFilter_isRegistered() {
+        BotUpdatePublisher publisher = update -> {};
+
+        // Users can still force a publishing filter in consumer mode via their own @Bean
+        runner.withBean(BotUpdatePublisher.class, () -> publisher)
+                .withBean(BotUpdatePublishingFilter.class,
+                        () -> new BotUpdatePublishingFilter(publisher, null))
+                .withPropertyValues("easygram.update.transport=RABBIT_CONSUMER")
+                .run(context -> assertThat(context)
+                        .as("User-defined BotUpdatePublishingFilter must not be suppressed by autoconfiguration")
+                        .hasSingleBean(BotUpdatePublishingFilter.class));
     }
 }

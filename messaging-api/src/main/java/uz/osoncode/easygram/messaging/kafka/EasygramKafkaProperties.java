@@ -1,5 +1,7 @@
 package uz.osoncode.easygram.messaging.kafka;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.validation.annotation.Validated;
@@ -46,10 +48,12 @@ public record EasygramKafkaProperties(
 
         /** The Kafka topic name used for publishing or consuming Telegram updates. */
         @DefaultValue("easygram-updates")
+        @NotBlank(message = "easygram.messaging.kafka.topic must not be blank")
         String topic,
 
         /** The Kafka consumer group ID. Defaults to {@code easygram-bot}. */
         @DefaultValue("easygram-bot")
+        @NotBlank(message = "easygram.messaging.kafka.group-id must not be blank")
         String groupId,
 
         /** Auto-create the topic when it does not exist. Defaults to {@code true}. */
@@ -58,10 +62,12 @@ public record EasygramKafkaProperties(
 
         /** Number of partitions for the auto-created topic. Defaults to {@code 1}. */
         @DefaultValue("1")
+        @Min(value = 1, message = "easygram.messaging.kafka.partitions must be >= 1")
         int partitions,
 
         /** Replication factor for the auto-created topic. Defaults to {@code 1}. */
         @DefaultValue("1")
+        @Min(value = 1, message = "easygram.messaging.kafka.replication-factor must be >= 1")
         short replicationFactor
 ) {
 }

@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import uz.osoncode.easygram.messaging.EasygramMessagingProperties;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
 import uz.osoncode.easygram.messaging.BotUpdatePublishingFilter;
@@ -39,8 +40,17 @@ public class MessagingAutoConfiguration {
      * and forwards it to the configured {@link BotUpdatePublisher}.
      *
      * <p>The filter is only created when a {@link BotUpdatePublisher} bean is available in the
-     * context, ensuring this auto-configuration has no effect on CONSUMER bots where no
-     * publisher implementation is ever registered.</p>
+     * context <em>and</em> the configured transport is not a broker-consumer transport.</p>
+     *
+     * <p>Consumer transports ({@code RABBIT_CONSUMER}, {@code KAFKA_CONSUMER}) must never
+     * republish their consumed updates — doing so would send every update back to the same
+     * broker queue, creating an infinite processing loop that causes the bot reply to be sent
+     * repeatedly. {@link NotConsumerTransportCondition} suppresses this bean for those
+     * transports automatically.</p>
+     *
+     * <p>To use a publishing filter in a consumer-transport context (advanced relay scenarios),
+     * register your own {@link BotUpdatePublishingFilter} bean — the
+     * {@code @ConditionalOnMissingBean} on this method will defer to it.</p>
      *
      * @param botUpdatePublisher      the publisher implementation that sends updates to a broker
      * @param botPublishingProperties properties controlling publish-only vs. publish-and-process behaviour
@@ -49,6 +59,7 @@ public class MessagingAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnBean(BotUpdatePublisher.class)
+    @Conditional(NotConsumerTransportCondition.class)
     public BotUpdatePublishingFilter botUpdatePublishingFilter(
             BotUpdatePublisher botUpdatePublisher,
             EasygramMessagingProperties botPublishingProperties) {

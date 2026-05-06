@@ -1,7 +1,10 @@
 package uz.osoncode.easygram.longpolling;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * Configuration properties for the long-polling transport.
@@ -17,6 +20,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @author Islom Mirsaburov
  * @since 0.0.7
  */
+@Validated
 @ConfigurationProperties(prefix = "easygram.update.long-polling")
 public record EasygramLongPollingProperties(
 
@@ -24,13 +28,18 @@ public record EasygramLongPollingProperties(
          * Maximum number of updates to retrieve per {@code GetUpdates} request.
          * Accepted values: 1–100. Defaults to {@code 100}.
          */
-        @DefaultValue("100") Integer limit,
+        @DefaultValue("100")
+        @Min(value = 1, message = "easygram.update.long-polling.limit must be >= 1")
+        @Max(value = 100, message = "easygram.update.long-polling.limit must be <= 100")
+        Integer limit,
 
         /**
          * Timeout in seconds for the Telegram long-poll connection.
          * Set to {@code 0} for short-polling (not recommended for production).
          * Defaults to {@code 50}.
          */
-        @DefaultValue("50") Integer timeoutSeconds
+        @DefaultValue("50")
+        @Min(value = 0, message = "easygram.update.long-polling.timeout-seconds must be >= 0")
+        Integer timeoutSeconds
 ) {
 }
