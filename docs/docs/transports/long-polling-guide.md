@@ -47,8 +47,8 @@ easygram.token=${BOT_TOKEN}
 |---|---|---|---|
 | `easygram.token` | **Yes** | — | Bot API token from @BotFather |
 | `easygram.update.transport` | No | `LONG_POLLING` | Update delivery mechanism |
-
-Long-polling has no additional Easygram-specific properties. The underlying `telegrambots` library manages polling timeout and retry logic.
+| `easygram.update.long-polling.limit` | No | `100` | Max updates per `getUpdates` call (1–100) |
+| `easygram.update.long-polling.timeout-seconds` | No | `50` | Long-poll timeout in seconds (0 = short poll, no waiting) |
 
 ## Advantages
 

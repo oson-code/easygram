@@ -91,7 +91,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.telegram.telegrambots.meta.TelegramUrl;
-import uz.osoncode.easygram.core.provider.BotTelegramUrlProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramUrlProvider;
 
 @SpringBootApplication
 public class WebhookBotApplication {
@@ -106,7 +106,7 @@ public class WebhookBotApplication {
      * Remove this bean entirely to use the default api.telegram.org endpoint.
      */
     @Bean
-    public BotTelegramUrlProvider botTelegramUrlProvider() {
+    public EasygramTelegramUrlProvider easygramTelegramUrlProvider() {
         return () -> TelegramUrl.builder()
                 .schema("https")
                 .host("api.telegram.org")

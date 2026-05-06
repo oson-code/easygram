@@ -20,6 +20,7 @@ Handlers are methods in `@BotController` classes that respond to Telegram update
 | `@BotTextDefault` | Any text not matched | `@BotTextDefault` |
 | `@BotCallbackQuery` | Callback query by data | `@BotCallbackQuery("btn_ok")` |
 | `@BotDefaultCallbackQuery` | Any callback not matched | `@BotDefaultCallbackQuery` |
+| `@BotDynamicCallbackQuery` | Dynamic callback by server-side type | `@BotDynamicCallbackQuery("product_select")` |
 | `@BotContact` | Contact-sharing message | `@BotContact` |
 | `@BotLocation` | Location-sharing message | `@BotLocation` |
 | `@BotReplyButton` | Reply keyboard button press | `@BotReplyButton(" Confirm")` |
@@ -33,7 +34,7 @@ Handlers are methods in `@BotController` classes that respond to Telegram update
 | `@BotPoll` | Poll state changes | `@BotPoll` |
 | `@BotPollAnswer` | User-voted-in-poll events | `@BotPollAnswer` |
 | `@BotMyChatMember` | Bot's own member status changes | `@BotMyChatMember` |
-| `@BotChatMember` | User member status changes | `@BotChatMember` |
+| `@BotChatMemberUpdate` | User member status changes | `@BotChatMemberUpdate` |
 | `@BotChatJoinRequest` | User join requests to a chat | `@BotChatJoinRequest` |
 | `@BotBusinessConnection` | Business account connections | `@BotBusinessConnection` |
 | `@BotBusinessMessage` | Messages via business account | `@BotBusinessMessage` |
@@ -151,6 +152,27 @@ public PlainReply onPoll() {
         .build();
     return PlainReply.of("Do you like this?").withMarkup(keyboard);
 }
+```
+
+## @BotDynamicCallbackQuery
+
+Routes callback queries using a **server-side type** resolved via `BotDynamicCallbackQueryService`. Unlike `@BotCallbackQuery` (which matches the raw Telegram callback data string), this annotation stores structured data server-side and uses the raw callback data only as a lookup key. Ideal when callback payloads exceed Telegram's 64-byte limit or need rich structured fields.
+
+```java
+@BotDynamicCallbackQuery("product_select")
+public String onProductSelect(BotDynamicCallbackData data) {
+    Long id = (Long) data.getData().get("id");
+    return "You selected product #" + id;
+}
+```
+
+Register the callback data before sending the button:
+
+```java
+BotDynamicCallbackData payload = BotDynamicCallbackData.of("product_select",
+        Map.of("id", 42L));
+String callbackKey = dynamicCallbackQueryService.save(payload);
+// use callbackKey as the inline button's callbackData
 ```
 
 ## @BotContact
@@ -421,14 +443,14 @@ public void onBotMembershipChange(ChatMemberUpdated updated) {
 
 ---
 
-### @BotChatMember
+### @BotChatMemberUpdate
 
 Routes updates about a user's membership status changes in a chat (`update.getChatMember()`). Requires the bot to be an administrator.
 
 **No configurable attributes.**
 
 ```java
-@BotChatMember
+@BotChatMemberUpdate
 public void onUserMembershipChange(ChatMemberUpdated updated) {
     log.info("User {} status changed in chat {}",
         updated.getFrom().getId(), updated.getChat().getId());

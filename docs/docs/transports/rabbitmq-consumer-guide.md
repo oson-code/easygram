@@ -1,7 +1,7 @@
 ---
 id: rabbitmq-consumer-guide
 title: RabbitMQ Consumer Transport
-description: Run a RabbitMQ consumer bot with Easygram — configure easygram.messaging.consumer.type=RABBIT, exchange, queue, routing-key, spring.rabbitmq, and Docker Compose setup.
+description: Run a RabbitMQ consumer bot with Easygram — configure easygram.update.transport=RABBIT_CONSUMER, exchange, queue, routing-key, spring.rabbitmq, and Docker Compose setup.
 keywords: [telegram bot rabbitmq consumer, easygram rabbitmq transport, spring boot telegram rabbitmq, AMQP telegram bot java, easygram rabbit consumer]
 ---
 
@@ -58,10 +58,9 @@ Or without the starter:
 ```yaml
 easygram:
   token: ${BOT_TOKEN}
+  update:
+    transport: RABBIT_CONSUMER
   messaging:
-    type: CONSUMER
-    consumer:
-      type: RABBIT
     rabbit:
       exchange: easygram-exchange
       queue: easygram-updates
@@ -76,26 +75,24 @@ spring:
     password: ${RABBITMQ_PASS:guest}
 ```
 
-:::info Consumer transport and `easygram.update.transport`
-When `easygram.messaging.type=CONSUMER`, the bot receives updates from RabbitMQ — not from
-Telegram directly. The `easygram.update.transport` property (long-polling / webhook) has no
-effect and the Telegram update transport is not started.
+:::info Consumer transport
+When `easygram.update.transport=RABBIT_CONSUMER`, the bot receives updates from RabbitMQ — not from
+Telegram directly. Long-polling and webhook transports are not started.
 :::
 
 ## Configuration Reference
 
-### `easygram.messaging.*`
+### `easygram.update.*`
 
 | Property | Required | Default | Description |
 |---|---|---|---|
-| `easygram.messaging.type` | **Yes** | — | Must be `CONSUMER` |
-| `easygram.messaging.consumer.type` | **Yes** | — | Must be `RABBIT` |
+| `easygram.update.transport` | **Yes** | — | Must be `RABBIT_CONSUMER` |
 
 ### `easygram.messaging.rabbit.*`
 
 | Property | Required | Default | Description |
 |---|---|---|---|
-| `easygram.messaging.rabbit.exchange` | **Yes** | — | RabbitMQ exchange to bind the queue to |
+| `easygram.messaging.rabbit.exchange` | No | `easygram-exchange` | RabbitMQ exchange to bind the queue to |
 | `easygram.messaging.rabbit.queue` | No | `easygram-updates` | Queue name for consuming updates |
 | `easygram.messaging.rabbit.routing-key` | No | `easygram.updates` | Routing key for the exchange binding |
 | `easygram.messaging.rabbit.create-if-absent` | No | `true` | Auto-create exchange, queue, and binding on startup |
@@ -157,8 +154,7 @@ services:
     build: .
     environment:
       easygram.token: ${BOT_TOKEN}
-      easygram.messaging.type: CONSUMER
-      easygram.messaging.consumer.type: RABBIT
+      easygram.update.transport: RABBIT_CONSUMER
       easygram.messaging.rabbit.exchange: easygram-exchange
       easygram.messaging.rabbit.queue: easygram-updates
       easygram.messaging.rabbit.routing-key: easygram.updates

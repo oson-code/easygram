@@ -67,8 +67,8 @@ easygram.update.webhook.secret-token=${WEBHOOK_SECRET}
 | `easygram.update.webhook.path` | No | `/webhook` | Local HTTP endpoint path that receives the POST |
 | `easygram.update.webhook.secret-token` | No | — | Validates the `X-Telegram-Bot-Api-Secret-Token` header |
 | `easygram.update.webhook.require-secret-token` | No | `false` | Fail at startup if `secret-token` is absent or blank |
-| `easygram.update.webhook.max-body-bytes` | No | unlimited | Reject requests larger than this byte limit with HTTP 413 |
-| `easygram.update.webhook.max-connections` | No | — | Max simultaneous Telegram connections (1–100) |
+| `easygram.update.webhook.max-body-bytes` | No | `1048576` | Reject requests larger than this byte limit with HTTP 413 (1 MiB by default) |
+| `easygram.update.webhook.max-connections` | No | `40` | Max simultaneous Telegram connections (1–100) |
 | `easygram.update.webhook.drop-pending-updates` | No | `false` | Discard queued updates on webhook registration |
 | `easygram.update.webhook.unregister-on-shutdown` | No | `false` | Call `deleteWebhook` on application shutdown |
 

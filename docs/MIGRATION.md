@@ -320,35 +320,20 @@ arrive from Telegram) from **broker integration** (publishing/consuming via Kafk
 |---|---|
 | `easygram.transport=LONG_POLLING` | `easygram.update.transport=LONG_POLLING` (or omit — it is the default) |
 | `easygram.transport=WEBHOOK` | `easygram.update.transport=WEBHOOK` |
-| `easygram.transport=KAFKA_CONSUMER` | `easygram.messaging.type=CONSUMER` + `easygram.messaging.consumer.type=KAFKA` |
-| `easygram.transport=RABBIT_CONSUMER` | `easygram.messaging.type=CONSUMER` + `easygram.messaging.consumer.type=RABBIT` |
+| `easygram.transport=KAFKA_CONSUMER` | `easygram.update.transport=KAFKA_CONSUMER` *(prefix changed only)* |
+| `easygram.transport=RABBIT_CONSUMER` | `easygram.update.transport=RABBIT_CONSUMER` *(prefix changed only)* |
 | `easygram.webhook.url` | `easygram.update.webhook.url` |
 | `easygram.webhook.path` | `easygram.update.webhook.path` |
 | `easygram.webhook.secret-token` | `easygram.update.webhook.secret-token` |
 | `easygram.webhook.max-connections` | `easygram.update.webhook.max-connections` |
 | `easygram.webhook.drop-pending-updates` | `easygram.update.webhook.drop-pending-updates` |
 | `easygram.webhook.unregister-on-shutdown` | `easygram.update.webhook.unregister-on-shutdown` |
-| `easygram.messaging.producer.producer-type=kafka` | `easygram.messaging.type=PRODUCER` + `easygram.messaging.producer.type=KAFKA` |
-| `easygram.messaging.producer.producer-type=rabbit` | `easygram.messaging.type=PRODUCER` + `easygram.messaging.producer.type=RABBIT` |
+| `easygram.messaging.producer.producer-type=kafka` | `easygram.messaging.producer.type=KAFKA` |
+| `easygram.messaging.producer.producer-type=rabbit` | `easygram.messaging.producer.type=RABBIT` |
 | `easygram.kafka-consumer.*` | `easygram.messaging.kafka.*` |
 | `easygram.rabbit-consumer.*` | `easygram.messaging.rabbit.*` |
 | `easygram.messaging.kafka.*` | `easygram.messaging.kafka.*` *(unchanged — shared now)* |
 | `easygram.messaging.rabbit.*` | `easygram.messaging.rabbit.*` *(unchanged — shared now)* |
-
-#### `BotTransportType` enum changes
-
-`KAFKA_CONSUMER` and `RABBIT_CONSUMER` have been **removed** from `BotTransportType`.
-Consumer bots no longer set `update.transport`; instead they set `messaging.type=CONSUMER`.
-
-If you referenced these enum values directly in code, replace them:
-
-```java
-// Old
-BotTransportType.KAFKA_CONSUMER
-
-// New — there is no enum constant; check via messaging properties instead
-// easygram.messaging.type=CONSUMER + easygram.messaging.consumer.type=KAFKA
-```
 
 #### Consumer bot example (before / after)
 
@@ -362,10 +347,9 @@ easygram:
 
 # ── After ───────────────────────────────────────
 easygram:
+  update:
+    transport: KAFKA_CONSUMER
   messaging:
-    type: CONSUMER
-    consumer:
-      type: KAFKA
     kafka:
       topic: my-updates
       group-id: my-group
@@ -392,7 +376,6 @@ easygram:
     webhook:
       url: https://example.com/bot
   messaging:
-    type: PRODUCER
     producer:
       type: KAFKA
     kafka:

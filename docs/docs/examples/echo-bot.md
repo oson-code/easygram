@@ -59,7 +59,7 @@ import okhttp3.OkHttpClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import uz.osoncode.easygram.core.provider.BotOkHttpClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramOkHttpClientProvider;
 import java.time.Duration;
 
 @SpringBootApplication
@@ -74,7 +74,7 @@ public class LongpollingBotApplication {
      * All other infrastructure beans use framework defaults — no override needed.
      */
     @Bean
-    public BotOkHttpClientProvider botOkHttpClientProvider() {
+    public EasygramOkHttpClientProvider botOkHttpClientProvider() {
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(Duration.ofSeconds(50))
                 .readTimeout(Duration.ofSeconds(50))
@@ -86,7 +86,7 @@ public class LongpollingBotApplication {
 ```
 
 :::tip
-`BotOkHttpClientProvider` is shown here to demonstrate the provider pattern. For a minimal bot,
+`EasygramOkHttpClientProvider` is shown here to demonstrate the provider pattern. For a minimal bot,
 you can omit it entirely and use the framework's default HTTP client.
 :::
 

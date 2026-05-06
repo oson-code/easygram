@@ -22,7 +22,7 @@ Complete reference for all easygram annotations, interfaces, model classes, and 
 - [Model Classes](#model-classes) — `BotRequest`, `BotResponse`, `BotMetadata`, `BotMarkupContext`, `BotDynamicCallbackData`, `ReplyOptions`, `SendReplyOptions`
 - [Dynamic Callbacks](#dynamic-callbacks) — `@BotDynamicCallbackQuery`, `BotDynamicCallbackData`, `BotDynamicCallbackQueryService`
 - [Extension Interfaces](#extension-interfaces) — `BotFilter`, `BotArgumentResolver`, `BotReturnTypeHandler`, `BotReplyAction`, `BotHandlerInvocationFilter`, `BotChatStateService`, `BotUpdatePublisher`, `BotHandlerConditionContributor`, `BotStartTrigger`, `BotHandler`, `BotHandlerCondition`, `BotInlineQueryMatcher`, `BotReplyButtonMatcher`, `BotMarkupRegistry`, `MarkupAware`
-- [Provider Interfaces](#provider-interfaces) — `BotTelegramClientProvider`, `BotOkHttpClientProvider`, `BotObjectMapperProvider`, `BotExecutorServiceProvider`, `BotTelegramUrlProvider`, `BotKafkaProducerFactoryProvider`, `BotKafkaConsumerFactoryProvider`, `BotRabbitConnectionFactoryProvider`
+- [Provider Interfaces](#provider-interfaces) — `EasygramTelegramClientProvider`, `EasygramOkHttpClientProvider`, `EasygramObjectMapperProvider`, `EasygramExecutorServiceProvider`, `EasygramTelegramUrlProvider`, `EasygramKafkaProducerFactoryProvider`, `EasygramKafkaConsumerFactoryProvider`, `EasygramRabbitConnectionFactoryProvider`
 - [Advanced SPI](#advanced-spi) — `BotMetaDataResolver`, `BotMetaDataDefaultResolver`, `BotMetaDataSpecResolver`, `BotHandlerInvocationContext`, `BotHandlerException`
 - [i18n Services](#i18n-services-core-i18n) — `BotLocaleResolver`, `BotMessageSource`, `BotKeyboardFactory`
 - [Observability](#observability-core-observability) — `BotHealthIndicator`, `BotInfoContributor`, `BotObservabilityFilter`
@@ -2256,13 +2256,13 @@ All provider interfaces are in `uz.osoncode.easygram.core.provider` and are `@Fu
 
 ---
 
-### BotTelegramClientProvider
+### EasygramTelegramClientProvider
 
 Supplies the `TelegramClient` used to send API replies. Override to use a custom HTTP client, proxy, or test stub.
 
 ```java
 @FunctionalInterface
-public interface BotTelegramClientProvider {
+public interface EasygramTelegramClientProvider {
     /** Create or return a TelegramClient for the given bot token. */
     TelegramClient provide(String botToken);
 }
@@ -2270,7 +2270,7 @@ public interface BotTelegramClientProvider {
 
 ```java
 @Bean
-public BotTelegramClientProvider botTelegramClientProvider() {
+public EasygramTelegramClientProvider easygramTelegramClientProvider() {
     return botToken -> new OkHttpTelegramClient(
             customObjectMapper(),
             customHttpClient(),
@@ -2281,20 +2281,20 @@ public BotTelegramClientProvider botTelegramClientProvider() {
 
 ---
 
-### BotOkHttpClientProvider
+### EasygramOkHttpClientProvider
 
 Supplies the `OkHttpClient` for all outbound Telegram API calls. Override to configure timeouts, interceptors, TLS, or a proxy.
 
 ```java
 @FunctionalInterface
-public interface BotOkHttpClientProvider {
+public interface EasygramOkHttpClientProvider {
     OkHttpClient provide();
 }
 ```
 
 ```java
 @Bean
-public BotOkHttpClientProvider botOkHttpClientProvider() {
+public EasygramOkHttpClientProvider easygramOkHttpClientProvider() {
     OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
@@ -2306,20 +2306,20 @@ public BotOkHttpClientProvider botOkHttpClientProvider() {
 
 ---
 
-### BotObjectMapperProvider
+### EasygramObjectMapperProvider
 
 Supplies the Jackson `ObjectMapper` for Telegram API payload serialisation. Override to register custom modules or configure naming strategy.
 
 ```java
 @FunctionalInterface
-public interface BotObjectMapperProvider {
+public interface EasygramObjectMapperProvider {
     ObjectMapper provide();
 }
 ```
 
 ```java
 @Bean
-public BotObjectMapperProvider botObjectMapperProvider() {
+public EasygramObjectMapperProvider easygramObjectMapperProvider() {
     ObjectMapper mapper = new ObjectMapper()
             .registerModule(new JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -2329,20 +2329,20 @@ public BotObjectMapperProvider botObjectMapperProvider() {
 
 ---
 
-### BotExecutorServiceProvider
+### EasygramExecutorServiceProvider
 
 Supplies the `ExecutorService` for processing incoming updates. Override to control thread-pool size, naming, or rejection policy.
 
 ```java
 @FunctionalInterface
-public interface BotExecutorServiceProvider {
+public interface EasygramExecutorServiceProvider {
     ExecutorService provide();
 }
 ```
 
 ```java
 @Bean
-public BotExecutorServiceProvider botExecutorServiceProvider() {
+public EasygramExecutorServiceProvider easygramExecutorServiceProvider() {
     ExecutorService executor = Executors.newFixedThreadPool(4,
             new ThreadFactoryBuilder().setNameFormat("bot-worker-%d").build());
     return () -> executor;
@@ -2353,20 +2353,20 @@ public BotExecutorServiceProvider botExecutorServiceProvider() {
 
 ---
 
-### BotTelegramUrlProvider
+### EasygramTelegramUrlProvider
 
 Supplies the Telegram API base URL. Override to point the bot at a local Bot API server.
 
 ```java
 @FunctionalInterface
-public interface BotTelegramUrlProvider {
+public interface EasygramTelegramUrlProvider {
     TelegramUrl provide();
 }
 ```
 
 ```java
 @Bean
-public BotTelegramUrlProvider botTelegramUrlProvider() {
+public EasygramTelegramUrlProvider easygramTelegramUrlProvider() {
     return () -> new TelegramUrl("https://my-local-bot-api.example.com/");
 }
 ```
@@ -2375,23 +2375,23 @@ When no custom bean is present, defaults to `TelegramUrl.DEFAULT_URL`.
 
 ---
 
-### BotKafkaProducerFactoryProvider
+### EasygramKafkaProducerFactoryProvider
 
-**Package:** `uz.osoncode.easygram.messaging.api`
+**Package:** `uz.osoncode.easygram.messaging.kafka.provider`
 **Module:** `messaging-api`
 
 Supplies the `ProducerFactory<Object, Object>` used to create Kafka producers when publishing updates. Override to customise serializers, SSL, interceptors, or other producer properties. *(Since 0.0.6)*
 
 ```java
 @FunctionalInterface
-public interface BotKafkaProducerFactoryProvider {
+public interface EasygramKafkaProducerFactoryProvider {
     ProducerFactory<Object, Object> provide();
 }
 ```
 
 ```java
 @Bean
-public BotKafkaProducerFactoryProvider botKafkaProducerFactoryProvider() {
+public EasygramKafkaProducerFactoryProvider easygramKafkaProducerFactoryProvider() {
     return () -> {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
@@ -2406,23 +2406,23 @@ Registered with `@ConditionalOnMissingBean` — the default uses properties from
 
 ---
 
-### BotKafkaConsumerFactoryProvider
+### EasygramKafkaConsumerFactoryProvider
 
-**Package:** `uz.osoncode.easygram.messaging.api`
+**Package:** `uz.osoncode.easygram.messaging.kafka.provider`
 **Module:** `messaging-api`
 
 Supplies the `ConsumerFactory<Object, Object>` used when creating the programmatic Kafka listener container. Override to customise deserializers, group ID, SSL, or other consumer properties. *(Since 0.0.6)*
 
 ```java
 @FunctionalInterface
-public interface BotKafkaConsumerFactoryProvider {
+public interface EasygramKafkaConsumerFactoryProvider {
     ConsumerFactory<Object, Object> provide();
 }
 ```
 
 ```java
 @Bean
-public BotKafkaConsumerFactoryProvider botKafkaConsumerFactoryProvider() {
+public EasygramKafkaConsumerFactoryProvider easygramKafkaConsumerFactoryProvider() {
     return () -> {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
@@ -2438,23 +2438,23 @@ Registered with `@ConditionalOnMissingBean` — the default uses properties from
 
 ---
 
-### BotRabbitConnectionFactoryProvider
+### EasygramRabbitConnectionFactoryProvider
 
-**Package:** `uz.osoncode.easygram.messaging.api`
+**Package:** `uz.osoncode.easygram.messaging.rabbit.provider`
 **Module:** `messaging-api`
 
 Supplies the RabbitMQ `ConnectionFactory` used when creating the programmatic listener container and the `RabbitTemplate` for publishing. Override to customise host, port, virtual host, TLS, or AMQP connection tuning. *(Since 0.0.6)*
 
 ```java
 @FunctionalInterface
-public interface BotRabbitConnectionFactoryProvider {
+public interface EasygramRabbitConnectionFactoryProvider {
     ConnectionFactory provide();
 }
 ```
 
 ```java
 @Bean
-public BotRabbitConnectionFactoryProvider botRabbitConnectionFactoryProvider() {
+public EasygramRabbitConnectionFactoryProvider easygramRabbitConnectionFactoryProvider() {
     return () -> {
         CachingConnectionFactory factory = new CachingConnectionFactory("rabbitmq.example.com");
         factory.setPort(5672);

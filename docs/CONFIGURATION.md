@@ -35,12 +35,12 @@ easygram:
     schema: https
 ```
 
-For complete programmatic control, declare a `BotTelegramUrlProvider` bean (takes
+For complete programmatic control, declare an `EasygramTelegramUrlProvider` bean (takes
 precedence over these properties):
 
 ```java
 @Bean
-public BotTelegramUrlProvider customUrl() {
+public EasygramTelegramUrlProvider customUrl() {
     return () -> new TelegramUrl("https", "my-bot-api.example.com", 443);
 }
 ```
@@ -55,18 +55,19 @@ These properties control how updates arrive **from Telegram** to your applicatio
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `easygram.update.transport` | `BotTransportType` | `LONG_POLLING` | Active transport. Valid values: `LONG_POLLING`, `WEBHOOK` |
+| `easygram.update.transport` | `BotTransportType` | `LONG_POLLING` | Active transport. Valid values: `LONG_POLLING`, `WEBHOOK`, `KAFKA_CONSUMER`, `RABBIT_CONSUMER`, `NONE` |
 
 ---
 
 ## Long-Polling Properties
 
 Active when `easygram.update.transport=LONG_POLLING` (the default).
-Long-polling is also automatically suppressed when `easygram.messaging.type=CONSUMER`.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `easygram.update.transport` | `BotTransportType` | `LONG_POLLING` | Must be `LONG_POLLING` or absent |
+| `easygram.update.long-polling.limit` | `int` | `100` | Max updates per `getUpdates` call (1–100) |
+| `easygram.update.long-polling.timeout-seconds` | `int` | `50` | Timeout in seconds for long-polling requests (0 = short poll) |
 
 ---
 
@@ -89,28 +90,28 @@ Active when `easygram.update.transport=WEBHOOK`.
 
 When using `messaging-api` to integrate with a message broker (Kafka or RabbitMQ):
 
-### Role selection
+### General messaging properties
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `easygram.messaging.type` | `MessagingType` | — | Application role: `PRODUCER` or `CONSUMER` |
-| `easygram.messaging.forward-only` | `boolean` | `false` | `PRODUCER` only: skip local handlers, publish to broker only |
+| `easygram.messaging.forward-only` | `boolean` | `false` | Producer only: skip local handlers, publish to broker only |
+| `easygram.messaging.fail-on-publish-error` | `boolean` | `false` | When `true`, broker publish failures throw an exception (instead of logging ERROR and continuing) |
 
-### Producer configuration (`messaging.type=PRODUCER`)
+### Producer configuration
+
+Set `easygram.update.transport=LONG_POLLING` or `WEBHOOK` and add:
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `easygram.messaging.producer.type` | `ProducerType` | — | Active publisher: `KAFKA` or `RABBIT` |
 
-### Consumer configuration (`messaging.type=CONSUMER`)
+### Consumer configuration
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `easygram.messaging.consumer.type` | `ConsumerType` | — | Active consumer transport: `KAFKA` or `RABBIT` |
+Set `easygram.update.transport=KAFKA_CONSUMER` or `RABBIT_CONSUMER`. No extra messaging properties are needed for consumer mode — the transport selection activates the consumer.
 
-### Kafka properties (shared by producer + consumer)
+### Kafka properties (producer + consumer)
 
-Active when `messaging.producer.type=KAFKA` or `messaging.consumer.type=KAFKA`.
+Active when `messaging.producer.type=KAFKA` or `update.transport=KAFKA_CONSUMER`.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -122,9 +123,9 @@ Active when `messaging.producer.type=KAFKA` or `messaging.consumer.type=KAFKA`.
 
 Standard Spring Kafka properties (`spring.kafka.*`) also apply.
 
-### RabbitMQ properties (shared by producer + consumer)
+### RabbitMQ properties (producer + consumer)
 
-Active when `messaging.producer.type=RABBIT` or `messaging.consumer.type=RABBIT`.
+Active when `messaging.producer.type=RABBIT` or `update.transport=RABBIT_CONSUMER`.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -139,10 +140,11 @@ Standard Spring AMQP properties (`spring.rabbitmq.*`) also apply.
 
 ## i18n Properties
 
-Active when `core-i18n` is on the classpath.
+Active when `core-i18n` is on the classpath **and** `easygram.i18n.enabled=true`.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
+| `easygram.i18n.enabled` | `boolean` | `false` | Enable i18n autoconfiguration. Must be `true` for i18n to work |
 | `easygram.i18n.default-locale` | `String` (language tag) | `en` | Default locale for users without a known locale |
 | `easygram.i18n.basename` | `String` | `messages` | Message source basename (Spring `MessageSource` convention) |
 
@@ -183,7 +185,6 @@ easygram:
     webhook:
       url: https://my-bot.example.com
   messaging:
-    type: PRODUCER
     forward-only: true
     producer:
       type: KAFKA
@@ -196,12 +197,12 @@ easygram:
 ```yaml
 easygram:
   token: ${BOT_TOKEN}          # still needed to send replies via Telegram API
+  update:
+    transport: KAFKA_CONSUMER
   messaging:
-    type: CONSUMER
-    consumer:
-      type: KAFKA
     kafka:
       topic: my-bot-updates
+      group-id: my-bot-group
 ```
 
 ## Observability / Actuator

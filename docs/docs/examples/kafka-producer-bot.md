@@ -169,10 +169,9 @@ in a separate application:
 # consumer/application.yml
 easygram:
   token: "${BOT_TOKEN}"
+  update:
+    transport: KAFKA_CONSUMER
   messaging:
-    type: CONSUMER
-    consumer:
-      type: KAFKA
     kafka:
       topic: easygram-updates
       group-id: my-bot-consumer-group
@@ -232,7 +231,6 @@ services:
     depends_on: [kafka]
     environment:
       easygram.token: "${BOT_TOKEN}"
-      easygram.messaging.type: PRODUCER
       easygram.messaging.forward-only: "true"
       easygram.messaging.producer.type: KAFKA
       easygram.messaging.kafka.topic: easygram-updates
