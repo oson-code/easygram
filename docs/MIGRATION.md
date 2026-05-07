@@ -179,9 +179,9 @@ Register a bean of any of the three new interfaces to supply a custom factory:
 
 | Interface | Replaces |
 |---|---|
-| `BotKafkaProducerFactoryProvider` | Kafka `ProducerFactory` |
-| `BotKafkaConsumerFactoryProvider` | Kafka `ConsumerFactory` |
-| `BotRabbitConnectionFactoryProvider` | RabbitMQ `ConnectionFactory` |
+| `EasygramKafkaProducerFactoryProvider` | Kafka `ProducerFactory` |
+| `EasygramKafkaConsumerFactoryProvider` | Kafka `ConsumerFactory` |
+| `EasygramRabbitConnectionFactoryProvider` | RabbitMQ `ConnectionFactory` |
 
 All three are `@ConditionalOnMissingBean` — declare only the ones you need.
 

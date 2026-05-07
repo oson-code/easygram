@@ -130,15 +130,15 @@ connections without touching `application.yml`:
 
 | Interface | Module | Replaces |
 |---|---|---|
-| `BotKafkaProducerFactoryProvider` | `messaging-api` | `ProducerFactory` for publishing updates |
-| `BotKafkaConsumerFactoryProvider` | `messaging-api` | `ConsumerFactory` for the listener container |
-| `BotRabbitConnectionFactoryProvider` | `messaging-api` | `ConnectionFactory` for publish + consume |
+| `EasygramKafkaProducerFactoryProvider` | `messaging-api` | `ProducerFactory` for publishing updates |
+| `EasygramKafkaConsumerFactoryProvider` | `messaging-api` | `ConsumerFactory` for the listener container |
+| `EasygramRabbitConnectionFactoryProvider` | `messaging-api` | `ConnectionFactory` for publish + consume |
 
 All three are `@ConditionalOnMissingBean` — the defaults use `easygram.kafka.*` / `easygram.rabbit.*` properties.
 
 ```java
 @Bean
-public BotKafkaProducerFactoryProvider botKafkaProducerFactoryProvider() {
+public EasygramKafkaProducerFactoryProvider easygramKafkaProducerFactoryProvider() {
     return () -> new DefaultKafkaProducerFactory<>(customProducerProps());
 }
 ```

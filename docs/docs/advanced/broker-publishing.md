@@ -171,13 +171,13 @@ SASL, a separate cluster, or specific serializer configuration.
 
 All three providers are `@ConditionalOnMissingBean` — declare only the ones you need.
 
-### `BotKafkaProducerFactoryProvider`
+### `EasygramKafkaProducerFactoryProvider`
 
 Replaces the `ProducerFactory` used to build the internal Kafka template:
 
 ```java
 @Bean
-public BotKafkaProducerFactoryProvider kafkaProducerFactory() {
+public EasygramKafkaProducerFactoryProvider easygramKafkaProducerFactoryProvider() {
     return () -> {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-cluster:9093");
@@ -189,13 +189,13 @@ public BotKafkaProducerFactoryProvider kafkaProducerFactory() {
 }
 ```
 
-### `BotKafkaConsumerFactoryProvider`
+### `EasygramKafkaConsumerFactoryProvider`
 
 Replaces the `ConsumerFactory` used to build the Kafka listener container:
 
 ```java
 @Bean
-public BotKafkaConsumerFactoryProvider kafkaConsumerFactory() {
+public EasygramKafkaConsumerFactoryProvider easygramKafkaConsumerFactoryProvider() {
     return () -> {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-cluster:9093");
@@ -206,13 +206,13 @@ public BotKafkaConsumerFactoryProvider kafkaConsumerFactory() {
 }
 ```
 
-### `BotRabbitConnectionFactoryProvider`
+### `EasygramRabbitConnectionFactoryProvider`
 
 Replaces the RabbitMQ `ConnectionFactory` for both publishing and consuming:
 
 ```java
 @Bean
-public BotRabbitConnectionFactoryProvider rabbitConnectionFactory() {
+public EasygramRabbitConnectionFactoryProvider easygramRabbitConnectionFactoryProvider() {
     return () -> {
         CachingConnectionFactory factory = new CachingConnectionFactory("rabbit-cluster");
         factory.setVirtualHost("/my-vhost");
