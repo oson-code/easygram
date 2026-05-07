@@ -4,9 +4,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.telegram.telegrambots.longpolling.util.ExponentialBackOff;
 import org.telegram.telegrambots.meta.api.methods.updates.GetUpdates;
-import uz.osoncode.easygram.longpolling.provider.BotBackOffProvider;
-import uz.osoncode.easygram.longpolling.provider.BotGetUpdatesGeneratorProvider;
-import uz.osoncode.easygram.longpolling.provider.BotScheduledExecutorServiceProvider;
+import uz.osoncode.easygram.longpolling.provider.EasygramBackOffProvider;
+import uz.osoncode.easygram.longpolling.provider.EasygramGetUpdatesGeneratorProvider;
+import uz.osoncode.easygram.longpolling.provider.EasygramScheduledExecutorServiceProvider;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,40 +28,55 @@ import java.util.function.Function;
 public class LongPollingBotConfig {
 
     /**
-     * Default {@link BotScheduledExecutorServiceProvider} backed by a single-threaded
+     * Default {@link EasygramScheduledExecutorServiceProvider} backed by a single-threaded
      * scheduled executor.
      *
-     * @return a {@link BotScheduledExecutorServiceProvider} backed by a single-threaded scheduled executor
+     * @return a {@link EasygramScheduledExecutorServiceProvider} backed by a single-threaded scheduled executor
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotScheduledExecutorServiceProvider botScheduledExecutorServiceProvider() {
+    public EasygramScheduledExecutorServiceProvider botScheduledExecutorServiceProvider() {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         return () -> scheduler;
     }
 
     /**
-     * Default {@link BotBackOffProvider} using an exponential back-off strategy.
+     * Default {@link EasygramBackOffProvider} using an exponential back-off strategy.
      *
-     * @return a {@link BotBackOffProvider} that creates {@link ExponentialBackOff} instances
+     * @return a {@link EasygramBackOffProvider} that creates {@link ExponentialBackOff} instances
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotBackOffProvider botBackOffProvider() {
+    public EasygramBackOffProvider botBackOffProvider() {
         return ExponentialBackOff::new;
     }
 
     /**
-     * Default {@link BotGetUpdatesGeneratorProvider} requesting up to 100 updates per poll
-     * with a 50-second long-poll timeout.
+     * Default {@link EasygramGetUpdatesGeneratorProvider} driven by
+     * {@link EasygramLongPollingProperties}.
      *
-     * @return a {@link BotGetUpdatesGeneratorProvider} that builds {@code GetUpdates} requests
+     * <p>The limit and timeout values default to {@code 100} and {@code 50}
+     * respectively and can be overridden via:
+     * <pre>{@code
+     * easygram:
+     *   update:
+     *     long-polling:
+     *       limit: 100
+     *       timeout-seconds: 50
+     * }</pre>
+     *
+     * @param props long-polling tuning properties
+     * @return a {@link EasygramGetUpdatesGeneratorProvider} that builds {@code GetUpdates} requests
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotGetUpdatesGeneratorProvider botGetUpdatesGeneratorProvider() {
+    public EasygramGetUpdatesGeneratorProvider botGetUpdatesGeneratorProvider(
+            EasygramLongPollingProperties props) {
+        int limit = props.limit();
+        int timeout = props.timeoutSeconds();
         Function<Integer, GetUpdates> generator = offset ->
-                GetUpdates.builder().offset(offset + 1).limit(100).timeout(50).build();
+                GetUpdates.builder().offset(offset + 1).limit(limit).timeout(timeout).build();
         return () -> generator;
     }
 }
+

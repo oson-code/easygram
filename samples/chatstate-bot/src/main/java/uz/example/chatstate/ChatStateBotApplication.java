@@ -4,7 +4,7 @@ import okhttp3.OkHttpClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import uz.osoncode.easygram.core.provider.BotOkHttpClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramOkHttpClientProvider;
 
 import java.time.Duration;
 
@@ -24,7 +24,7 @@ public class ChatStateBotApplication {
     }
 
     @Bean
-    public BotOkHttpClientProvider botOkHttpClientProvider() {
+    public EasygramOkHttpClientProvider botOkHttpClientProvider() {
         return () -> new OkHttpClient.Builder()
                 .connectTimeout(Duration.ofSeconds(50))
                 .readTimeout(Duration.ofSeconds(50))

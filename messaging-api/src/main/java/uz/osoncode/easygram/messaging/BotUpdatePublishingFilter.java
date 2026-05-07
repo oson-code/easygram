@@ -13,9 +13,11 @@ import uz.osoncode.easygram.core.model.BotResponse;
  * A {@link BotFilter} that publishes every incoming Telegram {@link Update} to an external
  * message broker via the configured {@link BotUpdatePublisher}.
  *
- * <p>This filter is placed at the very beginning of the filter chain (order
- * {@code Integer.MIN_VALUE + 1000}) so that every update — regardless of which transport
- * delivered it (long-polling or webhook) — is forwarded to the broker.</p>
+ * <p>This filter runs at order {@code Integer.MIN_VALUE + 1000} ({@link BotFilterOrder#PUBLISHING}),
+ * which places it after the MDC, context-setter, observation, and API-sender filters in the
+ * default chain. Running after the context-setter ensures that the full
+ * {@link uz.osoncode.easygram.core.model.BotRequest} context (user, chat) is available when
+ * the update is forwarded to the broker.</p>
  *
  * <p>Behaviour is governed by {@link EasygramMessagingProperties#forwardOnly()}:</p>
  * <ul>
@@ -24,6 +26,13 @@ import uz.osoncode.easygram.core.model.BotResponse;
  *   <li>{@code true}: the update is published and the chain is stopped — bot handler
  *       methods are skipped entirely. Useful when the bot acts purely as a relay.</li>
  * </ul>
+ *
+ * <p><strong>Consumer-transport note:</strong> autoconfiguration suppresses this filter when
+ * {@code easygram.update.transport} is {@code RABBIT_CONSUMER} or {@code KAFKA_CONSUMER}.
+ * Registering the filter in those contexts would cause every consumed update to be immediately
+ * re-published to the same broker queue, creating an infinite processing loop. To use a
+ * publishing filter in consumer mode anyway, register your own {@code BotUpdatePublishingFilter}
+ * bean — the {@code @ConditionalOnMissingBean} guard will defer to it.</p>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
@@ -52,6 +61,11 @@ public class BotUpdatePublishingFilter implements BotFilter {
             log.debug("Published update id={} to message broker", update.getUpdateId());
         } catch (Exception e) {
             log.error("Failed to publish update id={} to message broker", update.getUpdateId(), e);
+            if (Boolean.TRUE.equals(botPublishingProperties.failOnPublishError())) {
+                throw new RuntimeException(
+                        "Broker publish failed for update id=" + update.getUpdateId()
+                        + "; easygram.messaging.fail-on-publish-error=true", e);
+            }
         }
 
         if (!Boolean.TRUE.equals(botPublishingProperties.forwardOnly())) {

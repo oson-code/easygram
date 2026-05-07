@@ -8,11 +8,33 @@
   ],
   "properties": [
     {
+      "name": "easygram.i18n.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to activate Easygram i18n support. When true, BotI18nAutoConfiguration registers: BotMessageSource, BotKeyboardFactory, BotLocaleResolver, BotLocaleSetterFilter, BotLocaleArgumentResolver, locale-aware BotReplyButtonMatcher, locale-aware BotInlineQueryMatcher, and BotLocalizedReplyReturnTypeHandler. Also requires spring.messages.basename to point to your message bundle files. Defaults to false — bots that do not use message bundles are unaffected even when core-i18n is on the classpath.",
+      "defaultValue": false,
+      "sourceType": "uz.osoncode.easygram.core.i18n.EasygramI18nProperties"
+    },
+    {
       "name": "easygram.i18n.default-locale",
       "type": "java.lang.String",
       "description": "Fallback locale for users whose Telegram language code is absent or unrecognised. Use IETF BCP 47 language tags (e.g. 'en', 'ru', 'uz').",
       "defaultValue": "en",
       "sourceType": "uz.osoncode.easygram.core.i18n.EasygramI18nProperties"
+    }
+  ],
+  "hints": [
+    {
+      "name": "easygram.i18n.enabled",
+      "values": [
+        {
+          "value": true,
+          "description": "Activate locale-aware matchers, BotMessageSource, and BotKeyboardFactory. Requires spring.messages.basename."
+        },
+        {
+          "value": false,
+          "description": "Skip all i18n beans. Plain-text matchers from core are used for @BotReplyButton and @BotInlineQuery routing."
+        }
+      ]
     }
   ]
 }

@@ -24,7 +24,7 @@ Webhook requires `spring-web` (included in `spring-boot-starter-web`) in additio
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
 </dependency>
 <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -66,11 +66,63 @@ easygram.update.webhook.secret-token=${WEBHOOK_SECRET}
 | `easygram.update.webhook.url` | **Yes** | — | Public HTTPS URL Telegram delivers updates to |
 | `easygram.update.webhook.path` | No | `/webhook` | Local HTTP endpoint path that receives the POST |
 | `easygram.update.webhook.secret-token` | No | — | Validates the `X-Telegram-Bot-Api-Secret-Token` header |
-| `easygram.update.webhook.max-connections` | No | — | Max simultaneous Telegram connections (1–100) |
+| `easygram.update.webhook.require-secret-token` | No | `false` | Fail at startup if `secret-token` is absent or blank |
+| `easygram.update.webhook.max-body-bytes` | No | `1048576` | Reject requests larger than this byte limit with HTTP 413 (1 MiB by default) |
+| `easygram.update.webhook.max-connections` | No | `40` | Max simultaneous Telegram connections (1–100) |
 | `easygram.update.webhook.drop-pending-updates` | No | `false` | Discard queued updates on webhook registration |
 | `easygram.update.webhook.unregister-on-shutdown` | No | `false` | Call `deleteWebhook` on application shutdown |
 
-## HTTPS Setup
+## Security
+
+### Secret token enforcement
+
+Telegram supports a `secret_token` parameter on `setWebhook`. When set, every webhook POST
+carries an `X-Telegram-Bot-Api-Secret-Token` header that you can validate. Easygram handles
+this automatically when `secret-token` is configured.
+
+**Fail-fast validation (0.0.7+):** Set `require-secret-token: true` to ensure the application
+cannot start without a configured secret token. This prevents a misconfigured deployment from
+silently accepting unauthenticated requests:
+
+```yaml
+easygram:
+  update:
+    webhook:
+      url: https://bot.example.com
+      secret-token: ${WEBHOOK_SECRET}      # injected from environment
+      require-secret-token: true           # startup fails if secret-token is absent
+```
+
+If `require-secret-token: true` is set but `secret-token` is blank or absent, you'll see:
+
+```
+BeanCreationException: requireSecretToken is true but no secret-token is configured.
+Set easygram.update.webhook.secret-token or disable requireSecretToken.
+```
+
+### Body size limit
+
+Limit the maximum webhook request body size to prevent memory exhaustion from oversized
+or malformed payloads:
+
+```yaml
+easygram:
+  update:
+    webhook:
+      max-body-bytes: 5242880   # 5 MB
+```
+
+Requests exceeding the limit are rejected with **HTTP 413 Request Entity Too Large** before
+any deserialization occurs. Telegram's actual update payloads are well under 1 MB; a limit of
+1–10 MB is reasonable for most bots.
+
+```
+HTTP/1.1 413 Request Entity Too Large
+Content-Type: text/plain
+Request body exceeds the configured limit
+```
+
+
 
 ### Option 1: Reverse Proxy with Let's Encrypt (Recommended)
 

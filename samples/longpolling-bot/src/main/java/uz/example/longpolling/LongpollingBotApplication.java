@@ -4,12 +4,12 @@ import okhttp3.OkHttpClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import uz.osoncode.easygram.core.provider.BotOkHttpClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramOkHttpClientProvider;
 
 import java.time.Duration;
 
 /**
- * Sample long-polling bot that demonstrates overriding the {@link BotOkHttpClientProvider}
+ * Sample long-polling bot that demonstrates overriding the {@link EasygramOkHttpClientProvider}
  * to customise OkHttp timeouts.
  *
  * <p>Only the provider beans you actually need to customise must be declared.
@@ -27,7 +27,7 @@ public class LongpollingBotApplication {
      * Override only the HTTP client — all other infrastructure providers use their defaults.
      */
     @Bean
-    public BotOkHttpClientProvider botOkHttpClientProvider() {
+    public EasygramOkHttpClientProvider botOkHttpClientProvider() {
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(Duration.ofSeconds(50))
                 .readTimeout(Duration.ofSeconds(50))

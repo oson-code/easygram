@@ -8,6 +8,7 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Factory that holds all registered {@link BotArgumentResolver} instances and selects
@@ -26,6 +27,12 @@ public class BotArgumentResolverFactory {
 
     /** Ordered list of argument resolvers consulted during parameter resolution. */
     private final List<BotArgumentResolver> botArgumentResolvers;
+
+    /**
+     * Cache mapping each method {@link Parameter} to the resolver that supports it.
+     * Parameters are static after startup so the scan needs to run only once per parameter.
+     */
+    private final ConcurrentHashMap<Parameter, BotArgumentResolver> resolverCache = new ConcurrentHashMap<>();
 
     /**
      * Constructs a new factory with the given list of argument resolvers.
@@ -53,16 +60,25 @@ public class BotArgumentResolverFactory {
         List<Object> objects = new ArrayList<>(parameters.length);
         for (Parameter parameter : parameters) {
             boolean optional = ParameterUtils.isOptional(parameter);
-            BotArgumentResolver matched = botArgumentResolvers
-                    .stream()
-                    .filter(argumentResolver -> argumentResolver.supportsParameter(parameter))
-                    .findFirst()
-                    .orElse(null);
+
+            // Use a sentinel to distinguish "no resolver found" from a resolver returning null.
+            // The cache only stores resolvers for parameters that have a match; parameters with
+            // no match are handled by the orElse(null) path below on every invocation (rare case).
+            BotArgumentResolver matched = resolverCache.computeIfAbsent(parameter, p ->
+                    botArgumentResolvers.stream()
+                            .filter(r -> r.supportsParameter(p))
+                            .findFirst()
+                            .orElse(null));
 
             if (matched == null) {
-                log.warn("No argument resolver found for parameter '{}' of type '{}' — injecting null",
-                        parameter.getName(), parameter.getType().getSimpleName());
-                objects.add(optional ? Optional.empty() : null);
+                if (optional) {
+                    objects.add(Optional.empty());
+                } else {
+                    throw new IllegalStateException(
+                            "No BotArgumentResolver found for required parameter '" + parameter.getName()
+                            + "' of type '" + parameter.getType().getName()
+                            + "'. Register a custom BotArgumentResolver bean that supports this parameter type.");
+                }
                 continue;
             }
 

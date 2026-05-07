@@ -648,4 +648,26 @@ public final class LocalizedReply implements MarkupAware {
     public LocalizedReply withLinkPreviewOptions(LinkPreviewOptions linkPreviewOptions) {
         return new LocalizedReply(this.key, this.args, options.withLinkPreviewOptions(linkPreviewOptions));
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof LocalizedReply that)) return false;
+        return Objects.equals(key, that.key)
+                && java.util.Arrays.equals(args, that.args)
+                && Objects.equals(options, that.options);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(key, options);
+        result = 31 * result + java.util.Arrays.hashCode(args);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "LocalizedReply{key='" + key + "', args=" + java.util.Arrays.toString(args)
+                + ", options=" + options + '}';
+    }
 }

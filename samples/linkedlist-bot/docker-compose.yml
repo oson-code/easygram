@@ -1,0 +1,63 @@
+# Run:  docker compose up -d
+#
+# Starts two infrastructure services:
+#   tempo   — Grafana Tempo; accepts OTLP/HTTP on localhost:4318
+#   grafana — pre-configured with a Tempo datasource; UI at http://localhost:3000
+#
+# After the stack is up, start the bot:
+#   BOT_TOKEN=<your-token> mvn spring-boot:run -pl samples/linkedlist-bot -am
+#
+# View traces:
+#   http://localhost:3000  →  Explore (left sidebar)  →  datasource: Tempo
+#
+# Custom transport trace propagation:
+#   The linkedlist-bot uses a LinkedBlockingDeque as an in-memory "broker".
+#   The publisher injects W3C trace context (traceparent header) into each queue entry
+#   via io.micrometer.tracing.propagation.Propagator.inject().
+#   The consumer extracts the context and creates a "linkedlist.consumer" child span
+#   before calling dispatch(), so the full trace tree is:
+#
+#     long-polling  →  easygram.update  →  linkedlist.consumer  →  easygram.update
+#      (transport)     (producer side)      (restored context)      (consumer side)
+
+services:
+
+  # ─── Grafana Tempo (distributed tracing backend) ───────────────────────────
+  tempo:
+    image: grafana/tempo:latest
+    container_name: linkedlist-bot-tempo
+    ports:
+      - "3200:3200"   # Tempo HTTP API (used by Grafana datasource internally)
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver — the bot exports here
+    volumes:
+      - ./docker/tempo.yml:/etc/tempo.yml:ro
+      - tempo_data:/var/tempo
+    command: -config.file=/etc/tempo.yml
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3200/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ─── Grafana (trace visualisation) ─────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: linkedlist-bot-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    environment:
+      # Anonymous access — no login required for the demo
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    depends_on:
+      tempo:
+        condition: service_healthy
+
+volumes:
+  tempo_data:
+  grafana_data:

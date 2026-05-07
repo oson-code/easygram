@@ -78,6 +78,20 @@ Use `BotFilterOrder.CONTEXT_SETTER + N` to insert your filter just after `User`/
 Use `BotFilterOrder.OBSERVATION - 1` to wrap your logic inside the Micrometer trace span.
 :::
 
+### `BotApiMethodsSenderFilter` — error classification
+
+When calling the Telegram API, this filter classifies errors by HTTP status so that
+**permanent** failures do not cause infinite requeue loops in broker transports:
+
+| Error type | HTTP range | Behavior |
+|---|---|---|
+| **Telegram client error (permanent)** | 4xx (400–499) | Logged as `ERROR`, **suppressed** — not re-thrown |
+| **Telegram server error / network failure** | 5xx / connection error | Logged as `ERROR`, **re-thrown** |
+
+4xx errors (bad parse mode, forbidden, chat not found) represent invalid requests that will
+never succeed — retrying them is pointless. Only 5xx and network errors are propagated to
+your `@BotExceptionHandler` methods so you can apply retry or alert logic.
+
 ## Creating Custom Filters
 
 ```java

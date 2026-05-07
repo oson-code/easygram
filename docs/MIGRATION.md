@@ -1,5 +1,47 @@
 # Easygram — Migration Guide
 
+## 0.0.6 → 0.0.7
+
+### BREAKING: `core-observability` no longer pulled transitively by `spring-boot-starter`
+
+`core-observability` is now declared with `<optional>true</optional>` in
+`spring-boot-starter/pom.xml`. Projects that relied on it being pulled in automatically
+will no longer have `BotHealthIndicator`, `BotInfoContributor`, or `BotObservabilityFilter`
+without an explicit dependency.
+
+**Affected if**: you see `BotHealthIndicator` contributions missing from `/actuator/health`,
+or if your application previously failed to start without `micrometer-core` on the classpath.
+
+**Migration**: Add the module explicitly to restore the previous behavior:
+
+```xml
+<dependency>
+    <groupId>uz.osoncode.easygram</groupId>
+    <artifactId>core-observability</artifactId>
+    <version>0.0.7</version>
+</dependency>
+```
+
+You will also need `spring-boot-actuator` (usually via `spring-boot-starter-actuator`) and
+`micrometer-core` (usually pulled by a registry implementation like `micrometer-registry-prometheus`).
+
+### New (non-breaking): `BotChatStateMetrics` SPI
+
+A new `BotChatStateMetrics` public interface has been added to `core-chatstate`. It
+decouples the in-memory chat state service from any specific metrics library. When
+`micrometer-core` is on the classpath, `MicrometerBotChatStateMetrics` is wired
+automatically and emits the following counters:
+
+| Metric | Tags | Description |
+|---|---|---|
+| `easygram.chatstate.get` | `result=hit\|miss` | State look-up results |
+| `easygram.chatstate.set` | — | State writes |
+| `easygram.chatstate.clear` | — | State removals |
+
+No action required — this is purely additive.
+
+---
+
 ## 0.0.5 → 0.0.6
 
 ### BREAKING: `PlainTextTemplate` removed
@@ -137,9 +179,9 @@ Register a bean of any of the three new interfaces to supply a custom factory:
 
 | Interface | Replaces |
 |---|---|
-| `BotKafkaProducerFactoryProvider` | Kafka `ProducerFactory` |
-| `BotKafkaConsumerFactoryProvider` | Kafka `ConsumerFactory` |
-| `BotRabbitConnectionFactoryProvider` | RabbitMQ `ConnectionFactory` |
+| `EasygramKafkaProducerFactoryProvider` | Kafka `ProducerFactory` |
+| `EasygramKafkaConsumerFactoryProvider` | Kafka `ConsumerFactory` |
+| `EasygramRabbitConnectionFactoryProvider` | RabbitMQ `ConnectionFactory` |
 
 All three are `@ConditionalOnMissingBean` — declare only the ones you need.
 
@@ -278,35 +320,20 @@ arrive from Telegram) from **broker integration** (publishing/consuming via Kafk
 |---|---|
 | `easygram.transport=LONG_POLLING` | `easygram.update.transport=LONG_POLLING` (or omit — it is the default) |
 | `easygram.transport=WEBHOOK` | `easygram.update.transport=WEBHOOK` |
-| `easygram.transport=KAFKA_CONSUMER` | `easygram.messaging.type=CONSUMER` + `easygram.messaging.consumer.type=KAFKA` |
-| `easygram.transport=RABBIT_CONSUMER` | `easygram.messaging.type=CONSUMER` + `easygram.messaging.consumer.type=RABBIT` |
+| `easygram.transport=KAFKA_CONSUMER` | `easygram.update.transport=KAFKA_CONSUMER` *(prefix changed only)* |
+| `easygram.transport=RABBIT_CONSUMER` | `easygram.update.transport=RABBIT_CONSUMER` *(prefix changed only)* |
 | `easygram.webhook.url` | `easygram.update.webhook.url` |
 | `easygram.webhook.path` | `easygram.update.webhook.path` |
 | `easygram.webhook.secret-token` | `easygram.update.webhook.secret-token` |
 | `easygram.webhook.max-connections` | `easygram.update.webhook.max-connections` |
 | `easygram.webhook.drop-pending-updates` | `easygram.update.webhook.drop-pending-updates` |
 | `easygram.webhook.unregister-on-shutdown` | `easygram.update.webhook.unregister-on-shutdown` |
-| `easygram.messaging.producer.producer-type=kafka` | `easygram.messaging.type=PRODUCER` + `easygram.messaging.producer.type=KAFKA` |
-| `easygram.messaging.producer.producer-type=rabbit` | `easygram.messaging.type=PRODUCER` + `easygram.messaging.producer.type=RABBIT` |
+| `easygram.messaging.producer.producer-type=kafka` | `easygram.messaging.producer.type=KAFKA` |
+| `easygram.messaging.producer.producer-type=rabbit` | `easygram.messaging.producer.type=RABBIT` |
 | `easygram.kafka-consumer.*` | `easygram.messaging.kafka.*` |
 | `easygram.rabbit-consumer.*` | `easygram.messaging.rabbit.*` |
 | `easygram.messaging.kafka.*` | `easygram.messaging.kafka.*` *(unchanged — shared now)* |
 | `easygram.messaging.rabbit.*` | `easygram.messaging.rabbit.*` *(unchanged — shared now)* |
-
-#### `BotTransportType` enum changes
-
-`KAFKA_CONSUMER` and `RABBIT_CONSUMER` have been **removed** from `BotTransportType`.
-Consumer bots no longer set `update.transport`; instead they set `messaging.type=CONSUMER`.
-
-If you referenced these enum values directly in code, replace them:
-
-```java
-// Old
-BotTransportType.KAFKA_CONSUMER
-
-// New — there is no enum constant; check via messaging properties instead
-// easygram.messaging.type=CONSUMER + easygram.messaging.consumer.type=KAFKA
-```
 
 #### Consumer bot example (before / after)
 
@@ -320,10 +347,9 @@ easygram:
 
 # ── After ───────────────────────────────────────
 easygram:
+  update:
+    transport: KAFKA_CONSUMER
   messaging:
-    type: CONSUMER
-    consumer:
-      type: KAFKA
     kafka:
       topic: my-updates
       group-id: my-group
@@ -350,7 +376,6 @@ easygram:
     webhook:
       url: https://example.com/bot
   messaging:
-    type: PRODUCER
     producer:
       type: KAFKA
     kafka:

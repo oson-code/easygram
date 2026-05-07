@@ -1,10 +1,10 @@
 package uz.osoncode.easygram.core.handler;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Registry that stores and maintains sorted lists of {@link BotHandler} instances.
@@ -27,17 +27,43 @@ import java.util.List;
  * @since 0.0.1
  */
 @Slf4j
-@Getter
 public class BotHandlerRegistry {
 
     /** State-specific handlers sorted by priority, evaluated before all other handlers. */
-    private final List<BotHandler> stateHandlers = new ArrayList<>();
+    private final List<BotHandler> stateHandlers = new CopyOnWriteArrayList<>();
 
     /** Specific handlers sorted by priority, evaluated after state handlers. */
-    private final List<BotHandler> botHandlers = new ArrayList<>();
+    private final List<BotHandler> botHandlers = new CopyOnWriteArrayList<>();
 
     /** Fallback handlers sorted by priority, evaluated when no state or specific handler matches. */
-    private final List<BotHandler> defaultHandlers = new ArrayList<>();
+    private final List<BotHandler> defaultHandlers = new CopyOnWriteArrayList<>();
+
+    /**
+     * Returns an unmodifiable view of the state-specific handler list.
+     *
+     * @return an unmodifiable list of state handlers
+     */
+    public List<BotHandler> getStateHandlers() {
+        return Collections.unmodifiableList(stateHandlers);
+    }
+
+    /**
+     * Returns an unmodifiable view of the specific handler list.
+     *
+     * @return an unmodifiable list of specific handlers
+     */
+    public List<BotHandler> getBotHandlers() {
+        return Collections.unmodifiableList(botHandlers);
+    }
+
+    /**
+     * Returns an unmodifiable view of the default (fallback) handler list.
+     *
+     * @return an unmodifiable list of default handlers
+     */
+    public List<BotHandler> getDefaultHandlers() {
+        return Collections.unmodifiableList(defaultHandlers);
+    }
 
     /**
      * Registers a state-specific {@link BotHandler} and re-sorts the state-handler list

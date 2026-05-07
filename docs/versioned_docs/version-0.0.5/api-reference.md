@@ -1890,7 +1890,7 @@ public interface MarkupAware {
 
 ---
 
-
+## i18n Services *(core-i18n)*
 
 All i18n services live in `uz.osoncode.easygram.core.i18n` and are auto-configured by `BotI18nAutoConfiguration` when `core-i18n` is on the classpath. All are `@ConditionalOnMissingBean` — override any with your own `@Bean`.
 

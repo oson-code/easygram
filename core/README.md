@@ -170,7 +170,7 @@ public class OrderFlow {
     @BotChatState("AWAITING_QTY")
     public String collectQty(@BotTextValue String qty, User user,
                               BotChatStateService states) {
-        states.setState(user.getId(), (String) null); // clear state
+        states.clearState(user.getId());
         return "Order placed: " + qty + " unit(s). ✅";
     }
 }
@@ -228,7 +228,7 @@ public String start(User user, BotChatStateService states) {
 @BotChatState("AWAITING_CITY")
 public String collectCity(@BotTextValue String city, User user,
                           BotChatStateService states) {
-    states.setState(user.getId(), (String) null);
+    states.clearState(user.getId());
     return "Done! City: " + city;
 }
 
@@ -291,6 +291,26 @@ public List<SendMessage> onError(Update update, Throwable ex) {
 
 `BotFilter` intercepts every update **before** it reaches handlers. Filters run in ascending `getOrder()` order.
 
+### Built-in filter execution order
+
+The following built-in filters are registered automatically (lower order = runs first):
+
+| Order constant | Value | Filter | Module | Description |
+|---|---|---|---|---|
+| `BotFilterOrder.MDC_CONTEXT` | `Integer.MIN_VALUE` | `BotMdcFilter` | `core` | Sets MDC keys `bot.update.id` and `bot.transport`; cleared in `finally` after the chain. |
+| `BotFilterOrder.CONTEXT_SETTER` | `Integer.MIN_VALUE + 1` | `BotContextSetterFilter` | `core` | Resolves `Chat` and `User` from the update; enriches MDC with `bot.chat.id` / `bot.user.id`. |
+| `BotFilterOrder.OBSERVATION` | `Integer.MIN_VALUE + 2` | `BotObservabilityFilter` | `core-observability` | Wraps the remaining pipeline in a Micrometer `Observation` (timer metric + trace span). |
+| `BotFilterOrder.API_SENDER` | `Integer.MIN_VALUE + 3` | `BotApiMethodsSenderFilter` | `core` | Calls downstream, then sends all accumulated `BotApiMethod` responses via `TelegramClient`. |
+| `BotFilterOrder.PUBLISHING` | `Integer.MIN_VALUE + 1000` | `BotUpdatePublishingFilter` | `messaging-api` | Forwards the raw update to a broker (Kafka / RabbitMQ). Only active when a broker is configured. |
+
+**Safe order ranges for custom filters:**
+
+| Where to run | Recommended range |
+|---|---|
+| Before all built-in logic (e.g. auth, rate-limiting) | `Integer.MIN_VALUE + 10` to `Integer.MIN_VALUE + 99` |
+| After context is set, before dispatch (e.g. metrics, A/B) | `Integer.MIN_VALUE + 100` to `Integer.MIN_VALUE + 499` |
+| After all built-in filters | `0` and above |
+
 ```java
 @Component
 public class AuthFilter implements BotFilter {
@@ -335,7 +355,7 @@ Override only what you need — everything else uses its default.
 | Provider | Default | Typical override |
 |---|---|---|
 | `BotOkHttpClientProvider` | `new OkHttpClient()` | Custom timeouts, proxy, interceptors |
-| `BotExecutorServiceProvider` | `newSingleThreadExecutor()` | Fixed / cached thread pool |
+| `BotExecutorServiceProvider` | `newFixedThreadPool(max(2, availableProcessors()))` | Custom pool size, virtual threads |
 | `BotTelegramUrlProvider` | `TelegramUrl.DEFAULT_URL` | Local Telegram mock in tests |
 | `BotObjectMapperProvider` | shared Spring `ObjectMapper` | JavaTime module, custom serialisers |
 | `BotTelegramClientProvider` | `OkHttpTelegramClient` | Custom `TelegramClient` wrapper |
@@ -394,11 +414,33 @@ public BotObjectMapperProvider botObjectMapperProvider() {
 public class MyStartTrigger implements BotStartTrigger {
 
     @Override
-    public void onStart(User botUser, TelegramClient client) {
-        log.info("Bot @{} started", botUser.getUserName());
+    public void execute(User bot, TelegramClient telegramClient) {
+        log.info("Bot @{} started", bot.getUserName());
     }
 }
 ```
+
+## Transport × Messaging Matrix
+
+The table below describes all valid transport + messaging combinations so you can
+pick the right setup without trial and error.
+
+| `easygram.update.transport` | `messaging.producer.type` | `messaging.forward-only` | Behaviour |
+|-----------------------------|---------------------------|--------------------------|-----------|
+| `LONG_POLLING` *(default)*  | *(none)*                  | —                        | Classic standalone bot. Updates polled and dispatched to `@BotController` handlers only. |
+| `LONG_POLLING`              | `KAFKA` or `RABBIT`       | `false` *(default)*      | Polls updates, dispatches to local handlers **and** publishes to broker. Useful for analytics, auditing. |
+| `LONG_POLLING`              | `KAFKA` or `RABBIT`       | `true`                   | Polls updates and **only** publishes to broker. All `@BotController` handlers are skipped. Use for relay/proxy bots. |
+| `WEBHOOK`                   | *(none)*                  | —                        | Classic standalone bot. Telegram pushes updates via HTTP POST. |
+| `WEBHOOK`                   | `KAFKA` or `RABBIT`       | `false`                  | Receives via webhook, dispatches locally **and** publishes to broker. |
+| `WEBHOOK`                   | `KAFKA` or `RABBIT`       | `true`                   | Receives via webhook, **only** publishes to broker. Local handlers skipped. |
+| `KAFKA_CONSUMER`            | *(none)*                  | —                        | Consumes updates from Kafka, dispatches to `@BotController` handlers. No Telegram polling. |
+| `RABBIT_CONSUMER`           | *(none)*                  | —                        | Consumes updates from RabbitMQ, dispatches to `@BotController` handlers. No Telegram polling. |
+| `NONE`                      | *(none)*                  | —                        | No transport active. Provide your own update ingestion via a custom `BotHandler` bean or test harness. |
+
+> **Startup warnings**: The framework emits `WARN` logs for the most common misconfigurations:
+> - `messaging-api` on classpath but `producer.type` not set → updates won't reach broker
+> - `forward-only=true` with `LONG_POLLING`/`WEBHOOK` → local handlers will be skipped
+> - `transport=NONE` with no `Bot` beans registered → no updates will ever arrive
 
 ## See Also
 

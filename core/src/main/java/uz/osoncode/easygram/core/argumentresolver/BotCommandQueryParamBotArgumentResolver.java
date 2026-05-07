@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.argumentresolver;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import uz.osoncode.easygram.core.bind.annotation.BotCommandQueryParam;
@@ -26,6 +27,7 @@ import java.util.Optional;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 @RequiredArgsConstructor
 public class BotCommandQueryParamBotArgumentResolver implements BotArgumentResolver {
 
@@ -65,8 +67,10 @@ public class BotCommandQueryParamBotArgumentResolver implements BotArgumentResol
                 .map(Update::getMessage)
                 .map(Message::getText)
                 .map(text -> {
-                    String[] parts = text.split(" ");
+                    String[] parts = text.trim().split("\\s+");
                     if (parts.length < 2) {
+                        log.debug("BotCommandQueryParamResolver: no query param found in text '{}' for parameter '{}'",
+                                text, parameter.getName());
                         return null;
                     }
                     return botConfigurer.objectMapper().convertValue(parts[1], ParameterUtils.effectiveType(parameter));

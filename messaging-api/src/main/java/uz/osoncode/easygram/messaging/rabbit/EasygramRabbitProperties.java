@@ -1,7 +1,9 @@
 package uz.osoncode.easygram.messaging.rabbit;
 
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * Shared RabbitMQ configuration for both producer and consumer bot integrations.
@@ -40,19 +42,23 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @author Islom Mirsaburov
  * @since 0.0.5
  */
+@Validated
 @ConfigurationProperties("easygram.messaging.rabbit")
 public record EasygramRabbitProperties(
 
         /** The RabbitMQ exchange name. Defaults to {@code easygram-exchange}. */
         @DefaultValue("easygram-exchange")
+        @NotBlank(message = "easygram.messaging.rabbit.exchange must not be blank")
         String exchange,
 
         /** The queue bound to the exchange. Used for consuming and auto-creation. */
         @DefaultValue("easygram-updates")
+        @NotBlank(message = "easygram.messaging.rabbit.queue must not be blank")
         String queue,
 
         /** The routing key used when publishing messages to the exchange. */
         @DefaultValue("easygram.updates")
+        @NotBlank(message = "easygram.messaging.rabbit.routing-key must not be blank")
         String routingKey,
 
         /** Auto-create the exchange, queue and binding on startup. Defaults to {@code true}. */

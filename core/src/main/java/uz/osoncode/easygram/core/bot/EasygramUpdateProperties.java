@@ -8,10 +8,10 @@ import org.springframework.validation.annotation.Validated;
 /**
  * Configuration properties that control how Telegram updates are delivered to the bot.
  *
- * <p>Bound from the {@code easygram.update} configuration prefix. When
- * {@code easygram.messaging.type=CONSUMER} is set, the bot receives updates from a
- * message broker instead of polling Telegram directly — in that case this property has no
- * effect because the relevant transport auto-configuration does not activate.</p>
+ * <p>Bound from the {@code easygram.update} configuration prefix. Set
+ * {@code easygram.update.transport} to select how updates arrive. The broker producer
+ * side (forwarding updates to a broker) is controlled independently via
+ * {@code easygram.messaging.producer.type} and does not affect this setting.</p>
  *
  * <p>Example {@code application.yml} snippets:</p>
  * <pre>{@code
@@ -24,8 +24,16 @@ import org.springframework.validation.annotation.Validated;
  * easygram:
  *   update:
  *     transport: WEBHOOK
- *     webhook:
- *       url: "https://example.com/bot"
+ *
+ * # Consume updates from Kafka (produced by a separate bot instance)
+ * easygram:
+ *   update:
+ *     transport: KAFKA_CONSUMER
+ *
+ * # No direct transport (custom ingestion)
+ * easygram:
+ *   update:
+ *     transport: NONE
  * }</pre>
  *
  * @param transport the update-delivery mechanism; defaults to {@link BotTransportType#LONG_POLLING}

@@ -20,6 +20,7 @@ Handlers are methods in `@BotController` classes that respond to Telegram update
 | `@BotTextDefault` | Any text not matched | `@BotTextDefault` |
 | `@BotCallbackQuery` | Callback query by data | `@BotCallbackQuery("btn_ok")` |
 | `@BotDefaultCallbackQuery` | Any callback not matched | `@BotDefaultCallbackQuery` |
+| `@BotDynamicCallbackQuery` | Dynamic callback by server-side type | `@BotDynamicCallbackQuery("product_select")` |
 | `@BotContact` | Contact-sharing message | `@BotContact` |
 | `@BotLocation` | Location-sharing message | `@BotLocation` |
 | `@BotReplyButton` | Reply keyboard button press | `@BotReplyButton(" Confirm")` |
@@ -33,7 +34,7 @@ Handlers are methods in `@BotController` classes that respond to Telegram update
 | `@BotPoll` | Poll state changes | `@BotPoll` |
 | `@BotPollAnswer` | User-voted-in-poll events | `@BotPollAnswer` |
 | `@BotMyChatMember` | Bot's own member status changes | `@BotMyChatMember` |
-| `@BotChatMember` | User member status changes | `@BotChatMember` |
+| `@BotChatMemberUpdate` | User member status changes | `@BotChatMemberUpdate` |
 | `@BotChatJoinRequest` | User join requests to a chat | `@BotChatJoinRequest` |
 | `@BotBusinessConnection` | Business account connections | `@BotBusinessConnection` |
 | `@BotBusinessMessage` | Messages via business account | `@BotBusinessMessage` |
@@ -151,6 +152,27 @@ public PlainReply onPoll() {
         .build();
     return PlainReply.of("Do you like this?").withMarkup(keyboard);
 }
+```
+
+## @BotDynamicCallbackQuery
+
+Routes callback queries using a **server-side type** resolved via `BotDynamicCallbackQueryService`. Unlike `@BotCallbackQuery` (which matches the raw Telegram callback data string), this annotation stores structured data server-side and uses the raw callback data only as a lookup key. Ideal when callback payloads exceed Telegram's 64-byte limit or need rich structured fields.
+
+```java
+@BotDynamicCallbackQuery("product_select")
+public String onProductSelect(BotDynamicCallbackData data) {
+    Long id = (Long) data.getData().get("id");
+    return "You selected product #" + id;
+}
+```
+
+Register the callback data before sending the button:
+
+```java
+BotDynamicCallbackData payload = BotDynamicCallbackData.of("product_select",
+        Map.of("id", 42L));
+String callbackKey = dynamicCallbackQueryService.save(payload);
+// use callbackKey as the inline button's callbackData
 ```
 
 ## @BotContact
@@ -421,14 +443,14 @@ public void onBotMembershipChange(ChatMemberUpdated updated) {
 
 ---
 
-### @BotChatMember
+### @BotChatMemberUpdate
 
 Routes updates about a user's membership status changes in a chat (`update.getChatMember()`). Requires the bot to be an administrator.
 
 **No configurable attributes.**
 
 ```java
-@BotChatMember
+@BotChatMemberUpdate
 public void onUserMembershipChange(ChatMemberUpdated updated) {
     log.info("User {} status changed in chat {}",
         updated.getFrom().getId(), updated.getChat().getId());
@@ -596,7 +618,91 @@ handler (with a higher `@BotOrder` value). Use this pattern to implement priorit
 control without early return logic.
 :::
 
-## Handler Dispatch Order
+## Duplicate Mapping Detection
+
+Easygram detects ambiguous handler registrations **at startup**, analogous to Spring MVC
+failing when two `@GetMapping` methods share the same path.
+
+If two handler methods share the same routing condition — same annotation type, same value,
+and same effective `@BotChatState` — the application fails to start with a
+`BeanCreationException` that identifies both conflicting methods:
+
+```
+Duplicate handler mapping detected for condition [specific:BotCommand:/start:state:]:
+  First  : com.example.BotA#onStart
+  Second : com.example.BotB#onStart
+Remove or rename one of the conflicting handler methods.
+```
+
+This check spans **all** `@BotController` beans — placing conflicting methods in different
+controllers does not avoid the error.
+
+### Non-conflicting cases
+
+```java
+// ✅ Different @BotChatState — different tiers
+@BotCommand("/start")
+@BotChatState("ONBOARDING")
+public String onStartOnboarding() { ... }
+
+@BotCommand("/start")
+@BotChatState("MAIN_MENU")
+public String onStartMainMenu() { ... }
+
+// ✅ Different values
+@BotCommand("/start")
+public String onStart() { ... }
+
+@BotCommand("/help")
+public String onHelp() { ... }
+
+// ✅ Same condition, different @BotOrder — valid priority-based dispatch
+@BotCommand("/admin")
+@BotOrder(1)
+public String onAdminForAdmins(User user) { ... }
+
+@BotCommand("/admin")
+@BotOrder(100)
+public String onAdminFallback() { ... }
+```
+
+`@BotOrder` is intentionally excluded from the conflict key — two methods with different
+`@BotOrder` values and the same routing condition are resolved by priority and are **not** an
+error.
+
+---
+
+## Startup Annotation Validation
+
+In addition to duplicate mapping detection, Easygram validates annotation values at startup
+and rejects **blank** names that would create untriggerable or ambiguous handlers.
+
+The following throw `BeanCreationException` on application startup if the value is empty or
+blank:
+
+| Annotation | Field validated |
+|---|---|
+| `@BotMarkup("name")` | `name` — the markup registry key |
+| `@BotReplyMarkup("name")` | `value` — references a registered markup by name |
+| `@BotForwardChatState("state")` | `value` — the target chat state to transition to |
+
+**Example error:**
+
+```
+BeanCreationException: @BotMarkup name must not be blank on:
+  com.example.config.KeyboardConfig#mainMenu
+```
+
+This prevents subtle runtime bugs where a handler silently fails to attach a keyboard or
+transition state because an accidental empty string was passed.
+
+:::tip Pair with duplicate detection
+Both validation checks fire during the same startup scan in `BotHandlerLoader`. The
+application fails at the first detected problem; fix all violations and restart to confirm
+all issues are resolved.
+:::
+
+
 
 When an update arrives, Easygram searches in this order:
 

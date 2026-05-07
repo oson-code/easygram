@@ -5,6 +5,7 @@ import org.telegram.telegrambots.meta.api.objects.ReplyParameters;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import uz.osoncode.easygram.core.returntypehandler.SendReplyOptions;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -47,6 +48,16 @@ public record ReplyOptions(
         Integer messageThreadId,
         ReplyParameters replyParameters,
         LinkPreviewOptions linkPreviewOptions) {
+
+    /**
+     * Compact canonical constructor that defensively copies {@code markupParams}
+     * so that callers cannot mutate the record's state after construction.
+     */
+    public ReplyOptions {
+        if (markupParams != null) {
+            markupParams = java.util.Collections.unmodifiableMap(new HashMap<>(markupParams));
+        }
+    }
 
     /**
      * A {@code ReplyOptions} with all fields at their default / {@code null} values.

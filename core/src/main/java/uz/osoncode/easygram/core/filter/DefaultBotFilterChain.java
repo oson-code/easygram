@@ -102,15 +102,32 @@ public class DefaultBotFilterChain implements BotFilterChain {
             } else {
                 targetException = e;
             }
-            botExceptionHandlerRegistry.getBotHandlers()
+
+            boolean handled = botExceptionHandlerRegistry.getBotHandlers()
                     .stream()
                     .filter(h -> h.supports(targetException, botRequest))
                     .findFirst()
-                    .ifPresentOrElse(
-                            h -> h.handle(botRequest, botResponse, targetException),
-                            () -> log.error("No exception handler found for exception: ", targetException)
-                    );
+                    .map(h -> {
+                        try {
+                            h.handle(botRequest, botResponse, targetException);
+                            return true;
+                        } catch (Exception handlerEx) {
+                            // If the exception handler itself throws, log the secondary failure
+                            // but preserve the original exception so callers see the root cause.
+                            log.warn("Exception handler '{}' threw a secondary exception while handling '{}' — secondary exception follows",
+                                    h.getClass().getSimpleName(), targetException.getClass().getSimpleName(), handlerEx);
+                            return false;
+                        }
+                    })
+                    .orElse(false);
+
             botRequest.setThrowable(targetException);
+            if (!handled) {
+                log.error("No exception handler found for exception: ", targetException);
+                if (targetException instanceof RuntimeException re) throw re;
+                if (targetException instanceof Error er) throw er;
+                throw new RuntimeException("Unhandled exception during bot dispatch", targetException);
+            }
         }
     }
 }

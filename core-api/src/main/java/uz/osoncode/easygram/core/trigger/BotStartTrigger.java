@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@FunctionalInterface
 public interface BotStartTrigger {
 
     /**

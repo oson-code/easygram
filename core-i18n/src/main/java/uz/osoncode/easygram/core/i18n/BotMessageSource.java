@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.i18n;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import uz.osoncode.easygram.core.model.BotRequest;
@@ -49,6 +50,7 @@ import java.util.Locale;
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
+@Slf4j
 @RequiredArgsConstructor
 public class BotMessageSource {
 
@@ -59,27 +61,48 @@ public class BotMessageSource {
      * Resolves a message for the given code, automatically detecting the locale
      * from the bot request's user.
      *
+     * <p>If no message is found for the resolved locale (and
+     * {@code spring.messages.use-code-as-default-message} is {@code false}), the missing
+     * key is logged at {@code WARN} level and the key itself is returned as a fallback.
+     * This prevents a missing translation from crashing the handler with an unchecked
+     * {@link NoSuchMessageException} in production.</p>
+     *
      * @param code    the message key; must not be {@code null}
      * @param request the current bot request used to determine the locale
      * @param args    optional message arguments for placeholder substitution
-     * @return the localised message string
-     * @throws NoSuchMessageException if no message is found and
-     *         {@code spring.messages.use-code-as-default-message} is {@code false}
+     * @return the localised message string, or {@code code} if no message is found
      */
     public String getMessage(String code, BotRequest request, Object... args) {
-        return messageSource.getMessage(code, args, localeResolver.resolve(request));
+        Locale locale = localeResolver.resolve(request);
+        try {
+            return messageSource.getMessage(code, args, locale);
+        } catch (NoSuchMessageException e) {
+            log.warn("Missing i18n message key '{}' for locale '{}' — returning key as fallback. " +
+                     "Add a translation to your message bundle to suppress this warning.", code, locale);
+            return code;
+        }
     }
 
     /**
      * Resolves a message for the given code with an explicit locale.
      *
+     * <p>If no message is found, the missing key is logged at {@code WARN} and the key
+     * itself is returned as a fallback (same behaviour as
+     * {@link #getMessage(String, BotRequest, Object...)}).</p>
+     *
      * @param code   the message key; must not be {@code null}
      * @param locale the target locale; must not be {@code null}
      * @param args   optional message arguments for placeholder substitution
-     * @return the localised message string
+     * @return the localised message string, or {@code code} if no message is found
      */
     public String getMessage(String code, Locale locale, Object... args) {
-        return messageSource.getMessage(code, args, locale);
+        try {
+            return messageSource.getMessage(code, args, locale);
+        } catch (NoSuchMessageException e) {
+            log.warn("Missing i18n message key '{}' for locale '{}' — returning key as fallback. " +
+                     "Add a translation to your message bundle to suppress this warning.", code, locale);
+            return code;
+        }
     }
 
     /**

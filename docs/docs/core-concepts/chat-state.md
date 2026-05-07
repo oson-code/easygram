@@ -270,6 +270,49 @@ chatStateService.setState(chatId, RegistrationState.WAITING_AGE);
 The `@BotChatState` and `@BotForwardChatState` annotations still use string values — match them
 to `RegistrationState.WAITING_NAME.name()` (i.e., the exact enum constant name in ALL_CAPS).
 
+## Class-Level @BotChatState
+
+`@BotChatState` can be placed on an entire `@BotController` class to restrict **every handler in that class** to the declared state — equivalent to annotating every method individually.
+
+```java
+@BotController
+@BotChatState("REGISTRATION")          // applies to all methods below
+public class RegistrationFlow {
+
+    @BotText
+    public String handleName(@BotTextValue String name) { ... }   // requires REGISTRATION
+
+    @BotTextPattern("^\\d+$")
+    public String handleAge(@BotTextValue String age) { ... }     // requires REGISTRATION
+
+    @BotCommand("/cancel")
+    @BotChatState                       // empty value overrides class-level → matches ANY state
+    public String cancel() { return "Cancelled."; }
+}
+```
+
+A method-level `@BotChatState` always overrides the class-level default. An empty method-level annotation (or `@BotChatState(BotChatState.ANY)`) opts the method out of the class restriction entirely.
+
+## BotChatState.ANY
+
+`BotChatState.ANY` is a constant (`""`) that explicitly signals "match any chat state". Use it instead of an empty `@BotChatState` annotation to make the intent clear:
+
+```java
+@BotController
+@BotChatState("CHECKOUT")
+public class CheckoutFlow {
+
+    @BotText
+    public String handleItem(@BotTextValue String item) { ... }    // requires CHECKOUT
+
+    @BotCommand("/cancel")
+    @BotChatState(BotChatState.ANY)   // fires in any state — explicit, self-documenting
+    public String cancel() { ... }
+}
+```
+
+Both `@BotChatState` and `@BotChatState(BotChatState.ANY)` are functionally identical — the constant just makes code easier to read in class-level override scenarios.
+
 ## Re-Entry Behavior
 
 If a user re-sends `/register` while already in the `WAITING_AGE` state:

@@ -2,6 +2,7 @@ package uz.osoncode.easygram.webhook;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,9 +10,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
+import uz.osoncode.easygram.core.provider.EasygramObjectMapperProvider;
 import uz.osoncode.easygram.core.util.Strings;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
@@ -26,8 +28,13 @@ import java.util.Objects;
  * the {@code X-Telegram-Bot-Api-Secret-Token} header that Telegram attaches to each delivery.
  * Requests with a missing or mismatched token are rejected with {@code 401 Unauthorized}.</p>
  *
- * <p>Accepted updates are deserialized via {@link BotObjectMapperProvider} and forwarded to
+ * <p>Accepted updates are deserialized via {@link EasygramObjectMapperProvider} and forwarded to
  * {@link WebhookBot#handleUpdate(Update)} for processing.</p>
+ *
+ * <p>This controller is only registered when
+ * {@code easygram.update.transport=WEBHOOK}. For any other transport value the controller
+ * is not instantiated, preventing autowire failures for {@link WebhookBot} which is likewise
+ * absent in non-webhook deployments.</p>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
@@ -35,11 +42,12 @@ import java.util.Objects;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "easygram.update", name = "transport", havingValue = "WEBHOOK")
 public class WebhookController {
 
     private final WebhookBot webhookBot;
     private final EasygramWebhookProperties webhookBotProperties;
-    private final BotObjectMapperProvider objectMapperProvider;
+    private final EasygramObjectMapperProvider objectMapperProvider;
 
     /**
      * Handles an incoming Telegram update delivered via webhook.
@@ -58,7 +66,8 @@ public class WebhookController {
      * @param secretToken the value of the {@code X-Telegram-Bot-Api-Secret-Token} header,
      *                    or {@code null} if the header is absent
      * @return {@code 200 OK} on success, {@code 401 Unauthorized} if secret token validation
-     *         fails, or {@code 500 Internal Server Error} if deserialization fails
+     *         fails, {@code 500 Internal Server Error} if deserialization fails or handler throws
+     *         (Telegram will retry on 5xx)
      */
     @PostMapping("${easygram.update.webhook.path:/webhook}")
     public ResponseEntity<Void> receiveUpdate(
@@ -71,14 +80,24 @@ public class WebhookController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
+        long bodyBytes = body.getBytes(StandardCharsets.UTF_8).length;
+        long maxBytes = Objects.requireNonNullElse(webhookBotProperties.maxBodyBytes(), 1_048_576L);
+        if (bodyBytes > maxBytes) {
+            log.warn("Rejected webhook request: body size {} bytes exceeds limit of {} bytes", bodyBytes, maxBytes);
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).build();
+        }
+
         try {
             Update update = objectMapperProvider.provide().readValue(body, Update.class);
             webhookBot.handleUpdate(update);
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            log.error("Failed to deserialize webhook update", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            // Permanently malformed JSON — return 200 so Telegram does NOT retry.
+            // Retrying is pointless and wastes resources; log ERROR for operator visibility.
+            log.error("Discarding webhook update: failed to deserialize JSON payload (Telegram will NOT retry) — body={}", body, e);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
-            log.error("Failed to process webhook update", e);
+            log.error("Failed to process webhook update — returning 500 so Telegram will retry", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         return ResponseEntity.ok().build();

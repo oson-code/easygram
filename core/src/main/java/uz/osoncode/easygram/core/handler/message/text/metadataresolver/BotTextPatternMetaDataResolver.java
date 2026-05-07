@@ -4,6 +4,9 @@ import uz.osoncode.easygram.core.bind.annotation.BotTextPattern;
 import uz.osoncode.easygram.core.handler.metadataresolver.BotMetaDataSpecResolver;
 import uz.osoncode.easygram.core.model.BotRequest;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -34,10 +37,17 @@ import java.util.regex.Pattern;
 public class BotTextPatternMetaDataResolver implements BotMetaDataSpecResolver<BotTextPattern> {
 
     /**
-     * Cache of compiled {@link Pattern} objects, keyed by their source regex string.
-     * Shared across all invocations to avoid repeated pattern compilation.
+     * Bounded LRU cache of compiled {@link Pattern} objects, keyed by their source regex string.
+     * Capped at 512 entries; least-recently-used patterns are evicted when the limit is exceeded,
+     * preventing unbounded heap growth from dynamic or user-supplied pattern strings.
      */
-    private final ConcurrentHashMap<String, Pattern> patternCache = new ConcurrentHashMap<>();
+    private final Map<String, Pattern> patternCache = Collections.synchronizedMap(
+            new LinkedHashMap<>(256, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, Pattern> eldest) {
+                    return size() > 512;
+                }
+            });
 
     /**
      * Returns the annotation type handled by this resolver.
@@ -69,7 +79,10 @@ public class BotTextPatternMetaDataResolver implements BotMetaDataSpecResolver<B
         }
         String messageText = botRequest.getUpdate().getMessage().getText();
         for (String regex : annotation.value()) {
-            Pattern pattern = patternCache.computeIfAbsent(regex, Pattern::compile);
+            Pattern pattern;
+            synchronized (patternCache) {
+                pattern = patternCache.computeIfAbsent(regex, Pattern::compile);
+            }
             if (pattern.matcher(messageText).find()) {
                 return true;
             }

@@ -18,6 +18,7 @@
 - [Transport Selection](#-transport-selection)
 - [Quick Start](#-quick-start)
 - [Internationalisation (i18n)](#internationalisation-i18n)
+- [Threading Model](#-threading-model)
 - [Module Documentation](#-module-documentation)
 - [Building from Source](#-building-from-source)
 - [Contributing](#-contributing)
@@ -56,6 +57,9 @@ easygram/
 │
 ├── core-i18n/                  # Optional: i18n support (BotMessageSource, keyboards, Locale injection)
 │
+├── core-observability/         # Optional: Actuator health/info + Micrometer metrics
+│                               # (NOT pulled by the starter — add explicitly when needed)
+│
 ├── core/                       # Engine: dispatching, filter chain, argument resolvers,
 │                               # return-type handlers, Bot abstract class, autoconfiguration
 │
@@ -84,6 +88,7 @@ graph TD
     LP --> SBS
     WH --> SBS
     CI --> SBS
+    CO -. optional .-> SBS
 ```
 
 ---
@@ -277,6 +282,58 @@ See [core-i18n/README.md](core-i18n/README.md) for full usage.
 | Messaging (Kafka + RabbitMQ) | `messaging-api` | [messaging-api/README.md](messaging-api/README.md) |
 | Spring Boot Starter | `spring-boot-starter` | [spring-boot-starter/README.md](spring-boot-starter/README.md) |
 | Samples (runnable apps) | — | [samples/README.md](samples/README.md) |
+
+---
+
+## 🧵 Threading Model
+
+Understanding how Easygram processes updates prevents common performance issues.
+
+### How updates flow through the executor
+
+Every incoming update (from any transport) is submitted to an `ExecutorService`:
+
+```
+Telegram  ──▶  transport thread  ──▶  ExecutorService.submit()  ──▶  worker thread
+                                                                         │
+                                                                         ▼
+                                                              BotFilter chain
+                                                              BotDispatcher
+                                                              @BotController method
+                                                              TelegramClient.execute()
+```
+
+The **default pool size is `max(2, availableProcessors())`** — automatically sized for the host. Telegram delivers up to 100 updates per long-poll response; a single-threaded executor would process them serially. The fixed pool processes them in parallel, up to the pool size.
+
+### Blocking inside handlers
+
+The worker thread is held for the entire filter chain + handler invocation. Any blocking operation (database query, HTTP call, file I/O) inside a handler method holds that thread. If all worker threads are blocked simultaneously, the queue grows unbounded.
+
+**Guidance:**
+- Keep handlers non-blocking where possible — `String` replies are serialised on the same thread
+- For heavy work, delegate to a separate `@Async` bean or submit to a dedicated executor
+- Override the default executor to tune the pool size:
+
+```java
+@Bean
+EasygramExecutorServiceProvider executorServiceProvider() {
+    ExecutorService pool = Executors.newFixedThreadPool(16);
+    return () -> pool;
+}
+```
+
+On JDK 21+ you can use virtual threads:
+
+```java
+@Bean
+EasygramExecutorServiceProvider executorServiceProvider() {
+    return () -> Executors.newVirtualThreadPerTaskExecutor();
+}
+```
+
+### Thread safety of handlers
+
+Handler beans are Spring singletons. If your handler class has mutable fields, access to them must be thread-safe (use `AtomicReference`, `ConcurrentHashMap`, or synchronisation). The framework itself is stateless between updates — `BotRequest`, `BotResponse`, and resolved arguments are created fresh per invocation.
 
 ---
 

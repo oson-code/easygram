@@ -75,6 +75,24 @@ import java.lang.annotation.Target;
 public @interface BotChatState {
 
     /**
+     * Convenience constant for "match any chat state".
+     *
+     * <p>Equivalent to an empty {@code @BotChatState} annotation. Use this constant to make
+     * the intent explicit when a method-level annotation is overriding a class-level restriction:</p>
+     * <pre>{@code
+     * @BotController
+     * @BotChatState("REGISTRATION")   // class-wide: only fires in REGISTRATION state
+     * public class RegistrationFlow {
+     *
+     *     @BotCommand("/cancel")
+     *     @BotChatState(BotChatState.ANY)   // overrides class-level → fires in ANY state
+     *     public String cancel() { ... }
+     * }
+     * }</pre>
+     */
+    String ANY = "";
+
+    /**
      * The chat state identifiers that activate this handler.
      *
      * @return an array of state name strings; empty array matches any state

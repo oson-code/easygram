@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>uz.osoncode.easygram.samples</groupId>
+        <artifactId>samples-parent</artifactId>
+        <version>0.0.7</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>tracing-bot</artifactId>
+    <name>sample :: tracing-bot</name>
+    <description>
+        Sample: Telegram bot with end-to-end distributed tracing via OpenTelemetry + Grafana Tempo.
+        Demonstrates trace propagation across the Kafka pub/sub transport (producer → Kafka → consumer).
+        Includes a Docker Compose stack: Kafka (KRaft), Tempo (OTLP HTTP), Grafana.
+    </description>
+
+    <dependencies>
+        <!-- Easygram starter — includes core, core-observability, longpolling, webhook, messaging-api, core-i18n -->
+        <dependency>
+            <groupId>uz.osoncode.easygram</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- Kafka consumer transport driver — optional in messaging-api, must be declared explicitly -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <!-- Actuator: required to activate ObservationRegistry and BotObservabilityFilter beans -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!--
+            OTel tracing bridge: maps every Micrometer Observation (including easygram.update spans
+            created by BotObservabilityFilter and spring.kafka spans) to OpenTelemetry spans.
+        -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        </dependency>
+
+        <!--
+            OTLP exporter: ships spans to Tempo (or any OTel Collector) via HTTP.
+            Endpoint: management.otlp.tracing.endpoint in application.yml.
+        -->
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+        </dependency>
+
+        <!-- Prometheus metrics export — required for /actuator/prometheus scrape endpoint -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <!--
+            Loki log appender: pushes log lines directly to Loki via HTTP.
+            The bot runs on the host (not inside Docker), so we push rather than scrape.
+            Endpoint: http://localhost:3100 (see logback-spring.xml).
+        -->
+        <dependency>
+            <groupId>com.github.loki4j</groupId>
+            <artifactId>loki-logback-appender</artifactId>
+            <version>1.5.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

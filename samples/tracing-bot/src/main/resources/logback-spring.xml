@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <!-- Inherit Spring Boot defaults (color support, system properties) -->
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <!--
+        Pattern shows both OTel trace context (traceId/spanId injected into MDC by
+        micrometer-tracing-bridge-otel) and Easygram per-update MDC fields
+        (bot.transport, bot.update.id, bot.chat.id, bot.user.id injected by BotMdcFilter).
+
+        Use the traceId to find the matching span in Grafana Tempo:
+          http://localhost:3000  →  Explore  →  Tempo  →  paste traceId
+      -->
+      <pattern>%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([trace=%X{traceId:--} span=%X{spanId:--}]){yellow} %clr([%X{bot.transport:--} upd=%-8X{bot.update.id:--} chat=%X{bot.chat.id:--}]){cyan} %clr(%logger{36}){blue} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!--
+    Loki appender: pushes log lines directly to Grafana Loki via HTTP.
+    The bot runs on the host, so we connect to localhost:3100 (exposed by docker-compose).
+    Labels become Loki stream selectors; traceId/spanId enable log↔trace correlation in Grafana.
+  -->
+  <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+    <http>
+      <url>http://localhost:3100/loki/api/v1/push</url>
+      <!-- Don't block app startup if Loki isn't ready yet. -->
+      <connectionTimeoutMs>5000</connectionTimeoutMs>
+      <requestTimeoutMs>5000</requestTimeoutMs>
+    </http>
+    <format>
+      <label>
+        <!--
+          Stream labels — keep cardinality low; one stream per level is fine for a demo.
+          'application' matches the label used by the pre-built Logs dashboard.
+        -->
+        <pattern>application=tracing-bot,level=%level</pattern>
+        <sortByTime>true</sortByTime>
+      </label>
+      <message>
+        <!--
+          Structured log line.  traceId and spanId are emitted so Loki derived-fields
+          can extract them and show a "Open in Tempo" link in Grafana Explore.
+        -->
+        <pattern>level=%level traceId=%X{traceId:--} spanId=%X{spanId:--} transport=%X{bot.transport:--} updateId=%X{bot.update.id:--} chatId=%X{bot.chat.id:--} logger=%logger{36} msg=%msg%n</pattern>
+      </message>
+    </format>
+  </appender>
+
+  <!-- Framework internals: DEBUG to observe dispatching, filter chain, and routing -->
+  <logger name="uz.osoncode" level="DEBUG"/>
+
+  <!-- OTel SDK internals: INFO to see exporter success/failure -->
+  <logger name="io.opentelemetry" level="INFO"/>
+
+  <!-- Suppress noisy broker client logs unless there is an actual problem -->
+  <logger name="org.springframework.kafka" level="WARN"/>
+  <logger name="org.apache.kafka" level="WARN"/>
+
+  <!-- Loki4j internal logs at WARN to avoid recursive logging noise -->
+  <logger name="com.github.loki4j" level="WARN"/>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="LOKI"/>
+  </root>
+
+</configuration>

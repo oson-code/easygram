@@ -132,7 +132,7 @@ Then deploy multiple instances pointing to same Redis.
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>core-chatstate</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
 </dependency>
 ```
 

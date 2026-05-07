@@ -1,6 +1,5 @@
 package uz.example.linkedlist;
 
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.User;
 import uz.osoncode.easygram.core.stereotype.BotController;
 import uz.osoncode.easygram.core.bind.annotation.BotCommand;
@@ -8,7 +7,6 @@ import uz.osoncode.easygram.core.bind.annotation.BotCommandValue;
 import uz.osoncode.easygram.core.bind.annotation.BotDefaultHandler;
 import uz.osoncode.easygram.core.bind.annotation.BotTextDefault;
 import uz.osoncode.easygram.core.bind.annotation.BotTextValue;
-import uz.osoncode.easygram.core.model.BotRequest;
 
 /**
  * Bot controller for the LinkedList sample.
@@ -23,6 +21,11 @@ import uz.osoncode.easygram.core.model.BotRequest;
  *   <li>Consumer thread ← deque → {@code BotDispatcher} → these handlers</li>
  *   <li>Handler returns reply → {@code TelegramClient} → Telegram</li>
  * </ol>
+ *
+ * <p><strong>⚠ WARNING: for demonstration purposes only.</strong>
+ * The {@link java.util.concurrent.LinkedBlockingDeque} used as the "broker" is entirely in-memory.
+ * All queued updates are lost on application restart. Do not use this pattern in production — use
+ * the {@code easygram-messaging-kafka} or {@code easygram-messaging-rabbit} modules instead.</p>
  *
  * @since 0.0.6
  */
@@ -51,10 +54,7 @@ public class EchoBotController {
     }
 
     @BotDefaultHandler
-    public SendMessage onUnknown(BotRequest request) {
-        return SendMessage.builder()
-                .chatId(request.getChat().getId())
-                .text("I don't know how to handle that. Try /help.")
-                .build();
+    public String onUnknown() {
+        return "I don't know how to handle that. Try /help.";
     }
 }

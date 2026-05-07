@@ -80,4 +80,19 @@ class BotActuatorAutoConfigurationTest {
                     assertThat(context.getBean(BotHealthIndicator.class)).isSameAs(customIndicator);
                 });
     }
+
+    @Test
+    void userProvidedInfoContributor_suppressesDefault() {
+        Bot mockBot = mock(Bot.class);
+        BotConfigurer configurer = new BotConfigurer(null, BotTransportType.LONG_POLLING);
+        BotInfoContributor customContributor = new BotInfoContributor(mockBot, configurer);
+
+        runner.withBean(Bot.class, () -> mockBot)
+                .withBean(BotConfigurer.class, () -> configurer)
+                .withBean(BotInfoContributor.class, () -> customContributor)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(BotInfoContributor.class);
+                    assertThat(context.getBean(BotInfoContributor.class)).isSameAs(customContributor);
+                });
+    }
 }

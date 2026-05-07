@@ -1,6 +1,7 @@
 package uz.osoncode.easygram.core.bot;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * Optional configuration properties for the Telegram Bot API base URL.
@@ -21,7 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * }</pre>
  *
  * <p>A user-defined {@code @Bean} of type
- * {@link uz.osoncode.easygram.core.provider.BotTelegramUrlProvider} always takes precedence
+ * {@link uz.osoncode.easygram.core.provider.EasygramTelegramUrlProvider} always takes precedence
  * over these properties.</p>
  *
  * @param schema     URL schema, e.g. {@code https}; {@code null} keeps the default schema
@@ -30,8 +31,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param testServer whether to target the Telegram test environment; {@code null} defaults to {@code false}
  * @author Islom Mirsaburov
  * @since 0.0.6
- * @see uz.osoncode.easygram.core.provider.BotTelegramUrlProvider
+ * @see uz.osoncode.easygram.core.provider.EasygramTelegramUrlProvider
  */
+@Validated
 @ConfigurationProperties("easygram.telegram-url")
 public record EasygramTelegramUrlProperties(
         String schema,

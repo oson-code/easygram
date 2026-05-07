@@ -1,8 +1,8 @@
 ---
 id: kafka-consumer-guide
 title: Kafka Consumer Transport
-description: Run a Kafka consumer bot with Easygram — configure easygram.messaging.type=CONSUMER, consumer type KAFKA, topic, group-id, bootstrap-servers, and Docker Compose with KRaft.
-keywords: [telegram bot kafka consumer, easygram kafka consumer, spring boot telegram kafka transport, kafka consumer telegram bot java, easygram messaging.type consumer]
+description: Run a Kafka consumer bot with Easygram — configure easygram.update.transport=KAFKA_CONSUMER, topic, group-id, bootstrap-servers, and Docker Compose with KRaft.
+keywords: [telegram bot kafka consumer, easygram kafka consumer, spring boot telegram kafka transport, kafka consumer telegram bot java, easygram update.transport kafka_consumer]
 ---
 
 # Kafka Consumer Transport
@@ -32,7 +32,7 @@ Producer Bot  →  [Kafka Topic: easygram-updates]
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>spring-boot-starter</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
 </dependency>
 
 <!-- Required: spring-kafka is marked optional in messaging-api -->
@@ -48,7 +48,7 @@ Or without the starter:
 <dependency>
     <groupId>uz.osoncode.easygram</groupId>
     <artifactId>messaging-api</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
 </dependency>
 <dependency>
     <groupId>org.springframework.kafka</groupId>
@@ -62,10 +62,9 @@ Or without the starter:
 ```yaml
 easygram:
   token: ${BOT_TOKEN}
+  update:
+    transport: KAFKA_CONSUMER
   messaging:
-    type: CONSUMER
-    consumer:
-      type: KAFKA
     kafka:
       topic: easygram-updates
       group-id: my-bot-group
@@ -78,20 +77,18 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 ```
 
-:::info Consumer transport and `easygram.update.transport`
-When `easygram.messaging.type=CONSUMER`, the bot receives updates from Kafka — not from
-Telegram directly. The `easygram.update.transport` property (long-polling / webhook) has no
-effect and the Telegram update transport is not started.
+:::info Consumer transport
+When `easygram.update.transport=KAFKA_CONSUMER`, the bot receives updates from Kafka — not from
+Telegram directly. Long-polling and webhook transports are not started.
 :::
 
 ## Configuration Reference
 
-### `easygram.messaging.*`
+### `easygram.update.*`
 
 | Property | Required | Default | Description |
 |---|---|---|---|
-| `easygram.messaging.type` | **Yes** | — | Must be `CONSUMER` |
-| `easygram.messaging.consumer.type` | **Yes** | — | Must be `KAFKA` |
+| `easygram.update.transport` | **Yes** | — | Must be `KAFKA_CONSUMER` |
 
 ### `easygram.messaging.kafka.*`
 
@@ -184,8 +181,7 @@ services:
     build: .
     environment:
       easygram.token: ${BOT_TOKEN}
-      easygram.messaging.type: CONSUMER
-      easygram.messaging.consumer.type: KAFKA
+      easygram.update.transport: KAFKA_CONSUMER
       easygram.messaging.kafka.topic: easygram-updates
       easygram.messaging.kafka.group-id: my-bot-group
       spring.kafka.bootstrap-servers: kafka:9092
@@ -212,8 +208,6 @@ easygram.messaging.kafka.group-id=my-bot-group
 # A second group processes every update independently (e.g., for analytics)
 easygram.messaging.kafka.group-id=analytics-group
 ```
-
-For this to work correctly, the topic must have enough partitions to distribute across your instances (one partition per instance maximum):
 
 ```yaml
 easygram:

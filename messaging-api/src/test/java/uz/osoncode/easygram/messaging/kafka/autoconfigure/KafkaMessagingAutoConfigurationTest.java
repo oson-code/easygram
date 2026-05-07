@@ -12,8 +12,8 @@ import uz.osoncode.easygram.core.bot.BotTransportType;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
 import uz.osoncode.easygram.messaging.autoconfigure.MessagingAutoConfiguration;
 import uz.osoncode.easygram.messaging.kafka.KafkaBotUpdatePublisher;
-import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaProducerFactoryProvider;
-import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
+import uz.osoncode.easygram.messaging.kafka.provider.EasygramKafkaProducerFactoryProvider;
+import uz.osoncode.easygram.messaging.kafka.provider.EasygramKafkaTemplateProvider;
 
 import java.util.Map;
 
@@ -34,7 +34,6 @@ class KafkaMessagingAutoConfigurationTest {
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withPropertyValues(
-                    "easygram.messaging.type=PRODUCER",
                     "easygram.messaging.producer.type=KAFKA"
             )
             .withConfiguration(AutoConfigurations.of(
@@ -78,9 +77,6 @@ class KafkaMessagingAutoConfigurationTest {
     @Test
     void withoutProducerType_doesNotRegisterPublisher() {
         new ApplicationContextRunner()
-                .withPropertyValues(
-                        "easygram.messaging.type=PRODUCER"
-                )
                 .withConfiguration(AutoConfigurations.of(KafkaMessagingAutoConfiguration.class))
                 .withBean(ProducerFactory.class,
                         () -> new DefaultKafkaProducerFactory<String, String>(FAKE_PRODUCER_PROPS))
@@ -89,24 +85,24 @@ class KafkaMessagingAutoConfigurationTest {
 
     @Test
     void userProvidedTemplateProvider_suppressesDefault() {
-        BotKafkaTemplateProvider customProvider = () -> null;
+        EasygramKafkaTemplateProvider customProvider = () -> null;
 
-        runner.withBean(BotKafkaTemplateProvider.class, () -> customProvider)
+        runner.withBean(EasygramKafkaTemplateProvider.class, () -> customProvider)
                 .run(context -> {
-                    assertThat(context).hasSingleBean(BotKafkaTemplateProvider.class);
-                    assertThat(context.getBean(BotKafkaTemplateProvider.class))
+                    assertThat(context).hasSingleBean(EasygramKafkaTemplateProvider.class);
+                    assertThat(context.getBean(EasygramKafkaTemplateProvider.class))
                             .isSameAs(customProvider);
                 });
     }
 
     @Test
     void userProvidedProducerFactoryProvider_suppressesDefault() {
-        BotKafkaProducerFactoryProvider customProvider = () -> new DefaultKafkaProducerFactory<>(FAKE_PRODUCER_PROPS);
+        EasygramKafkaProducerFactoryProvider customProvider = () -> new DefaultKafkaProducerFactory<>(FAKE_PRODUCER_PROPS);
 
-        runner.withBean(BotKafkaProducerFactoryProvider.class, () -> customProvider)
+        runner.withBean(EasygramKafkaProducerFactoryProvider.class, () -> customProvider)
                 .run(context -> {
-                    assertThat(context).hasSingleBean(BotKafkaProducerFactoryProvider.class);
-                    assertThat(context.getBean(BotKafkaProducerFactoryProvider.class))
+                    assertThat(context).hasSingleBean(EasygramKafkaProducerFactoryProvider.class);
+                    assertThat(context.getBean(EasygramKafkaProducerFactoryProvider.class))
                             .isSameAs(customProvider);
                 });
     }

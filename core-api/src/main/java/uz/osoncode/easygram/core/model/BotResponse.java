@@ -47,8 +47,10 @@ public class BotResponse {
      * Appends a single {@link BotApiMethod} to the response queue.
      *
      * @param botApiMethod the API method to queue for execution; must not be {@code null}
+     * @throws NullPointerException if {@code botApiMethod} is {@code null}
      */
     public void addBotApiMethod(BotApiMethod<?> botApiMethod) {
+        Objects.requireNonNull(botApiMethod, "botApiMethod must not be null");
         this.botApiMethods.add(botApiMethod);
     }
 
@@ -56,8 +58,10 @@ public class BotResponse {
      * Appends all elements from the given collection of {@link BotApiMethod} instances to the response queue.
      *
      * @param botApiMethods the collection of API methods to queue; must not be {@code null}
+     * @throws NullPointerException if {@code botApiMethods} is {@code null}
      */
     public void addBotApiMethods(Collection<BotApiMethod<?>> botApiMethods) {
+        Objects.requireNonNull(botApiMethods, "botApiMethods must not be null");
         this.botApiMethods.addAll(botApiMethods);
     }
 

@@ -8,6 +8,7 @@ import uz.osoncode.easygram.core.exception.BotHandlerException;
 import uz.osoncode.easygram.core.handler.invocation.BotHandlerInvocationContext;
 import uz.osoncode.easygram.core.markup.MarkupAware;
 import uz.osoncode.easygram.core.model.BotRequest;
+import uz.osoncode.easygram.core.model.BotRequestAttributes;
 import uz.osoncode.easygram.core.model.BotResponse;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandlerFactory;
 import uz.osoncode.easygram.core.handler.invocation.MarkupApplicationFilter;
@@ -15,6 +16,7 @@ import uz.osoncode.easygram.core.handler.invocation.MarkupApplicationFilter;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Reflective invoker for a method annotated with
@@ -83,7 +85,13 @@ public class BotExceptionMethodHandler<T extends Throwable> {
     private final BotChatState chatState;
 
     /**
-     * Constructs a new exception method handler.
+     * Predicate that restricts this advice handler to specific controller classes.
+     * Always {@code true} for controller-local handlers and globally-scoped advice.
+     */
+    private final Predicate<Class<?>> controllerScopePredicate;
+
+    /**
+     * Constructs a new exception method handler with no controller scope restriction (global).
      *
      * @param exceptionType            the exception type this handler is bound to
      * @param priority                 {@code 0} for local, {@code 1} for global advice
@@ -93,6 +101,7 @@ public class BotExceptionMethodHandler<T extends Throwable> {
      * @param botReturnTypeHandlerFactory factory for processing the return value
      * @param botChatStateService      optional chat-state service; {@code null} if unavailable
      * @param chatState                effective {@link BotChatState}, or {@code null} for no restriction
+     * @param markupApplicationFilter  filter for applying markup annotations
      */
     public BotExceptionMethodHandler(Class<T> exceptionType,
                                      int priority,
@@ -103,6 +112,36 @@ public class BotExceptionMethodHandler<T extends Throwable> {
                                      BotChatStateService botChatStateService,
                                      BotChatState chatState,
                                      MarkupApplicationFilter markupApplicationFilter) {
+        this(exceptionType, priority, method, bean, botArgumentResolverFactory,
+             botReturnTypeHandlerFactory, botChatStateService, chatState,
+             markupApplicationFilter, c -> true);
+    }
+
+    /**
+     * Constructs a new exception method handler with a controller scope predicate.
+     *
+     * @param exceptionType              the exception type this handler is bound to
+     * @param priority                   {@code 0} for local, {@code 1} for global advice
+     * @param method                     the annotated controller method
+     * @param bean                       the controller bean instance
+     * @param botArgumentResolverFactory factory for resolving method parameters
+     * @param botReturnTypeHandlerFactory factory for processing the return value
+     * @param botChatStateService        optional chat-state service; {@code null} if unavailable
+     * @param chatState                  effective {@link BotChatState}, or {@code null} for no restriction
+     * @param markupApplicationFilter    filter for applying markup annotations
+     * @param controllerScopePredicate   predicate that restricts this handler to matching controller classes;
+     *                                   use {@code c -> true} for global advice
+     */
+    public BotExceptionMethodHandler(Class<T> exceptionType,
+                                     int priority,
+                                     Method method,
+                                     Object bean,
+                                     BotArgumentResolverFactory botArgumentResolverFactory,
+                                     BotReturnTypeHandlerFactory botReturnTypeHandlerFactory,
+                                     BotChatStateService botChatStateService,
+                                     BotChatState chatState,
+                                     MarkupApplicationFilter markupApplicationFilter,
+                                     Predicate<Class<?>> controllerScopePredicate) {
         this.exceptionType = exceptionType;
         this.priority = priority;
         this.method = method;
@@ -112,27 +151,47 @@ public class BotExceptionMethodHandler<T extends Throwable> {
         this.botChatStateService = botChatStateService;
         this.chatState = chatState;
         this.markupApplicationFilter = markupApplicationFilter;
+        this.controllerScopePredicate = controllerScopePredicate;
     }
 
     /**
      * Returns {@code true} if this handler can handle the given exception for the given request.
      *
-     * <p>Two conditions must both be satisfied:</p>
+     * <p>Three conditions must all be satisfied:</p>
      * <ol>
      *   <li>The exception type matches — {@link Class#isAssignableFrom} so subclasses are accepted.</li>
+     *   <li>The controller scope matches — if a scope predicate was set via
+     *       {@link uz.osoncode.easygram.core.stereotype.BotControllerAdvice} attributes, the
+     *       dispatching controller class (stored in the request attribute
+     *       {@code "easygram.controllerClass"}) must satisfy the predicate.</li>
      *   <li>The chat-state requirement is satisfied — if a {@link BotChatState} with non-empty
      *       states is declared, the current chat must be in one of those states.</li>
      * </ol>
      *
      * @param exception  the exception to check
-     * @param botRequest the current bot request, used to read the active chat state
-     * @return {@code true} if both the exception type and chat state match
+     * @param botRequest the current bot request, used to read the active chat state and controller class
+     * @return {@code true} if all conditions match
      */
     public boolean supports(Throwable exception, BotRequest botRequest) {
         if (!exceptionType.isAssignableFrom(exception.getClass())) {
             return false;
         }
+        if (!matchesControllerScope(botRequest)) {
+            return false;
+        }
         return matchesChatState(botRequest);
+    }
+
+    /**
+     * Checks whether the dispatching controller class satisfies this handler's scope predicate.
+     * Returns {@code true} when no predicate was set or the controller class is unknown.
+     */
+    private boolean matchesControllerScope(BotRequest botRequest) {
+        Class<?> controllerClass = botRequest.getAttribute(BotRequestAttributes.CONTROLLER_CLASS, Class.class);
+        if (controllerClass == null) {
+            return true;
+        }
+        return controllerScopePredicate.test(controllerClass);
     }
 
     /**

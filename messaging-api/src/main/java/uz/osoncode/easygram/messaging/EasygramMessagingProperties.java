@@ -2,7 +2,7 @@ package uz.osoncode.easygram.messaging;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
-import uz.osoncode.easygram.messaging.consumer.ConsumerType;
+import org.springframework.validation.annotation.Validated;
 import uz.osoncode.easygram.messaging.producer.ProducerType;
 
 /**
@@ -11,12 +11,23 @@ import uz.osoncode.easygram.messaging.producer.ProducerType;
  * <p>Bound from the {@code easygram.messaging} prefix. Omit this block entirely for standalone
  * bots that do not connect to any message broker.</p>
  *
+ * <p>The update-source transport (long-polling, webhook, Kafka consumer, RabbitMQ consumer) is
+ * controlled independently via {@code easygram.update.transport}. The producer side is activated
+ * by setting {@code easygram.messaging.producer.type} — independently of which transport the bot
+ * uses to receive updates.</p>
+ *
  * <p>Example {@code application.yml} snippets:</p>
  * <pre>{@code
- * # Bot that publishes updates to Kafka
+ * # Standalone bot — no broker integration needed
  * easygram:
+ *   update:
+ *     transport: LONG_POLLING
+ *
+ * # Bot that receives updates via long-polling and publishes them to Kafka
+ * easygram:
+ *   update:
+ *     transport: LONG_POLLING
  *   messaging:
- *     type: PRODUCER
  *     forward-only: false
  *     producer:
  *       type: KAFKA
@@ -25,31 +36,29 @@ import uz.osoncode.easygram.messaging.producer.ProducerType;
  *
  * # Bot that consumes updates from RabbitMQ
  * easygram:
+ *   update:
+ *     transport: RABBIT_CONSUMER
  *   messaging:
- *     type: CONSUMER
- *     consumer:
- *       type: RABBIT
  *     rabbit:
  *       exchange: my-exchange
  *       queue: my-bot-updates
  * }</pre>
  *
- * @param type        the role of this bot in the broker integration; required when the
- *                    {@code messaging} block is present
  * @param forwardOnly when {@code true}, updates are published to the broker only — local
- *                    {@code @BotController} handlers are skipped. Only meaningful for
- *                    {@link MessagingType#PRODUCER}. Defaults to {@code false}.
- * @param producer    producer-specific settings (broker type); used when {@code type=PRODUCER}
- * @param consumer    consumer-specific settings (broker type); used when {@code type=CONSUMER}
+ *                    {@code @BotController} handlers are skipped. Only meaningful when a
+ *                    producer type is configured. Defaults to {@code false}.
+ * @param failOnPublishError when {@code true}, a broker publish failure rethrows the exception
+ *                           so the upstream transport (long-polling / webhook) can react.
+ *                           When {@code false} (default) publish failures are only logged at ERROR
+ *                           and processing continues. Set to {@code true} for production systems
+ *                           where losing an update is worse than a delayed retry.
+ * @param producer    producer-specific settings (broker type); activates when set
  * @author Islom Mirsaburov
  * @since 0.0.1
- * @see MessagingType
  */
+@Validated
 @ConfigurationProperties("easygram.messaging")
 public record EasygramMessagingProperties(
-
-        /** Messaging role: PRODUCER or CONSUMER. */
-        MessagingType type,
 
         /**
          * Whether to stop the filter chain after publishing.
@@ -59,27 +68,24 @@ public record EasygramMessagingProperties(
         @DefaultValue("false")
         Boolean forwardOnly,
 
-        /** Producer configuration — which broker to publish to. */
-        ProducerConfig producer,
+        /**
+         * Whether to rethrow publish exceptions.
+         * {@code false} (default) = log error and continue;
+         * {@code true} = rethrow so the transport layer sees the failure.
+         */
+        @DefaultValue("false")
+        Boolean failOnPublishError,
 
-        /** Consumer configuration — which broker to consume from. */
-        ConsumerConfig consumer
+        /** Producer configuration — which broker to publish to. */
+        ProducerConfig producer
 ) {
 
     /**
      * Nested producer configuration.
      *
-     * @param type the broker type for publishing; required when {@code messaging.type=PRODUCER}
+     * @param type the broker type for publishing (KAFKA or RABBIT)
      */
     public record ProducerConfig(ProducerType type) {
-    }
-
-    /**
-     * Nested consumer configuration.
-     *
-     * @param type the broker type for consuming; required when {@code messaging.type=CONSUMER}
-     */
-    public record ConsumerConfig(ConsumerType type) {
     }
 }
 

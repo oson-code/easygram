@@ -307,7 +307,7 @@ easygram:
 # Update delivery transport (defaults to LONG_POLLING — omit block entirely for long-polling bots)
 easygram:
   update:
-    transport: LONG_POLLING   # LONG_POLLING | WEBHOOK
+    transport: LONG_POLLING   # LONG_POLLING | WEBHOOK | KAFKA_CONSUMER | RABBIT_CONSUMER | NONE
     webhook:                  # only needed when transport: WEBHOOK
       url: https://example.com/webhook
       path: /webhook
@@ -319,21 +319,23 @@ easygram:
     default-locale: en
 
 # Broker integration (messaging-api module — omit block for standalone bots)
+# Producer pattern: poll/webhook + publish to broker
 easygram:
   messaging:
-    type: PRODUCER   # PRODUCER | CONSUMER
-    forward-only: false
+    forward-only: false      # true = skip local handlers, publish only
+    fail-on-publish-error: false
     producer:
-      type: KAFKA    # KAFKA | RABBIT
-    consumer:
       type: KAFKA    # KAFKA | RABBIT
     kafka:
       topic: easygram-updates
-      group-id: easygram-bot   # consumer group ID (consumer mode)
+      group-id: easygram-bot   # consumer group ID (KAFKA_CONSUMER transport)
     rabbit:
       exchange: easygram-exchange
       queue: easygram-updates
       routing-key: easygram.updates
+
+# Consumer pattern: set transport to receive from broker
+# easygram.update.transport: KAFKA_CONSUMER   # or RABBIT_CONSUMER
 ```
 
 ## Request/Response Model

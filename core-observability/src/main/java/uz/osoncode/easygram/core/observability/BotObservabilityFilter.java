@@ -1,5 +1,6 @@
 package uz.osoncode.easygram.core.observability;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -54,14 +55,35 @@ public class BotObservabilityFilter implements BotFilter {
     private final BotConfigurer botConfigurer;
 
     /**
+     * Optional {@link MeterRegistry} for recording the dedicated {@code easygram.handler.errors}
+     * counter. May be {@code null} if Micrometer metrics are not available.
+     */
+    private final MeterRegistry meterRegistry;
+
+    /**
      * Creates a new {@code BotObservabilityFilter}.
      *
      * @param observationRegistry the registry to record observations into
      * @param botConfigurer       the bot configurer carrying the active transport type
      */
     public BotObservabilityFilter(ObservationRegistry observationRegistry, BotConfigurer botConfigurer) {
+        this(observationRegistry, botConfigurer, null);
+    }
+
+    /**
+     * Creates a new {@code BotObservabilityFilter} with an optional {@link MeterRegistry}
+     * for recording a dedicated error counter.
+     *
+     * @param observationRegistry the registry to record observations into
+     * @param botConfigurer       the bot configurer carrying the active transport type
+     * @param meterRegistry       optional meter registry for {@code easygram.handler.errors} counter;
+     *                            pass {@code null} to disable the dedicated counter
+     */
+    public BotObservabilityFilter(ObservationRegistry observationRegistry, BotConfigurer botConfigurer,
+                                  MeterRegistry meterRegistry) {
         this.observationRegistry = observationRegistry;
         this.botConfigurer = botConfigurer;
+        this.meterRegistry = meterRegistry;
     }
 
     /**
@@ -104,12 +126,27 @@ public class BotObservabilityFilter implements BotFilter {
             filterChain.doFilter(botRequest, botResponse);
             if (Objects.nonNull(botRequest.getThrowable())) {
                 observation.error(botRequest.getThrowable());
+                incrementErrorCounter(botRequest.getThrowable());
             }
         } catch (Exception e) {
             observation.error(e);
+            incrementErrorCounter(e);
             throw e;
         } finally {
             observation.stop();
+        }
+    }
+
+    /**
+     * Increments the {@code easygram.handler.errors} counter tagged with the exception class
+     * simple name, if a {@link MeterRegistry} is available.
+     *
+     * @param throwable the exception that caused the handler failure
+     */
+    private void incrementErrorCounter(Throwable throwable) {
+        if (meterRegistry != null) {
+            meterRegistry.counter("easygram.handler.errors",
+                    "exception", throwable.getClass().getSimpleName()).increment();
         }
     }
 

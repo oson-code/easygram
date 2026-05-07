@@ -9,7 +9,7 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
-import uz.osoncode.easygram.messaging.rabbit.provider.BotRabbitTemplateProvider;
+import uz.osoncode.easygram.messaging.rabbit.provider.EasygramRabbitTemplateProvider;
 
 /**
  * {@link BotUpdatePublisher} implementation that publishes Telegram {@link Update} objects
@@ -30,7 +30,7 @@ public class RabbitBotUpdatePublisher implements BotUpdatePublisher {
     private final EasygramRabbitProperties properties;
     private final ObjectMapper objectMapper;
 
-    public RabbitBotUpdatePublisher(BotRabbitTemplateProvider templateProvider,
+    public RabbitBotUpdatePublisher(EasygramRabbitTemplateProvider templateProvider,
                                     EasygramRabbitProperties properties,
                                     ObjectMapper objectMapper) {
         this.rabbitTemplate = templateProvider.provide();

@@ -1,0 +1,131 @@
+# Run:  docker compose up -d
+#
+# Starts the infrastructure stack:
+  #   kafka      — single-node Kafka broker in KRaft mode on localhost:9092
+#   kafka-ui   — Kafka UI at http://localhost:8090
+#   tempo      — Grafana Tempo; accepts OTLP/HTTP on localhost:4318
+#   prometheus — scrapes Spring Boot metrics from the bot on localhost:8086
+#   loki       — Grafana Loki; receives logs pushed by the bot on localhost:3100
+#   grafana    — pre-configured datasources + 4 ready dashboards at http://localhost:3000
+#
+# After the stack is up, start the bot:
+#   BOT_TOKEN=<your-token> mvn spring-boot:run -pl samples/tracing-bot -am
+#
+# Ready dashboards (open http://localhost:3000 → Dashboards):
+#   • Easygram Bot Metrics  — update throughput, latency, error rate, update-type breakdown
+#   • JVM & Spring Boot     — heap, CPU, threads, GC, Kafka consumer metrics
+#   • Traces — Easygram Bot — full distributed trace explorer (Tempo)
+#   • Logs  — Easygram Bot  — live log stream + traceId drill-through to Tempo (Loki)
+#
+# Pub/sub trace propagation:
+#   When the tracing-bot is used together with a producer sample (e.g., longpolling-as-producer),
+#   Spring Kafka propagates OTel trace context through Kafka record headers so the
+#   producer span and consumer span are linked in the same trace tree.
+
+services:
+
+  # ─── Kafka (KRaft — no Zookeeper) ──────────────────────────────────────────
+  kafka:
+    image: bitnamilegacy/kafka:latest
+    container_name: tracing-bot-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_CFG_NODE_ID: "1"
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: tracing-bot-kafka-ui
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # ─── Grafana Tempo (distributed tracing backend) ───────────────────────────
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tracing-bot-tempo
+    ports:
+      - "3200:3200"   # Tempo HTTP API (used by Grafana datasource internally)
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver — the bot exports here
+    volumes:
+      - ./docker/tempo.yml:/etc/tempo.yml
+      - tempo_data:/var/tempo
+    command: -config.file=/etc/tempo.yml
+#    healthcheck:
+#      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3200/ready"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 10
+
+  # ─── Prometheus (metrics scraper) ─────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: tracing-bot-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+      - --web.enable-lifecycle
+    # Allows Prometheus to reach the bot running on the Docker host.
+    # On macOS/Windows, Docker Desktop handles host.docker.internal automatically.
+    # On Linux, this extra_hosts entry maps the name to the host gateway IP.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # ─── Grafana Loki (log aggregation backend) ───────────────────────────────
+  loki:
+    image: grafana/loki:latest
+    container_name: tracing-bot-loki
+    ports:
+      - "3100:3100"   # Loki HTTP API — the bot pushes logs here; Grafana queries here
+    volumes:
+      - ./docker/loki.yml:/etc/loki/loki.yml
+      - loki_data:/loki
+    command: -config.file=/etc/loki/loki.yml
+
+  # ─── Grafana (trace + metrics + logs visualisation) ────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: tracing-bot-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/etc/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    environment:
+      # Anonymous access — no login required for the demo
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+#    depends_on:
+#      tempo:
+#        condition: service_healthy
+
+volumes:
+  tempo_data:
+  grafana_data:
+  prometheus_data:
+  loki_data:

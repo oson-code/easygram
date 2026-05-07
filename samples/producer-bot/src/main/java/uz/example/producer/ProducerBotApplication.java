@@ -4,7 +4,7 @@ import okhttp3.OkHttpClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import uz.osoncode.easygram.core.provider.BotOkHttpClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramOkHttpClientProvider;
 
 import java.time.Duration;
 
@@ -31,7 +31,7 @@ public class ProducerBotApplication {
      * the connection alive during Telegram's 30 s long-poll wait).
      */
     @Bean
-    public BotOkHttpClientProvider botOkHttpClientProvider() {
+    public EasygramOkHttpClientProvider botOkHttpClientProvider() {
         return () -> new OkHttpClient.Builder()
                 .connectTimeout(Duration.ofSeconds(30))
                 .readTimeout(Duration.ofMinutes(1))

@@ -1,5 +1,7 @@
 package uz.osoncode.easygram.core.bind.annotation;
 
+import uz.osoncode.easygram.core.chatstate.BotChatState;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -18,6 +20,17 @@ import java.lang.annotation.Target;
  * @BotForwardChatState("WAITING_NAME")
  * public String onStart() {
  *     return "Please enter your name:";
+ * }
+ * }</pre>
+ *
+ * <p>Use {@link #ANY} to explicitly clear the chat state (reset to "no state") rather than
+ * using a magic empty string literal:</p>
+ *
+ * <pre>{@code
+ * @BotCommand("/cancel")
+ * @BotForwardChatState(BotForwardChatState.ANY)
+ * public String onCancel() {
+ *     return "Cancelled.";
  * }
  * }</pre>
  *
@@ -40,9 +53,19 @@ import java.lang.annotation.Target;
 public @interface BotForwardChatState {
 
     /**
+     * Convenience constant equivalent to {@link BotChatState#ANY}.
+     *
+     * <p>Use this to reset the conversation state (forward to "no state") without a magic
+     * empty string literal.</p>
+     *
+     * @since 0.0.7
+     */
+    String ANY = BotChatState.ANY;
+
+    /**
      * The state value to set after the handler returns.
      *
-     * @return the new chat state string; must not be empty
+     * @return the new chat state string; must not be empty (use {@link #ANY} for reset)
      */
     String value();
 }

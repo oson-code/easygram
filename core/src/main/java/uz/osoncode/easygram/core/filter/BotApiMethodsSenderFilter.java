@@ -3,6 +3,7 @@ package uz.osoncode.easygram.core.filter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import uz.osoncode.easygram.core.model.BotRequest;
 import uz.osoncode.easygram.core.model.BotResponse;
@@ -22,6 +23,16 @@ import java.util.Objects;
  * <p>The filter is ordered at {@link BotFilterOrder#API_SENDER} ({@code Integer.MIN_VALUE + 1}),
  * immediately after the context-setter, ensuring it wraps the entire processing pipeline
  * and can observe the fully-populated response.
+ *
+ * <p><strong>Error classification:</strong> Telegram API errors are classified by HTTP status:
+ * <ul>
+ *   <li><em>4xx (client errors)</em> — logged as {@code ERROR} and <em>suppressed</em>.
+ *       These are permanent failures (e.g. bad parse mode, forbidden, not found). Retrying
+ *       the same message will never succeed, and re-throwing would cause broker transports such
+ *       as RabbitMQ to enter an infinite requeue loop. Fix the message payload in your handler.</li>
+ *   <li><em>5xx / network errors</em> — logged as {@code ERROR} and re-thrown so that
+ *       the caller (filter chain or transport layer) can apply its own retry strategy.</li>
+ * </ul>
  *
  * @author Islom Mirsaburov
  * @since 0.0.1
@@ -47,9 +58,11 @@ public class BotApiMethodsSenderFilter implements BotFilter {
      * accumulated in {@link BotResponse}.
      *
      * <p>Sends are performed via {@link TelegramClient#execute(BotApiMethod)} obtained
-     * from {@link BotRequest#getTelegramClient()}. Any {@link Throwable} thrown during
-     * sending of an individual method is caught and logged as an error without
-     * interrupting delivery of the remaining methods.
+     * from {@link BotRequest#getTelegramClient()}. Errors are handled per
+     * {@link BotApiMethodsSenderFilter class-level} error-classification rules:
+     * 4xx Telegram errors are logged and suppressed; 5xx / network errors are logged and
+     * re-thrown after all methods have been attempted so that remaining deliveries are
+     * not interrupted.
      *
      * @param botRequest  the current bot request providing the {@link TelegramClient}.
      * @param botResponse the response object holding the list of API methods to send.
@@ -67,13 +80,49 @@ public class BotApiMethodsSenderFilter implements BotFilter {
             return;
         }
 
+        RuntimeException sendFailure = null;
         for (BotApiMethod<?> botApiMethod : botResponse.getBotApiMethods()) {
             try {
                 telegramClient.execute(botApiMethod);
             } catch (Throwable e) {
-                log.error("Error while sending BotApiMethod: {} for update: {}",
-                        botApiMethod, botRequest.getUpdate(), e);
+                if (isTelegramClientError(e)) {
+                    log.error("[update={}] Telegram rejected '{}' with a permanent error (4xx) — skipping rethrow; fix the message payload in your handler",
+                            botRequest.getUpdate().getUpdateId(), botApiMethod.getClass().getSimpleName(), e);
+                } else {
+                    log.error("[update={}] Failed to send '{}' — transient error, will rethrow after all methods are attempted",
+                            botRequest.getUpdate().getUpdateId(), botApiMethod.getClass().getSimpleName(), e);
+                    // Wrap and remember; attempt remaining methods before propagating.
+                    sendFailure = (e instanceof RuntimeException re) ? re
+                            : new RuntimeException("Telegram send failure for update " + botRequest.getUpdate().getUpdateId(), e);
+                }
             }
         }
+
+        if (sendFailure != null) {
+            throw sendFailure;
+        }
+    }
+
+    /**
+     * Returns {@code true} if {@code e} or any exception in its cause chain is a
+     * {@link TelegramApiRequestException} with an HTTP 4xx status code (400–499).
+     *
+     * <p>Such errors represent permanent client-side failures (bad request, forbidden,
+     * not found). Retrying the same message payload will never succeed, so the caller
+     * suppresses them instead of re-throwing.
+     *
+     * @param e the throwable to inspect
+     * @return {@code true} for Telegram 4xx errors, {@code false} otherwise
+     */
+    private static boolean isTelegramClientError(Throwable e) {
+        Throwable t = e;
+        while (t != null) {
+            if (t instanceof TelegramApiRequestException tae) {
+                int code = tae.getErrorCode();
+                return code >= 400 && code < 500;
+            }
+            t = t.getCause();
+        }
+        return false;
     }
 }

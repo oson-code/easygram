@@ -1,13 +1,11 @@
 package uz.example.producer.webhook;
 
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.User;
 import uz.osoncode.easygram.core.stereotype.BotController;
 import uz.osoncode.easygram.core.bind.annotation.BotTextValue;
 import uz.osoncode.easygram.core.bind.annotation.BotDefaultHandler;
 import uz.osoncode.easygram.core.bind.annotation.BotCommand;
 import uz.osoncode.easygram.core.bind.annotation.BotTextDefault;
-import uz.osoncode.easygram.core.model.BotRequest;
 
 /**
  * Optional local handler — only active when {@code easygram.messaging.forward-only=false}.
@@ -28,10 +26,7 @@ public class EchoBotController {
     }
 
     @BotDefaultHandler
-    public SendMessage onUnknown(BotRequest request) {
-        return SendMessage.builder()
-                .chatId(request.getChat().getId())
-                .text("Update forwarded to broker.")
-                .build();
+    public String onUnknown() {
+        return "Update forwarded to broker.";
     }
 }

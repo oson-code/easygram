@@ -9,6 +9,12 @@
       "name": "easygram.update",
       "type": "uz.osoncode.easygram.core.bot.EasygramUpdateProperties",
       "sourceType": "uz.osoncode.easygram.core.bot.EasygramUpdateProperties"
+    },
+    {
+      "name": "easygram.telegram-url",
+      "type": "uz.osoncode.easygram.core.bot.EasygramTelegramUrlProperties",
+      "sourceType": "uz.osoncode.easygram.core.bot.EasygramTelegramUrlProperties",
+      "description": "Optional override for the Telegram Bot API server URL. Use when running a self-hosted or local Bot API server. All fields are optional — omit the entire block to use the official api.telegram.org endpoint."
     }
   ],
   "properties": [
@@ -21,9 +27,34 @@
     {
       "name": "easygram.update.transport",
       "type": "uz.osoncode.easygram.core.bot.BotTransportType",
-      "description": "Update-delivery transport. LONG_POLLING (default) polls Telegram getUpdates API; WEBHOOK receives updates via HTTPS endpoint. Ignored when easygram.messaging.type=CONSUMER.",
+      "description": "Update-delivery transport. LONG_POLLING (default) polls Telegram getUpdates API; WEBHOOK receives updates via HTTPS endpoint; KAFKA_CONSUMER and RABBIT_CONSUMER consume from a broker; NONE suppresses all automatic transports.",
       "defaultValue": "LONG_POLLING",
       "sourceType": "uz.osoncode.easygram.core.bot.EasygramUpdateProperties"
+    },
+    {
+      "name": "easygram.telegram-url.schema",
+      "type": "java.lang.String",
+      "description": "URL schema for the Bot API server (e.g. 'https', 'http'). Null keeps the default schema used by the official Telegram URL.",
+      "sourceType": "uz.osoncode.easygram.core.bot.EasygramTelegramUrlProperties"
+    },
+    {
+      "name": "easygram.telegram-url.host",
+      "type": "java.lang.String",
+      "description": "Hostname of a self-hosted or local Bot API server. When null, the official api.telegram.org host is used. Set this to redirect all Bot API calls to your own server.",
+      "sourceType": "uz.osoncode.easygram.core.bot.EasygramTelegramUrlProperties"
+    },
+    {
+      "name": "easygram.telegram-url.port",
+      "type": "java.lang.Integer",
+      "description": "Port of the Bot API server. Null keeps the default port for the chosen schema. Typically 443 for HTTPS or 8443 for self-hosted servers.",
+      "sourceType": "uz.osoncode.easygram.core.bot.EasygramTelegramUrlProperties"
+    },
+    {
+      "name": "easygram.telegram-url.test-server",
+      "type": "java.lang.Boolean",
+      "description": "Whether to target the Telegram test environment (test.telegram.org). Use during development to avoid affecting production data. Defaults to false.",
+      "defaultValue": false,
+      "sourceType": "uz.osoncode.easygram.core.bot.EasygramTelegramUrlProperties"
     }
   ],
   "hints": [
@@ -37,6 +68,18 @@
         {
           "value": "WEBHOOK",
           "description": "Receive updates via an HTTPS webhook endpoint. Requires easygram.update.webhook.url."
+        },
+        {
+          "value": "KAFKA_CONSUMER",
+          "description": "Consume Telegram updates from a Kafka topic. Requires spring-kafka and easygram.messaging.kafka.* settings."
+        },
+        {
+          "value": "RABBIT_CONSUMER",
+          "description": "Consume Telegram updates from a RabbitMQ queue. Requires spring-boot-starter-amqp and easygram.messaging.rabbit.* settings."
+        },
+        {
+          "value": "NONE",
+          "description": "No automatic transport started. Use when the application manages its own update ingestion (e.g. an in-memory queue)."
         }
       ]
     }

@@ -6,6 +6,7 @@ import uz.osoncode.easygram.core.handler.invocation.BotHandlerInvocationContext;
 import uz.osoncode.easygram.core.handler.invocation.BotHandlerInvocationFilter;
 import uz.osoncode.easygram.core.handler.invocation.DefaultBotHandlerInvocationChain;
 import uz.osoncode.easygram.core.model.BotRequest;
+import uz.osoncode.easygram.core.model.BotRequestAttributes;
 import uz.osoncode.easygram.core.model.BotResponse;
 
 import java.lang.reflect.InvocationTargetException;
@@ -161,6 +162,7 @@ public class BotMethodHandler implements BotHandler {
     @Override
     public void handle(BotRequest botRequest, BotResponse botResponse) throws InvocationTargetException, IllegalAccessException {
         log.trace("Dispatching to handler: {}.{}()", bean.getClass().getSimpleName(), method.getName());
+        botRequest.setAttribute(BotRequestAttributes.CONTROLLER_CLASS, bean.getClass());
         BotHandlerInvocationContext context = new BotHandlerInvocationContext(botRequest, botResponse, method, bean);
         new DefaultBotHandlerInvocationChain(invocationFilters).proceed(context);
     }

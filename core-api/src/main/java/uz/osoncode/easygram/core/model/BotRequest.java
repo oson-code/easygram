@@ -80,6 +80,27 @@ public class BotRequest {
     }
 
     /**
+     * Returns the attribute stored under the given key cast to the specified type,
+     * or {@code null} if absent.
+     *
+     * <p>Prefer this overload over {@link #getAttribute(String)} when the expected type
+     * is known — it produces a clear {@link ClassCastException} message instead of a
+     * confusing downstream {@link ClassCastException} at the call site.</p>
+     *
+     * @param key  the attribute key; must not be {@code null}
+     * @param type the class to cast the stored value to; must not be {@code null}
+     * @param <T>  the expected value type
+     * @return the stored value cast to {@code T}, or {@code null} if not present
+     * @throws ClassCastException if the stored value is not an instance of {@code type}
+     * @since 0.0.7
+     */
+    public <T> T getAttribute(String key, Class<T> type) {
+        Object value = attributes.get(key);
+        if (value == null) return null;
+        return type.cast(value);
+    }
+
+    /**
      * Returns an unmodifiable view of all attributes in this request.
      *
      * @return the attribute map; never {@code null}

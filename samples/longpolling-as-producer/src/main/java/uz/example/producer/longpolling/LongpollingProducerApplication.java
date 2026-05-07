@@ -4,7 +4,7 @@ import okhttp3.OkHttpClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import uz.osoncode.easygram.core.provider.BotOkHttpClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramOkHttpClientProvider;
 
 import java.time.Duration;
 
@@ -23,7 +23,7 @@ public class LongpollingProducerApplication {
     }
 
     @Bean
-    public BotOkHttpClientProvider okHttpClientProvider(){
+    public EasygramOkHttpClientProvider okHttpClientProvider(){
         return () -> new OkHttpClient.Builder()
                 .connectTimeout(Duration.ofMinutes(1))
                 .readTimeout(Duration.ofMinutes(1))

@@ -71,11 +71,11 @@ import uz.osoncode.easygram.core.exceptionhandler.BotMethodExceptionHandlerLoade
 import uz.osoncode.easygram.core.filter.BotApiMethodsSenderFilter;
 import uz.osoncode.easygram.core.filter.BotMdcFilter;
 import uz.osoncode.easygram.core.filter.BotContextSetterFilter;
-import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
-import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
-import uz.osoncode.easygram.core.provider.BotOkHttpClientProvider;
-import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
-import uz.osoncode.easygram.core.provider.BotTelegramUrlProvider;
+import uz.osoncode.easygram.core.provider.EasygramExecutorServiceProvider;
+import uz.osoncode.easygram.core.provider.EasygramObjectMapperProvider;
+import uz.osoncode.easygram.core.provider.EasygramOkHttpClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramUrlProvider;
 import uz.osoncode.easygram.core.handler.BotHandlerConditionContributor;
 import uz.osoncode.easygram.core.handler.BotHandlerLoader;
 import uz.osoncode.easygram.core.handler.BotHandlerRegistry;
@@ -130,12 +130,18 @@ import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandler;
 import uz.osoncode.easygram.core.returntypehandler.BotReturnTypeHandlerFactory;
 import uz.osoncode.easygram.core.returntypehandler.BotStringReturnHandler;
 import uz.osoncode.easygram.core.returntypehandler.BotVoidReturnHandler;
+import uz.osoncode.easygram.core.bot.BotTransportStartupValidator;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.springframework.context.ApplicationContext;
 
 /**
  * Spring Boot auto-configuration class that registers all core framework beans.
@@ -196,6 +202,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotCallbackQueryDataArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotCallbackQueryDataArgumentResolver.class)
     public BotCallbackQueryDataArgumentResolver botCallbackQueryDataArgumentResolver() {
         return new BotCallbackQueryDataArgumentResolver();
     }
@@ -207,6 +214,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotDynamicCallbackDataArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotDynamicCallbackDataArgumentResolver.class)
     public BotDynamicCallbackDataArgumentResolver botDynamicCallbackDataArgumentResolver() {
         return new BotDynamicCallbackDataArgumentResolver();
     }
@@ -217,6 +225,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotChatArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotChatArgumentResolver.class)
     public BotChatArgumentResolver botChatArgumentResolver() {
         return new BotChatArgumentResolver();
     }
@@ -227,6 +236,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotCommandArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotCommandArgumentResolver.class)
     public BotCommandArgumentResolver botCommandArgumentResolver() {
         return new BotCommandArgumentResolver();
     }
@@ -237,6 +247,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotContactArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotContactArgumentResolver.class)
     public BotContactArgumentResolver botContactArgumentResolver() {
         return new BotContactArgumentResolver();
     }
@@ -247,6 +258,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotLocationArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotLocationArgumentResolver.class)
     public BotLocationArgumentResolver botLocationArgumentResolver() {
         return new BotLocationArgumentResolver();
     }
@@ -257,6 +269,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotRequestArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotRequestArgumentResolver.class)
     public BotRequestArgumentResolver botRequestArgumentResolver() {
         return new BotRequestArgumentResolver();
     }
@@ -269,6 +282,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotMarkupContextArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotMarkupContextArgumentResolver.class)
     public BotMarkupContextArgumentResolver botMarkupContextArgumentResolver() {
         return new BotMarkupContextArgumentResolver();
     }
@@ -279,6 +293,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotResponseArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotResponseArgumentResolver.class)
     public BotResponseArgumentResolver botResponseArgumentResolver() {
         return new BotResponseArgumentResolver();
     }
@@ -289,6 +304,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotTextArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotTextArgumentResolver.class)
     public BotTextArgumentResolver botTextArgumentResolver() {
         return new BotTextArgumentResolver();
     }
@@ -299,6 +315,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotTelegramClientArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotTelegramClientArgumentResolver.class)
     public BotTelegramClientArgumentResolver botTelegramClientArgumentResolver() {
         return new BotTelegramClientArgumentResolver();
     }
@@ -309,6 +326,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotThrowableArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotThrowableArgumentResolver.class)
     public BotThrowableArgumentResolver botThrowableArgumentResolver() {
         return new BotThrowableArgumentResolver();
     }
@@ -319,6 +337,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotUpdateArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotUpdateArgumentResolver.class)
     public BotUpdateArgumentResolver botUpdateArgumentResolver() {
         return new BotUpdateArgumentResolver();
     }
@@ -330,6 +349,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotMessageArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotMessageArgumentResolver.class)
     public BotMessageArgumentResolver botMessageArgumentResolver() {
         return new BotMessageArgumentResolver();
     }
@@ -340,6 +360,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotUserArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotUserArgumentResolver.class)
     public BotUserArgumentResolver botUserArgumentResolver() {
         return new BotUserArgumentResolver();
     }
@@ -350,6 +371,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotInlineQueryArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotInlineQueryArgumentResolver.class)
     public BotInlineQueryArgumentResolver botInlineQueryArgumentResolver() {
         return new BotInlineQueryArgumentResolver();
     }
@@ -360,6 +382,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotChosenInlineResultArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotChosenInlineResultArgumentResolver.class)
     public BotChosenInlineResultArgumentResolver botChosenInlineResultArgumentResolver() {
         return new BotChosenInlineResultArgumentResolver();
     }
@@ -370,6 +393,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotShippingQueryArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotShippingQueryArgumentResolver.class)
     public BotShippingQueryArgumentResolver botShippingQueryArgumentResolver() {
         return new BotShippingQueryArgumentResolver();
     }
@@ -380,6 +404,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotPreCheckoutQueryArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotPreCheckoutQueryArgumentResolver.class)
     public BotPreCheckoutQueryArgumentResolver botPreCheckoutQueryArgumentResolver() {
         return new BotPreCheckoutQueryArgumentResolver();
     }
@@ -390,6 +415,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotPollArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotPollArgumentResolver.class)
     public BotPollArgumentResolver botPollArgumentResolver() {
         return new BotPollArgumentResolver();
     }
@@ -400,6 +426,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotPollAnswerArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotPollAnswerArgumentResolver.class)
     public BotPollAnswerArgumentResolver botPollAnswerArgumentResolver() {
         return new BotPollAnswerArgumentResolver();
     }
@@ -410,6 +437,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotChatMemberUpdatedArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotChatMemberUpdatedArgumentResolver.class)
     public BotChatMemberUpdatedArgumentResolver botChatMemberUpdatedArgumentResolver() {
         return new BotChatMemberUpdatedArgumentResolver();
     }
@@ -420,6 +448,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotChatJoinRequestArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotChatJoinRequestArgumentResolver.class)
     public BotChatJoinRequestArgumentResolver botChatJoinRequestArgumentResolver() {
         return new BotChatJoinRequestArgumentResolver();
     }
@@ -430,6 +459,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotBusinessConnectionArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotBusinessConnectionArgumentResolver.class)
     public BotBusinessConnectionArgumentResolver botBusinessConnectionArgumentResolver() {
         return new BotBusinessConnectionArgumentResolver();
     }
@@ -440,6 +470,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotBusinessMessagesDeletedArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotBusinessMessagesDeletedArgumentResolver.class)
     public BotBusinessMessagesDeletedArgumentResolver botBusinessMessagesDeletedArgumentResolver() {
         return new BotBusinessMessagesDeletedArgumentResolver();
     }
@@ -450,6 +481,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotInlineQueryValueArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotInlineQueryValueArgumentResolver.class)
     public BotInlineQueryValueArgumentResolver botInlineQueryValueArgumentResolver() {
         return new BotInlineQueryValueArgumentResolver();
     }
@@ -460,6 +492,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotChosenInlineResultIdArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotChosenInlineResultIdArgumentResolver.class)
     public BotChosenInlineResultIdArgumentResolver botChosenInlineResultIdArgumentResolver() {
         return new BotChosenInlineResultIdArgumentResolver();
     }
@@ -470,6 +503,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotShippingPayloadArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotShippingPayloadArgumentResolver.class)
     public BotShippingPayloadArgumentResolver botShippingPayloadArgumentResolver() {
         return new BotShippingPayloadArgumentResolver();
     }
@@ -480,6 +514,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotPreCheckoutPayloadArgumentResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotPreCheckoutPayloadArgumentResolver.class)
     public BotPreCheckoutPayloadArgumentResolver botPreCheckoutPayloadArgumentResolver() {
         return new BotPreCheckoutPayloadArgumentResolver();
     }
@@ -504,6 +539,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotVoidReturnHandler} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotVoidReturnHandler.class)
     public BotVoidReturnHandler botVoidReturnHandler() {
         return new BotVoidReturnHandler();
     }
@@ -520,6 +556,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotStringReturnHandler} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotStringReturnHandler.class)
     public BotStringReturnHandler botStringReturnHandler(Optional<BotMarkupRegistry> markupRegistry) {
         return new BotStringReturnHandler(markupRegistry);
     }
@@ -530,6 +567,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotBotApiMethodReturnHandler} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotBotApiMethodReturnHandler.class)
     public BotBotApiMethodReturnHandler botBotApiMethodReturnHandler() {
         return new BotBotApiMethodReturnHandler();
     }
@@ -541,6 +579,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotBotApiMethodsReturnHandler} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotBotApiMethodsReturnHandler.class)
     public BotBotApiMethodsReturnHandler botBotApiMethodsReturnHandler() {
         return new BotBotApiMethodsReturnHandler();
     }
@@ -582,6 +621,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotCallbackQueryMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotCallbackQueryMetaDataResolver.class)
     public BotCallbackQueryMetaDataResolver botCallbackQueryMetaDataResolver() {
         return new BotCallbackQueryMetaDataResolver();
     }
@@ -592,6 +632,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotDefaultCallbackQueryMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotDefaultCallbackQueryMetaDataResolver.class)
     public BotDefaultCallbackQueryMetaDataResolver botDefaultCallbackQueryMetaDataResolver() {
         return new BotDefaultCallbackQueryMetaDataResolver();
     }
@@ -616,6 +657,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotDynamicCallbackQueryMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotDynamicCallbackQueryMetaDataResolver.class)
     public BotDynamicCallbackQueryMetaDataResolver botDynamicCallbackQueryMetaDataResolver(
             BotDynamicCallbackQueryService dynamicCallbackQueryService) {
         return new BotDynamicCallbackQueryMetaDataResolver(dynamicCallbackQueryService);
@@ -627,6 +669,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotCommandMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotCommandMetaDataResolver.class)
     public BotCommandMetaDataResolver botCommandMetaDataResolver() {
         return new BotCommandMetaDataResolver();
     }
@@ -637,6 +680,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotDefaultCommandMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotDefaultCommandMetaDataResolver.class)
     public BotDefaultCommandMetaDataResolver botDefaultCommandMetaDataResolver() {
         return new BotDefaultCommandMetaDataResolver();
     }
@@ -647,6 +691,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotContactMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotContactMetaDataResolver.class)
     public BotContactMetaDataResolver botContactMetaDataResolver() {
         return new BotContactMetaDataResolver();
     }
@@ -657,6 +702,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotLocationMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotLocationMetaDataResolver.class)
     public BotLocationMetaDataResolver botLocationMetaDataResolver() {
         return new BotLocationMetaDataResolver();
     }
@@ -667,6 +713,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotTextMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotTextMetaDataResolver.class)
     public BotTextMetaDataResolver botTextMetaDataResolver() {
         return new BotTextMetaDataResolver();
     }
@@ -677,6 +724,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotTextDefaultMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotTextDefaultMetaDataResolver.class)
     public BotTextDefaultMetaDataResolver botTextDefaultMetaDataResolver() {
         return new BotTextDefaultMetaDataResolver();
     }
@@ -691,6 +739,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotTextPatternMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotTextPatternMetaDataResolver.class)
     public BotTextPatternMetaDataResolver botTextPatternMetaDataResolver() {
         return new BotTextPatternMetaDataResolver();
     }
@@ -725,6 +774,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotReplyButtonMetaDataResolver}
      */
     @Bean
+    @ConditionalOnMissingBean(BotReplyButtonMetaDataResolver.class)
     public BotReplyButtonMetaDataResolver botReplyButtonMetaDataResolver(BotReplyButtonMatcher matcher) {
         return new BotReplyButtonMetaDataResolver(matcher);
     }
@@ -735,6 +785,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotDefaultHandlerMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotDefaultHandlerMetaDataResolver.class)
     public BotDefaultHandlerMetaDataResolver botDefaultHandlerMetaDataResolver() {
         return new BotDefaultHandlerMetaDataResolver();
     }
@@ -745,6 +796,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotEditedMessageMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotEditedMessageMetaDataResolver.class)
     public BotEditedMessageMetaDataResolver botEditedMessageMetaDataResolver() {
         return new BotEditedMessageMetaDataResolver();
     }
@@ -755,6 +807,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotChannelPostMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotChannelPostMetaDataResolver.class)
     public BotChannelPostMetaDataResolver botChannelPostMetaDataResolver() {
         return new BotChannelPostMetaDataResolver();
     }
@@ -765,6 +818,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotEditedChannelPostMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotEditedChannelPostMetaDataResolver.class)
     public BotEditedChannelPostMetaDataResolver botEditedChannelPostMetaDataResolver() {
         return new BotEditedChannelPostMetaDataResolver();
     }
@@ -797,6 +851,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotInlineQueryMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotInlineQueryMetaDataResolver.class)
     public BotInlineQueryMetaDataResolver botInlineQueryMetaDataResolver(BotInlineQueryMatcher matcher) {
         return new BotInlineQueryMetaDataResolver(matcher);
     }
@@ -807,6 +862,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotChosenInlineResultMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotChosenInlineResultMetaDataResolver.class)
     public BotChosenInlineResultMetaDataResolver botChosenInlineResultMetaDataResolver() {
         return new BotChosenInlineResultMetaDataResolver();
     }
@@ -817,6 +873,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotShippingQueryMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotShippingQueryMetaDataResolver.class)
     public BotShippingQueryMetaDataResolver botShippingQueryMetaDataResolver() {
         return new BotShippingQueryMetaDataResolver();
     }
@@ -827,6 +884,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotPreCheckoutQueryMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotPreCheckoutQueryMetaDataResolver.class)
     public BotPreCheckoutQueryMetaDataResolver botPreCheckoutQueryMetaDataResolver() {
         return new BotPreCheckoutQueryMetaDataResolver();
     }
@@ -837,6 +895,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotPollMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotPollMetaDataResolver.class)
     public BotPollMetaDataResolver botPollMetaDataResolver() {
         return new BotPollMetaDataResolver();
     }
@@ -847,6 +906,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotPollAnswerMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotPollAnswerMetaDataResolver.class)
     public BotPollAnswerMetaDataResolver botPollAnswerMetaDataResolver() {
         return new BotPollAnswerMetaDataResolver();
     }
@@ -857,6 +917,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotMyChatMemberMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotMyChatMemberMetaDataResolver.class)
     public BotMyChatMemberMetaDataResolver botMyChatMemberMetaDataResolver() {
         return new BotMyChatMemberMetaDataResolver();
     }
@@ -867,6 +928,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotChatMemberUpdateMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotChatMemberUpdateMetaDataResolver.class)
     public BotChatMemberUpdateMetaDataResolver botChatMemberUpdateMetaDataResolver() {
         return new BotChatMemberUpdateMetaDataResolver();
     }
@@ -877,6 +939,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotChatJoinRequestMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotChatJoinRequestMetaDataResolver.class)
     public BotChatJoinRequestMetaDataResolver botChatJoinRequestMetaDataResolver() {
         return new BotChatJoinRequestMetaDataResolver();
     }
@@ -887,6 +950,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotBusinessConnectionMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotBusinessConnectionMetaDataResolver.class)
     public BotBusinessConnectionMetaDataResolver botBusinessConnectionMetaDataResolver() {
         return new BotBusinessConnectionMetaDataResolver();
     }
@@ -897,6 +961,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotBusinessMessageMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotBusinessMessageMetaDataResolver.class)
     public BotBusinessMessageMetaDataResolver botBusinessMessageMetaDataResolver() {
         return new BotBusinessMessageMetaDataResolver();
     }
@@ -907,6 +972,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotEditedBusinessMessageMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotEditedBusinessMessageMetaDataResolver.class)
     public BotEditedBusinessMessageMetaDataResolver botEditedBusinessMessageMetaDataResolver() {
         return new BotEditedBusinessMessageMetaDataResolver();
     }
@@ -917,6 +983,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotDeletedBusinessMessagesMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotDeletedBusinessMessagesMetaDataResolver.class)
     public BotDeletedBusinessMessagesMetaDataResolver botDeletedBusinessMessagesMetaDataResolver() {
         return new BotDeletedBusinessMessagesMetaDataResolver();
     }
@@ -927,6 +994,7 @@ public class CoreAutoConfiguration {
      * @return a new {@link BotPaidMediaPurchasedMetaDataResolver} instance
      */
     @Bean
+    @ConditionalOnMissingBean(BotPaidMediaPurchasedMetaDataResolver.class)
     public BotPaidMediaPurchasedMetaDataResolver botPaidMediaPurchasedMetaDataResolver() {
         return new BotPaidMediaPurchasedMetaDataResolver();
     }
@@ -1181,7 +1249,7 @@ public class CoreAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public BotConfigurer botConfigurer(
-            BotObjectMapperProvider botObjectMapperProvider,
+            EasygramObjectMapperProvider botObjectMapperProvider,
             EasygramUpdateProperties botUpdateProperties
     ) {
         return new BotConfigurer(botObjectMapperProvider.provide(), botUpdateProperties.transport());
@@ -1189,7 +1257,7 @@ public class CoreAutoConfiguration {
 
     /**
      * Registers a shared {@link ObjectMapper} for use in argument resolution, return type handling,
-     * and as the fallback value for {@link BotObjectMapperProvider}.
+     * and as the fallback value for {@link EasygramObjectMapperProvider}.
      *
      * @return a default {@link ObjectMapper} instance
      */
@@ -1204,37 +1272,37 @@ public class CoreAutoConfiguration {
     // -------------------------------------------------------------------------
 
     /**
-     * Default {@link BotObjectMapperProvider} that wraps the {@link ObjectMapper} already
+     * Default {@link EasygramObjectMapperProvider} that wraps the {@link ObjectMapper} already
      * present in the application context (either framework-provided or user-declared).
      *
      * <p>Override this bean to supply a fully customised mapper without having to configure any
      * transport-specific bean.</p>
      *
      * @param objectMapper the {@link ObjectMapper} to wrap
-     * @return a {@link BotObjectMapperProvider} backed by the given mapper
+     * @return a {@link EasygramObjectMapperProvider} backed by the given mapper
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotObjectMapperProvider botObjectMapperProvider(ObjectMapper objectMapper) {
+    public EasygramObjectMapperProvider botObjectMapperProvider(ObjectMapper objectMapper) {
         return () -> objectMapper;
     }
 
     /**
-     * {@link BotTelegramUrlProvider} driven by {@code easygram.telegram-url.*} properties.
+     * {@link EasygramTelegramUrlProvider} driven by {@code easygram.telegram-url.*} properties.
      *
      * <p>When {@code easygram.telegram-url.host} is set a {@link TelegramUrl} is built from the
      * configured {@code schema}, {@code host}, {@code port}, and {@code testServer} values.
      * Any field left blank keeps its default value from the {@link TelegramUrl} no-arg constructor.
      * When no host is configured the provider returns {@link TelegramUrl#DEFAULT_URL}.</p>
      *
-     * <p>Declare your own {@code @Bean BotTelegramUrlProvider} to override this entirely.</p>
+     * <p>Declare your own {@code @Bean EasygramTelegramUrlProvider} to override this entirely.</p>
      *
      * @param telegramUrlProperties optional URL properties from {@code easygram.telegram-url}
-     * @return a {@link BotTelegramUrlProvider} pointing at the configured or default URL
+     * @return a {@link EasygramTelegramUrlProvider} pointing at the configured or default URL
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotTelegramUrlProvider botTelegramUrlProvider(EasygramTelegramUrlProperties telegramUrlProperties) {
+    public EasygramTelegramUrlProvider botTelegramUrlProvider(EasygramTelegramUrlProperties telegramUrlProperties) {
         if (telegramUrlProperties.host() != null) {
             TelegramUrl url = new TelegramUrl();
             if (telegramUrlProperties.schema() != null) {
@@ -1253,36 +1321,59 @@ public class CoreAutoConfiguration {
     }
 
     /**
-     * Default {@link BotOkHttpClientProvider} backed by a plain {@link OkHttpClient} with
+     * Default {@link EasygramOkHttpClientProvider} backed by a plain {@link OkHttpClient} with
      * default settings.
      *
      * <p>Override this bean to set custom timeouts, interceptors, or TLS configuration.</p>
      *
-     * @return a {@link BotOkHttpClientProvider} backed by a default {@link OkHttpClient}
+     * @return a {@link EasygramOkHttpClientProvider} backed by a default {@link OkHttpClient}
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotOkHttpClientProvider botOkHttpClientProvider() {
+    public EasygramOkHttpClientProvider botOkHttpClientProvider() {
         OkHttpClient client = new OkHttpClient();
         return () -> client;
     }
 
     /**
-     * Default {@link BotExecutorServiceProvider} backed by a single-threaded executor.
+     * Default {@link EasygramExecutorServiceProvider} backed by a bounded thread pool
+     * with {@link ThreadPoolExecutor.CallerRunsPolicy} to provide natural backpressure.
      *
-     * <p>Override this bean to use a fixed or cached thread pool for update processing.</p>
+     * <p>The pool size is {@code max(2, availableProcessors())} so that every update is processed
+     * concurrently on multi-core hosts. Telegram delivers up to 100 updates per long-poll request;
+     * a single-threaded executor would serialize all of them and cap throughput to roughly
+     * {@code 1000 / handlerLatencyMs} updates per second.</p>
      *
-     * @return a {@link BotExecutorServiceProvider} backed by a single-threaded executor
+     * <p>The work queue is capped at 500 tasks. When the queue is full the polling thread
+     * itself processes the update ({@link ThreadPoolExecutor.CallerRunsPolicy}), preventing
+     * unbounded heap growth under sustained high load.</p>
+     *
+     * <p>Override this bean to supply a different {@link ExecutorService} — for example a virtual-
+     * thread executor on JDK 21+, or a pool with custom rejection policy.</p>
+     *
+     * @return a {@link EasygramExecutorServiceProvider} backed by a bounded thread pool
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotExecutorServiceProvider botExecutorServiceProvider() {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
+    public EasygramExecutorServiceProvider botExecutorServiceProvider() {
+        int poolSize = Math.max(2, Runtime.getRuntime().availableProcessors());
+        AtomicInteger counter = new AtomicInteger(1);
+        ExecutorService executor = new ThreadPoolExecutor(
+                poolSize,
+                poolSize,
+                0L, TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(500),
+                r -> {
+                    Thread t = new Thread(r, "easygram-update-" + counter.getAndIncrement());
+                    t.setDaemon(false);
+                    return t;
+                },
+                new ThreadPoolExecutor.CallerRunsPolicy());
         return () -> executor;
     }
 
     /**
-     * Default {@link BotTelegramClientProvider} that builds an
+     * Default {@link EasygramTelegramClientProvider} that builds an
      * {@link OkHttpTelegramClient} from the other provider beans.
      *
      * <p>Override this bean to supply a fully custom {@link org.telegram.telegrambots.meta.generics.TelegramClient}
@@ -1291,14 +1382,14 @@ public class CoreAutoConfiguration {
      * @param objectMapperProvider provider for the Jackson {@link ObjectMapper}
      * @param okHttpClientProvider provider for the underlying {@link OkHttpClient}
      * @param telegramUrlProvider  provider for the Telegram API base URL
-     * @return a {@link BotTelegramClientProvider} that constructs an {@link OkHttpTelegramClient}
+     * @return a {@link EasygramTelegramClientProvider} that constructs an {@link OkHttpTelegramClient}
      */
     @Bean
     @ConditionalOnMissingBean
-    public BotTelegramClientProvider botTelegramClientProvider(
-            BotObjectMapperProvider objectMapperProvider,
-            BotOkHttpClientProvider okHttpClientProvider,
-            BotTelegramUrlProvider telegramUrlProvider) {
+    public EasygramTelegramClientProvider botTelegramClientProvider(
+            EasygramObjectMapperProvider objectMapperProvider,
+            EasygramOkHttpClientProvider okHttpClientProvider,
+            EasygramTelegramUrlProvider telegramUrlProvider) {
         return botToken -> new OkHttpTelegramClient(
                 objectMapperProvider.provide(),
                 okHttpClientProvider.provide(),
@@ -1353,6 +1444,7 @@ public class CoreAutoConfiguration {
      * @return a {@link BotMarkupLoader}
      */
     @Bean
+    @ConditionalOnMissingBean(BotMarkupLoader.class)
     public BotMarkupLoader botMarkupLoader(ApplicationContext applicationContext,
                                            BotMarkupRegistry registry,
                                            BotMarkupFactory botMarkupFactory) {
@@ -1424,6 +1516,24 @@ public class CoreAutoConfiguration {
     @ConditionalOnMissingBean(BotPlainReplyReturnTypeHandler.class)
     public BotPlainReplyReturnTypeHandler botPlainReplyReturnTypeHandler(BotReplyActionChain replyActionChain) {
         return new BotPlainReplyReturnTypeHandler(replyActionChain);
+    }
+
+    /**
+     * Registers the startup validator that verifies the configured update transport is
+     * consistent — for example, that a broker consumer library is present when
+     * {@code KAFKA_CONSUMER} or {@code RABBIT_CONSUMER} is set.
+     *
+     * @param updateProperties  properties carrying the configured transport type
+     * @param applicationContext the Spring context used to verify broker consumer beans
+     * @return a new {@link BotTransportStartupValidator}
+     * @since 0.0.7
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public BotTransportStartupValidator botTransportStartupValidator(
+            EasygramUpdateProperties updateProperties,
+            ApplicationContext applicationContext) {
+        return new BotTransportStartupValidator(updateProperties, applicationContext);
     }
 }
 

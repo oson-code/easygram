@@ -1,0 +1,15 @@
+# Grafana dashboard provisioning — loads all JSON files from /etc/grafana/dashboards/
+# Mounted at /etc/grafana/provisioning/dashboards/ inside the Grafana container.
+
+apiVersion: 1
+
+providers:
+  - name: easygram
+    orgId: 1
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/dashboards
+      foldersFromFilesStructure: false

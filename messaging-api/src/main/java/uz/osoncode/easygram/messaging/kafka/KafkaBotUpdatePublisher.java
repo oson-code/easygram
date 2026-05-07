@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import uz.osoncode.easygram.messaging.BotUpdatePublisher;
-import uz.osoncode.easygram.messaging.kafka.provider.BotKafkaTemplateProvider;
+import uz.osoncode.easygram.messaging.kafka.provider.EasygramKafkaTemplateProvider;
 
 /**
  * {@link BotUpdatePublisher} implementation that publishes Telegram {@link Update} objects
@@ -28,7 +28,7 @@ public class KafkaBotUpdatePublisher implements BotUpdatePublisher {
     private final EasygramKafkaProperties properties;
     private final ObjectMapper objectMapper;
 
-    public KafkaBotUpdatePublisher(BotKafkaTemplateProvider templateProvider,
+    public KafkaBotUpdatePublisher(EasygramKafkaTemplateProvider templateProvider,
                                    EasygramKafkaProperties properties,
                                    ObjectMapper objectMapper) {
         this.kafkaTemplate = templateProvider.provide();

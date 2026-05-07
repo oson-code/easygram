@@ -25,6 +25,24 @@ import java.util.UUID;
  * determined from the incoming {@link BotRequest} (or an explicitly supplied
  * {@link Locale}), so the same handler code produces the correct language for every user.</p>
  *
+ * <h2>Activation</h2>
+ * <p>This bean is registered automatically by
+ * {@link uz.osoncode.easygram.core.i18n.autoconfigure.BotI18nAutoConfiguration}.
+ * You must set the following in your {@code application.yml}:</p>
+ * <pre>{@code
+ * easygram:
+ *   i18n:
+ *     enabled: true          # activates BotKeyboardFactory and all other i18n beans
+ *
+ * spring:
+ *   messages:
+ *     basename: messages/bot  # points to your message bundle files
+ * }</pre>
+ * <p>Without {@code easygram.i18n.enabled=true}, the entire {@code BotI18nAutoConfiguration}
+ * class is skipped and no i18n beans — including {@code BotKeyboardFactory} — will be present
+ * in the application context. Injecting this bean without the property set will cause a
+ * {@code NoSuchBeanDefinitionException} at startup.</p>
+ *
  * <h2>Inline keyboard (fluent builder)</h2>
  * <pre>{@code
  * InlineKeyboardMarkup keyboard = keyboardFactory.inline(request)
@@ -104,6 +122,7 @@ public class BotKeyboardFactory {
      * @return a fully-built {@link InlineKeyboardButton}
      */
     public InlineKeyboardButton inlineButton(String textCode, String callbackData, BotRequest request) {
+        Objects.requireNonNull(request, "request must not be null — use inlineButton(textCode, callbackData, Locale) if no request is available");
         return InlineKeyboardButton.builder()
                 .text(messageSource.getMessage(textCode, request))
                 .callbackData(callbackData)
@@ -148,6 +167,7 @@ public class BotKeyboardFactory {
      */
     public InlineKeyboardButton dynamicInlineButton(String textCode, BotDynamicCallbackData payload,
                                                     BotRequest request) {
+        Objects.requireNonNull(request, "request must not be null — use dynamicInlineButton(textCode, payload, Locale) if no request is available");
         return buildDynamicButton(textCode, payload, messageSource.getMessage(textCode, request));
     }
 
@@ -219,6 +239,7 @@ public class BotKeyboardFactory {
      * @return a new builder instance
      */
     public InlineKeyboardBuilder inline(BotRequest request) {
+        Objects.requireNonNull(request, "request must not be null — use inline(Locale) if no request is available");
         return new InlineKeyboardBuilder(request, null);
     }
 
@@ -246,6 +267,7 @@ public class BotKeyboardFactory {
      * @return a fully-built {@link KeyboardButton}
      */
     public KeyboardButton replyButton(String textCode, BotRequest request) {
+        Objects.requireNonNull(request, "request must not be null — use replyButton(textCode, Locale) if no request is available");
         return KeyboardButton.builder()
                 .text(messageSource.getMessage(textCode, request))
                 .build();
@@ -276,6 +298,7 @@ public class BotKeyboardFactory {
      * @return a new builder instance
      */
     public ReplyKeyboardBuilder reply(BotRequest request) {
+        Objects.requireNonNull(request, "request must not be null — use reply(Locale) if no request is available");
         return new ReplyKeyboardBuilder(request, null);
     }
 

@@ -1,13 +1,11 @@
 package uz.example.chatstate;
 
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.User;
 import uz.osoncode.easygram.core.stereotype.BotController;
 import uz.osoncode.easygram.core.chatstate.BotChatStateService;
 import uz.osoncode.easygram.core.bind.annotation.BotClearChatState;
 import uz.osoncode.easygram.core.bind.annotation.BotDefaultHandler;
 import uz.osoncode.easygram.core.bind.annotation.BotCommand;
-import uz.osoncode.easygram.core.model.BotRequest;
 
 /**
  * Global commands available at any point in the conversation.
@@ -73,10 +71,7 @@ public class GlobalCommandController {
      * Guides the user to relevant commands.
      */
     @BotDefaultHandler
-    public SendMessage onDefault(BotRequest request) {
-        return SendMessage.builder()
-                .chatId(request.getChat().getId())
-                .text("I didn't understand that. Use /register to start, /status to check progress, or /cancel to stop.")
-                .build();
+    public String onDefault() {
+        return "I didn't understand that. Use /register to start, /status to check progress, or /cancel to stop.";
     }
 }

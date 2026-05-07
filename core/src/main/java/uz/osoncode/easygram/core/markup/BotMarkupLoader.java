@@ -3,10 +3,12 @@ package uz.osoncode.easygram.core.markup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.util.StringUtils;
 import uz.osoncode.easygram.core.annotation.BotConfiguration;
 import uz.osoncode.easygram.core.annotation.BotMarkup;
 import uz.osoncode.easygram.core.chatstate.BotChatState;
@@ -60,6 +62,12 @@ public class BotMarkupLoader implements ApplicationRunner {
                 BotMarkup annotation = AnnotationUtils.findAnnotation(method, BotMarkup.class);
                 if (Objects.isNull(annotation)) {
                     continue;
+                }
+                if (!StringUtils.hasText(annotation.value())) {
+                    throw new BeanCreationException(
+                            "BotMarkupLoader",
+                            "@BotMarkup on method '" + targetClass.getName() + "#" + method.getName()
+                            + "' has a blank value. Provide a non-blank markup name.");
                 }
                 var factory = botMarkupFactory.create(bean, method);
                 markupRegistry.register(annotation.value(), factory);

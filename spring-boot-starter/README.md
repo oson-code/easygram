@@ -47,15 +47,15 @@ The starter pulls in every module transitively — you get all of these with the
 | Core Engine | `core` | Dispatching, filter pipeline, MDC tracing, argument/return-type handling |
 | Chat State | `core-chatstate` | `InMemoryBotChatStateService` |
 | i18n | `core-i18n` | `BotMessageSource`, `BotKeyboardFactory`, `Locale` injection |
-| Observability | `core-observability` | Micrometer metrics, health indicator, info endpoint |
 | Long-Polling | `longpolling` | `getUpdates` polling transport (default) |
 | Webhook | `webhook` | Spring MVC endpoint transport |
 | Messaging | `messaging-api` | Kafka + RabbitMQ publisher and consumer transports |
 
-**Optional runtime dependencies** (brought in by `messaging-api` but marked `optional` — add only what you use):
+**Optional runtime dependencies** (not pulled transitively — add only what you use):
 
 | Library | Required when | Notes |
 |---|---|---|
+| `uz.osoncode.easygram:core-observability` | Actuator health/info or Micrometer metrics | Health indicator, info contributor, `BotObservabilityFilter` |
 | `spring-boot-starter-web` | `webhook` transport | Required for the webhook MVC endpoint |
 | `spring-kafka` | `KAFKA_CONSUMER` transport or Kafka publisher | Kafka client + Spring Kafka |
 | `spring-boot-starter-amqp` | `RABBIT_CONSUMER` transport or RabbitMQ publisher | RabbitMQ client + Spring AMQP |

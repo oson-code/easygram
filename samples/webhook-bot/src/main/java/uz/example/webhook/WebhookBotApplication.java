@@ -2,10 +2,10 @@ package uz.example.webhook;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import uz.osoncode.easygram.core.provider.BotTelegramUrlProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramUrlProvider;
 
 /**
- * Sample webhook bot that demonstrates overriding the {@link BotTelegramUrlProvider}
+ * Sample webhook bot that demonstrates overriding the {@link EasygramTelegramUrlProvider}
  * to point the bot at a custom (local) Bot API server.
  *
  * <p>Only the provider beans you actually need to customise must be declared.

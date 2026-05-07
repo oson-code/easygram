@@ -75,7 +75,6 @@ block. Override any value in your `.env` file.
 |---|---|---|
 | `easygram.token` | *(required)* | Bot API token from @BotFather |
 | `easygram.update.transport` | `LONG_POLLING` | Update source: `LONG_POLLING` or `WEBHOOK` |
-| `easygram.messaging.type` | `PRODUCER` | Broker role |
 | `easygram.messaging.forward-only` | `true` | Skip local handlers |
 | `easygram.messaging.producer.type` | `KAFKA` | Broker backend |
 | `easygram.messaging.kafka.topic` | `easygram-updates` | Target Kafka topic |
@@ -87,7 +86,6 @@ block. Override any value in your `.env` file.
 |---|---|---|
 | `easygram.token` | *(required)* | Bot API token from @BotFather |
 | `easygram.update.transport` | `LONG_POLLING` | Update source |
-| `easygram.messaging.type` | `PRODUCER` | Broker role |
 | `easygram.messaging.forward-only` | `true` | Skip local handlers |
 | `easygram.messaging.producer.type` | `RABBIT` | Broker backend |
 | `easygram.messaging.rabbit.exchange` | `easygram-exchange` | Target exchange |

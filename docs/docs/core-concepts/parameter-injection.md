@@ -35,7 +35,7 @@ Every supported type can also be wrapped in `Optional<T>`. The framework resolve
 | `PreCheckoutQuery` | core | Pre-checkout query — only in `@BotPreCheckoutQuery` handlers |
 | `Poll` | core | Poll object — only in `@BotPoll` handlers |
 | `PollAnswer` | core | Poll answer — only in `@BotPollAnswer` handlers |
-| `ChatMemberUpdated` | core | Chat member update — only in `@BotMyChatMember` / `@BotChatMember` handlers |
+| `ChatMemberUpdated` | core | Chat member update — only in `@BotMyChatMember` / `@BotChatMemberUpdate` handlers |
 | `ChatJoinRequest` | core | Chat join request — only in `@BotChatJoinRequest` handlers |
 | `BusinessConnection` | core | Business connection — only in `@BotBusinessConnection` handlers |
 | `BusinessMessagesDeleted` | core | Deleted business messages — only in `@BotDeletedBusinessMessages` handlers |
@@ -325,9 +325,9 @@ public void onPollAnswer(PollAnswer answer) {
 }
 ```
 
-### ChatMemberUpdated (`@BotMyChatMember` / `@BotChatMember`)
+### ChatMemberUpdated (`@BotMyChatMember` / `@BotChatMemberUpdate`)
 
-Inject `ChatMemberUpdated` in handlers annotated with `@BotMyChatMember` or `@BotChatMember`.
+Inject `ChatMemberUpdated` in handlers annotated with `@BotMyChatMember` or `@BotChatMemberUpdate`.
 
 ```java
 @BotMyChatMember

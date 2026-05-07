@@ -12,15 +12,15 @@ import uz.osoncode.easygram.core.bot.EasygramProperties;
 import uz.osoncode.easygram.core.dispatcher.BotDispatcher;
 import uz.osoncode.easygram.core.exceptionhandler.BotExceptionHandlerRegistry;
 import uz.osoncode.easygram.core.filter.BotFilter;
-import uz.osoncode.easygram.core.provider.BotExecutorServiceProvider;
-import uz.osoncode.easygram.core.provider.BotObjectMapperProvider;
-import uz.osoncode.easygram.core.provider.BotOkHttpClientProvider;
-import uz.osoncode.easygram.core.provider.BotTelegramClientProvider;
-import uz.osoncode.easygram.core.provider.BotTelegramUrlProvider;
+import uz.osoncode.easygram.core.provider.EasygramExecutorServiceProvider;
+import uz.osoncode.easygram.core.provider.EasygramObjectMapperProvider;
+import uz.osoncode.easygram.core.provider.EasygramOkHttpClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramClientProvider;
+import uz.osoncode.easygram.core.provider.EasygramTelegramUrlProvider;
 import uz.osoncode.easygram.core.trigger.BotStartTrigger;
-import uz.osoncode.easygram.longpolling.provider.BotBackOffProvider;
-import uz.osoncode.easygram.longpolling.provider.BotGetUpdatesGeneratorProvider;
-import uz.osoncode.easygram.longpolling.provider.BotScheduledExecutorServiceProvider;
+import uz.osoncode.easygram.longpolling.provider.EasygramBackOffProvider;
+import uz.osoncode.easygram.longpolling.provider.EasygramGetUpdatesGeneratorProvider;
+import uz.osoncode.easygram.longpolling.provider.EasygramScheduledExecutorServiceProvider;
 
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
@@ -52,10 +52,10 @@ import java.util.function.Function;
 @Slf4j
 public class LongPollingBot extends Bot implements InitializingBean, DisposableBean {
 
-    private final BotObjectMapperProvider objectMapperProvider;
-    private final BotOkHttpClientProvider okHttpClientProvider;
-    private final BotTelegramUrlProvider telegramUrlProvider;
-    private final BotBackOffProvider backOffProvider;
+    private final EasygramObjectMapperProvider objectMapperProvider;
+    private final EasygramOkHttpClientProvider okHttpClientProvider;
+    private final EasygramTelegramUrlProvider telegramUrlProvider;
+    private final EasygramBackOffProvider backOffProvider;
     private final Function<Integer, GetUpdates> getUpdatesGenerator;
     private final EasygramProperties botProperties;
     private final ScheduledExecutorService scheduledExecutorService;
@@ -85,14 +85,14 @@ public class LongPollingBot extends Bot implements InitializingBean, DisposableB
             List<BotFilter> filters,
             BotDispatcher botDispatcher,
             BotExceptionHandlerRegistry botExceptionHandlerRegistry,
-            BotTelegramClientProvider telegramClientProvider,
-            BotExecutorServiceProvider executorServiceProvider,
-            BotObjectMapperProvider objectMapperProvider,
-            BotOkHttpClientProvider okHttpClientProvider,
-            BotTelegramUrlProvider telegramUrlProvider,
-            BotScheduledExecutorServiceProvider scheduledExecutorServiceProvider,
-            BotBackOffProvider backOffProvider,
-            BotGetUpdatesGeneratorProvider getUpdatesGeneratorProvider) {
+            EasygramTelegramClientProvider telegramClientProvider,
+            EasygramExecutorServiceProvider executorServiceProvider,
+            EasygramObjectMapperProvider objectMapperProvider,
+            EasygramOkHttpClientProvider okHttpClientProvider,
+            EasygramTelegramUrlProvider telegramUrlProvider,
+            EasygramScheduledExecutorServiceProvider scheduledExecutorServiceProvider,
+            EasygramBackOffProvider backOffProvider,
+            EasygramGetUpdatesGeneratorProvider getUpdatesGeneratorProvider) {
         super(
                 botProperties.token(),
                 triggers,
@@ -140,12 +140,17 @@ public class LongPollingBot extends Bot implements InitializingBean, DisposableB
      * Shuts down the bot and releases all associated resources.
      *
      * <p>Stops the active {@link BotSession}, then shuts down the main executor service and the
-     * scheduled executor service.</p>
+     * scheduled executor service. A failure during session stop is logged at WARN but does not
+     * prevent executor shutdown from proceeding.</p>
      */
     @Override
     public void destroy() {
         if (botSession != null) {
-            botSession.stop();
+            try {
+                botSession.stop();
+            } catch (Exception e) {
+                log.warn("Error stopping long-polling bot session", e);
+            }
         }
         executorService.shutdown();
         scheduledExecutorService.shutdown();

@@ -3,12 +3,12 @@ easygram:
   # Run with: BOT_TOKEN=<your-token> mvn spring-boot:run
   token: "${BOT_TOKEN}"
 
-  # Transport defaults to LONG_POLLING — no need to set it explicitly.
+  update:
+    # NONE — no automatic Telegram transport is started.
+    # LinkedListBotUpdatePublisher enqueues updates; LinkedListBotConsumer dequeues and dispatches them.
+    transport: NONE
 
   messaging:
-    # Declare this bot as a PRODUCER: it receives updates from Telegram and enqueues them.
-    type: PRODUCER
-
     # true  → enqueue ONLY; local @BotController handlers are skipped on the producer path.
     #         The LinkedListBotConsumer thread will dequeue and dispatch to handlers instead.
     # false → enqueue AND run local handlers directly (both paths active at the same time).
@@ -17,4 +17,22 @@ easygram:
 spring:
   application:
     name: linkedlist-bot
+
+management:
+  tracing:
+    # Sample every update so all trace trees appear in Tempo during the demo.
+    # Lower to 0.1 (10 %) in production.
+    sampling:
+      probability: 1.0
+
+  otlp:
+    tracing:
+      # Tempo listens for OTLP/HTTP on port 4318.  Start the stack first:
+      #   docker compose up -d   (see docker-compose.yml)
+      endpoint: http://localhost:4318/v1/traces
+
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
 
