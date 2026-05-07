@@ -18,6 +18,13 @@ import uz.osoncode.easygram.core.provider.EasygramObjectMapperProvider;
  * {@link uz.osoncode.easygram.messaging.rabbit.EasygramRabbitProperties} and
  * {@link uz.osoncode.easygram.messaging.rabbit.provider.EasygramRabbitConnectionFactoryProvider}.</p>
  *
+ * <p><strong>Error handling policy:</strong> any exception during deserialization or processing
+ * is logged (including the full stack trace) and then <em>silently dropped</em> — the message
+ * is always ACK'd. Re-throwing the exception would cause the AMQP container to NACK and requeue
+ * the message, which for permanent failures (e.g. a Telegram 4xx rejection) creates an infinite
+ * requeue loop. If you need dead-letter routing for failed messages, configure a Dead-Letter
+ * Exchange (DLX) on the broker side.</p>
+ *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
@@ -34,13 +41,13 @@ public class RabbitBotUpdateListener implements MessageListener {
      * {@link RabbitConsumerBot#handleUpdate(Update)}.
      *
      * <p><strong>Error handling:</strong> any exception during deserialization or processing is
-     * logged and then rethrown so that the
-     * {@link org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer} can apply
-     * its configured error handler (nack, DLQ routing, etc.) instead of silently auto-acking a
-     * failed message and losing it permanently.</p>
+     * logged with the full stack trace, and then <strong>silently dropped</strong> — the message
+     * is always ACK'd. Re-throwing would cause the AMQP container to NACK and requeue the
+     * same message, which for permanent failures (e.g. a Telegram 4xx rejection or a
+     * malformed JSON payload) creates an infinite requeue loop. To route failed messages to
+     * a dead-letter queue, configure a Dead-Letter Exchange (DLX) on the broker.</p>
      *
      * @param message the raw AMQP message from RabbitMQ
-     * @throws RuntimeException wrapping the original cause so the AMQP container error-handler fires
      */
     @Override
     public void onMessage(Message message) {
@@ -49,10 +56,10 @@ public class RabbitBotUpdateListener implements MessageListener {
             Update update = objectMapperProvider.provide().readValue(message.getBody(), Update.class);
             rabbitConsumerBot.handleUpdate(update);
         } catch (Exception e) {
-            log.error("Failed to process RabbitMQ message (message will be nacked/requeued): messageId={}",
+            log.error("[messageId={}] Failed to process RabbitMQ message — ACKing to prevent requeue loop; check the error above",
                     message.getMessageProperties().getMessageId(), e);
-            if (e instanceof RuntimeException re) throw re;
-            throw new RuntimeException("Failed to process RabbitMQ message", e);
+            // Do NOT rethrow — NACKing would requeue the same broken message indefinitely.
+            // Use a Dead-Letter Exchange on the broker if you need failed-message routing.
         }
     }
 }
