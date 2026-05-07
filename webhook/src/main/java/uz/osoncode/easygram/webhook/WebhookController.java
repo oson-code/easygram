@@ -2,6 +2,7 @@ package uz.osoncode.easygram.webhook;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,12 +31,18 @@ import java.util.Objects;
  * <p>Accepted updates are deserialized via {@link EasygramObjectMapperProvider} and forwarded to
  * {@link WebhookBot#handleUpdate(Update)} for processing.</p>
  *
+ * <p>This controller is only registered when
+ * {@code easygram.update.transport=WEBHOOK}. For any other transport value the controller
+ * is not instantiated, preventing autowire failures for {@link WebhookBot} which is likewise
+ * absent in non-webhook deployments.</p>
+ *
  * @author Islom Mirsaburov
  * @since 0.0.1
  */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "easygram.update", name = "transport", havingValue = "WEBHOOK")
 public class WebhookController {
 
     private final WebhookBot webhookBot;

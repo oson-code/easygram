@@ -15,8 +15,8 @@ easygram:
 
     producer:
       # Choose which broker to publish to: KAFKA | RABBIT
-      type: KAFKA
-#      type: RABBIT
+#      type: KAFKA
+      type: RABBIT
 
 # ── Spring Kafka (required when producer.type=KAFKA) ─────────────────────────
 spring:

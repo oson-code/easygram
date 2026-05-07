@@ -56,6 +56,12 @@ class WebhookAutoConfigurationTest {
     }
 
     @Test
+    void longPollingTransport_doesNotRegisterWebhookController() {
+        runner.withPropertyValues("easygram.update.transport=LONG_POLLING")
+                .run(context -> assertThat(context).doesNotHaveBean(WebhookController.class));
+    }
+
+    @Test
     void kafkaConsumerTransport_doesNotRegisterWebhookBot() {
         runner.withBean(BotTransportStartupValidator.class, () -> mock(BotTransportStartupValidator.class))
                 .withPropertyValues("easygram.update.transport=KAFKA_CONSUMER")
@@ -63,9 +69,22 @@ class WebhookAutoConfigurationTest {
     }
 
     @Test
+    void kafkaConsumerTransport_doesNotRegisterWebhookController() {
+        runner.withBean(BotTransportStartupValidator.class, () -> mock(BotTransportStartupValidator.class))
+                .withPropertyValues("easygram.update.transport=KAFKA_CONSUMER")
+                .run(context -> assertThat(context).doesNotHaveBean(WebhookController.class));
+    }
+
+    @Test
     void noneTransport_doesNotRegisterWebhookBot() {
         runner.withPropertyValues("easygram.update.transport=NONE")
                 .run(context -> assertThat(context).doesNotHaveBean(WebhookBot.class));
+    }
+
+    @Test
+    void noneTransport_doesNotRegisterWebhookController() {
+        runner.withPropertyValues("easygram.update.transport=NONE")
+                .run(context -> assertThat(context).doesNotHaveBean(WebhookController.class));
     }
 
     @Test
@@ -77,6 +96,17 @@ class WebhookAutoConfigurationTest {
                         WebhookAutoConfiguration.class
                 ))
                 .run(context -> assertThat(context).doesNotHaveBean(WebhookBot.class));
+    }
+
+    @Test
+    void noTransportProperty_doesNotRegisterWebhookController() {
+        new ApplicationContextRunner()
+                .withPropertyValues("easygram.token=" + BOT_TOKEN)
+                .withConfiguration(AutoConfigurations.of(
+                        CoreAutoConfiguration.class,
+                        WebhookAutoConfiguration.class
+                ))
+                .run(context -> assertThat(context).doesNotHaveBean(WebhookController.class));
     }
 
     @Test

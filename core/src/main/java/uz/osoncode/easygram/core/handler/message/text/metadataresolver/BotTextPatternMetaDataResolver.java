@@ -7,6 +7,7 @@ import uz.osoncode.easygram.core.model.BotRequest;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
