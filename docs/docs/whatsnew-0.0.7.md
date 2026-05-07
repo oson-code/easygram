@@ -210,7 +210,66 @@ public BotStartTrigger warmupTrigger() {
 
 ---
 
-## 6. Reliability Improvements
+## 6. Duplicate `@BotExceptionHandler` Detection at Startup
+
+Analogous to how routing handler duplicates were added in this release, Easygram now also
+detects duplicate `@BotExceptionHandler` registrations at startup.
+
+If two methods inside `@BotController` beans (or two inside `@BotControllerAdvice` beans)
+declare `@BotExceptionHandler` for the **same exception type** and the **same effective
+`@BotChatState`**, the application fails to start with a `BeanCreationException`:
+
+```
+Duplicate @BotExceptionHandler mapping detected for condition [java.lang.RuntimeException:state:]:
+  First  : OrderController#onRuntimeError
+  Second : PaymentController#onRuntimeErrorDuplicate
+Remove or rename one of the conflicting exception handler methods.
+```
+
+### What counts as a duplicate
+
+| Dimension | Must both match |
+|---|---|
+| Exception type | `RuntimeException`, `TelegramApiException`, etc. |
+| Effective `@BotChatState` | Both have no state, or both have the same state value(s) |
+
+### What is NOT a duplicate
+
+```java
+// ✅ Different @BotChatState — allowed
+@BotChatState("CHECKOUT")
+@BotExceptionHandler(ValidationException.class)
+public String onValidationInCheckout() { ... }
+
+@BotChatState("REGISTRATION")
+@BotExceptionHandler(ValidationException.class)
+public String onValidationInRegistration() { ... }
+
+// ✅ Controller vs @BotControllerAdvice — different priority groups, allowed
+@BotController
+public class MyController {
+    @BotExceptionHandler(Exception.class)
+    public String onError() { ... }       // controller-local handler
+}
+
+@BotControllerAdvice
+public class GlobalAdvice {
+    @BotExceptionHandler(Exception.class)
+    public String onGlobalError() { ... } // global advice handler — not a duplicate
+}
+```
+
+:::note Priority groups
+Duplicate detection is scoped within each priority group separately. A `@BotController` handler
+and a `@BotControllerAdvice` handler for the same exception type are intentionally allowed
+to coexist — the controller-local handler takes priority.
+:::
+
+📖 [Exception Handling — Startup Duplicate Detection](./core-concepts/exception-handling.md#startup-duplicate-detection)
+
+---
+
+## 7. Reliability Improvements
 
 These are internal changes with no API impact. They improve correctness and performance under
 concurrent load:
@@ -220,21 +279,40 @@ concurrent load:
 | **Thread-safe handler registry** | `BotHandlerRegistry` lists are now `CopyOnWriteArrayList`, preventing `ConcurrentModificationException` if handlers are iterated concurrently during hot reload |
 | **Bounded regex cache** | `@BotTextPattern` compiled patterns are cached in an LRU map capped at 512 entries, preventing unbounded heap growth when many unique patterns are dynamically generated |
 | **Stable exception handler tiebreak** | When multiple `@BotExceptionHandler` methods have equal `@BotOrder`, the winner is now deterministic (sorted by canonical class name) — no more non-deterministic handler selection across restarts |
-| **Error propagation from sender** | `BotApiMethodsSenderFilter` no longer silently swallows Telegram API send failures — exceptions now reach your `@BotExceptionHandler` methods |
+| **Telegram send error classification** | `BotApiMethodsSenderFilter` classifies Telegram API errors: **4xx (permanent)** are logged and suppressed; **5xx / network errors** are logged and re-thrown to your `@BotExceptionHandler` methods |
+| **RabbitMQ ACK-always policy** | `RabbitBotUpdateListener` always ACKs messages regardless of processing outcome — prevents infinite requeue loops on permanent failures |
 
-### Error propagation: what to do
+### Telegram send error classification
 
-The sender-filter change means Telegram send failures (e.g., rate limits, chat not found) are
-now visible. If you do not have an appropriate exception handler, these will surface as
-`IllegalStateException` from the dispatcher. Add a handler for `TelegramApiException`:
+`BotApiMethodsSenderFilter` distinguishes between retryable and non-retryable Telegram API
+errors:
+
+- **4xx (client errors — e.g. `400 Bad Request`, `403 Forbidden`, `404 Not Found`)** —
+  logged as `ERROR` and **suppressed**. These are permanent: resending the same payload to
+  Telegram will never succeed. Re-throwing would cause broker transports (RabbitMQ, Kafka)
+  to enter an infinite requeue loop. Fix the message payload in your handler instead.
+- **5xx / network errors** — logged as `ERROR` and **re-thrown** so your
+  `@BotExceptionHandler` methods can apply retry or alert logic.
 
 ```java
+// Only 5xx and network errors reach this handler — 4xx are already suppressed
 @BotExceptionHandler(TelegramApiException.class)
 public void onTelegramError(TelegramApiException e) {
-    log.error("Telegram API error: {}", e.getMessage());
-    // optionally retry, or alert
+    log.error("Transient Telegram API error (5xx or network): {}", e.getMessage());
+    // optionally trigger an alert or schedule a retry
 }
 ```
+
+### RabbitMQ consumer: ACK-always policy
+
+When using the `RABBIT_CONSUMER` transport, `RabbitBotUpdateListener` always ACKs the AMQP
+message after processing — even if an exception occurred. This prevents a broken message
+(e.g., malformed JSON or a Telegram 4xx rejection) from being requeued indefinitely.
+
+If you need dead-letter routing for failed messages, configure a **Dead-Letter Exchange (DLX)**
+on the broker side.
+
+📖 [RabbitMQ Consumer — Error Handling & Reliability](./transports/rabbitmq-consumer-guide.md#error-handling--reliability)
 
 ---
 

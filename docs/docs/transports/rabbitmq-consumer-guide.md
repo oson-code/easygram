@@ -174,6 +174,84 @@ BOT_TOKEN="your_token" docker compose up
 
 Open the RabbitMQ Management UI at [http://localhost:15672](http://localhost:15672) (user: `rabbit`, password: `rabbit`) to inspect exchanges, queues, and message rates.
 
+## Error Handling & Reliability {#error-handling--reliability}
+
+### ACK-always policy (no infinite requeue loops)
+
+`RabbitBotUpdateListener` always **ACKs** every AMQP message, regardless of whether
+processing succeeded or failed. This is intentional:
+
+- If a Telegram API call fails with a **4xx error** (e.g. `400 Bad Request: can't parse
+  entities`), resending the same message payload will never succeed. Re-throwing the
+  exception would cause the AMQP container to NACK and requeue the same broken message
+  indefinitely — a poison-message loop.
+- If a message has **malformed JSON** or causes any other exception during deserialization or
+  dispatch, the same infinite-requeue problem applies.
+
+The failed message is logged at `ERROR` level with the full stack trace and then dropped:
+
+```
+ERROR [botRabbitListenerContainer-1] — [messageId=263056385] Failed to process RabbitMQ message
+  — ACKing to prevent requeue loop; check the error above
+```
+
+### Dead-Letter Exchange (DLX) for failed-message routing
+
+If you need to inspect or replay failed messages instead of dropping them, configure a
+Dead-Letter Exchange on the RabbitMQ broker. When the consumer ACKs a message after a
+processing error, you cannot retroactively route it to a DLX — but you can set up DLX
+**before** the consumer starts:
+
+```yaml
+# Declare DLX bindings via RabbitMQ Management or at application startup
+# Example: route failed messages from easygram-updates to easygram-dlx
+easygram:
+  messaging:
+    rabbit:
+      exchange: easygram-exchange
+      queue: easygram-updates       # set x-dead-letter-exchange on this queue in broker config
+      routing-key: easygram.updates
+      create-if-absent: true
+```
+
+Configure the DLX on the broker:
+```bash
+# Using rabbitmqadmin or management UI:
+rabbitmqadmin declare queue name=easygram-updates \
+  arguments='{"x-dead-letter-exchange":"easygram-dlx","x-dead-letter-routing-key":"failed"}'
+```
+
+:::info Why ACK-always instead of DLX-on-nack
+For Telegram bots, the most common failures are permanent (bad parse mode, forbidden,
+chat not found). Automatic requeue would cause the same message to be retried thousands of
+times per second. ACK-always with an explicit DLX is the correct pattern: you get visibility
+into failed messages without the poison-message loop.
+:::
+
+### 4xx Telegram errors: suppressed at the sender layer
+
+`BotApiMethodsSenderFilter` (the built-in filter that calls the Telegram API) classifies
+Telegram errors before they can reach the AMQP layer:
+
+| Error type | Behavior |
+|---|---|
+| **4xx (400–499)** | Logged as `ERROR`, **suppressed** — not propagated to exception handlers |
+| **5xx / network errors** | Logged as `ERROR`, **re-thrown** — reaches your `@BotExceptionHandler` |
+
+This means a `400 Bad Request: can't parse entities` error is silently dropped (after
+logging) and the message is ACKed normally. Only transient 5xx or network errors are
+surfaced to your exception handlers:
+
+```java
+// Receives 5xx and network errors only — 4xx are suppressed before this runs
+@BotExceptionHandler(TelegramApiException.class)
+public void onTelegramError(TelegramApiException e) {
+    log.error("Transient Telegram error: {}", e.getMessage());
+}
+```
+
+---
+
 ## Use Cases
 
 | Use case | Pattern |

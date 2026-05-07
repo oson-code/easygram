@@ -220,6 +220,69 @@ public class GlobalHandlers {
 }
 ```
 
+## Startup Duplicate Detection {#startup-duplicate-detection}
+
+Easygram detects duplicate `@BotExceptionHandler` registrations at application startup,
+analogous to how `BotHandlerLoader` detects duplicate routing handler mappings.
+
+If two methods inside `@BotController` beans — or two methods inside `@BotControllerAdvice`
+beans — declare `@BotExceptionHandler` for the **same exception type** and the **same
+effective `@BotChatState`**, the application fails to start with a `BeanCreationException`:
+
+```
+Duplicate @BotExceptionHandler mapping detected for condition [java.lang.RuntimeException:state:]:
+  First  : OrderController#onRuntimeError
+  Second : PaymentController#onRuntimeErrorDuplicate
+Remove or rename one of the conflicting exception handler methods.
+```
+
+### Duplicate key formula
+
+The conflict key is: `exceptionType.getName() + ":state:" + sortedChatStateValues`
+
+Two handlers are duplicates when **both** of the following are identical:
+
+| Dimension | Description |
+|---|---|
+| Exception type | The fully-qualified exception class name |
+| Effective `@BotChatState` | Method-level annotation takes precedence over class-level; no annotation = empty state |
+
+### What is NOT a duplicate
+
+```java
+// ✅ Different @BotChatState — different keys, allowed
+@BotChatState("CHECKOUT")
+@BotExceptionHandler(ValidationException.class)
+public String onValidationInCheckout() { ... }
+
+@BotChatState("REGISTRATION")
+@BotExceptionHandler(ValidationException.class)
+public String onValidationInRegistration() { ... }
+
+// ✅ @BotController vs @BotControllerAdvice — separate priority groups, allowed
+@BotController
+public class OrderController {
+    @BotExceptionHandler(Exception.class)   // controller-local, priority 0
+    public String onLocalError() { ... }
+}
+
+@BotControllerAdvice
+public class GlobalAdvice {
+    @BotExceptionHandler(Exception.class)   // global advice, priority 1 — not a duplicate
+    public String onGlobalError() { ... }
+}
+```
+
+### Resolving a duplicate
+
+1. **Accidental duplicate** — remove or rename one of the conflicting methods.
+2. **Intentional per-state split** — add distinct `@BotChatState` to each method so they
+   have different keys.
+3. **Global vs local** — move one handler to `@BotControllerAdvice`; controller-local
+   handlers take priority over advice handlers for the same exception.
+
+---
+
 ## Markup in Exception Handlers
 
 `@BotExceptionHandler` methods participate in the full markup pipeline — the same
